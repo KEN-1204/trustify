@@ -46,10 +46,10 @@ export function normalizeAddress(address: string) {
 
   // 🔹1. 正規化
   // 全角英数字と全角記号の両方を半角に変換([０-９Ａ-Ｚａ-ｚ]を含む) *1
-  address = address.replace(/[\uFF01-\uFF5E]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0));
+  address = address.replace(/[\uFF01-\uFF5E]/gu, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0));
 
   // 全角ハイフンと全角スペースを半角に変換(長音「ー」はそのまま残す) *3
-  address = address.replace(/[－−]/g, "-").replace(/\u3000/g, " ");
+  address = address.replace(/[－−]/g, "-").replace(/\u3000/gu, " ");
 
   // 連続するスペースを1つに正規化
   address = address.replace(/[\s+]/g, " "); // 全角スペースを半角に変換後、連続するスペースを１つの半角スペースに正規化 (\s: すべての空白文字（半角スペース、タブ、改行など(全角スペースは含まない))
@@ -89,37 +89,37 @@ export function normalizeAddress(address: string) {
     if (!cityMatch) throw new Error("市区町村が見つかりませんでした。");
     addressElements.city = cityMatch[1]; // 0はマッチ全体の文字列で 1はキャプチャグループでマッチした１つ目の文字
 
-    // 🔸地名・町名の抽出 (番地の数字までを抜き出し)
-    const extractTownName = (address: string, city: string) => {
-      // prefectureとcityの後の地名を抽出する正規表現を動的に生成
-      // const regex = new RegExp(`${prefecture}\\s*${city}\\s*(.*?)\\d`, "i");
-
-      // 空白文字を削除 '東京都 港区 芝浦 4-20-2 芝浦アイランド4F' => '東京都港区芝浦4-20-2芝浦アイランド4F'
-      const addressWithoutSpace = address.replace(/[\s\u3000]+/g, "");
-      // 市区町村の直後の地名の開始位置を取得 '東京都港区芝浦4-20-2芝浦アイランド4F' => '芝浦'の芝のindex: 5
-      const startIndex = addressWithoutSpace.indexOf(city) + city.length;
-      // 地名の終了位置を取得 (市区町村名以降の部分から起算して最初の数字の位置を探す)
-      const subStringFromCityEnd = addressWithoutSpace.substring(startIndex); // => '芝浦4-20-2芝浦アイランド4F'
-      // const relativeEndIndex = subStringFromCityEnd.search(/\d/); // 最初の数字の位置を探す(相対位置)
-      const relativeEndIndex = subStringFromCityEnd.search(/\d一二三四五六七八九十百千/); // 最初の数字の位置を探す(相対位置)
-
-      // 地名の終了位置を絶対位置に変換
-      const endIndex = startIndex + relativeEndIndex;
-
-      // 地名を抽出
-      const town = addressWithoutSpace.substring(startIndex, endIndex);
-
-      return town;
-    };
-
-    const { prefecture, city } = addressElements;
-    const townName = extractTownName(address, city);
-
-    if (!townName) throw new Error("地名が見つかりませんでした。");
-    addressElements.town = townName;
-
-    // 市区町村以下の情報を一括して扱う; 結城市大字七五三場六百四十五番地七 のように
+    // 🔸市区町村以下の情報を一括して扱う; 結城市大字七五三場六百四十五番地七 のように
     // 「丁目・番地(番)・号」が漢数字の場合、「町名(地名)」と「丁目・番地(番)・号」の境界を正確に特定するのが困難のため
+
+    // // 🔸地名・町名の抽出 (番地の数字までを抜き出し)
+    // const extractTownName = (address: string, city: string) => {
+    //   // prefectureとcityの後の地名を抽出する正規表現を動的に生成
+    //   // const regex = new RegExp(`${prefecture}\\s*${city}\\s*(.*?)\\d`, "i");
+
+    //   // 空白文字を削除 '東京都 港区 芝浦 4-20-2 芝浦アイランド4F' => '東京都港区芝浦4-20-2芝浦アイランド4F'
+    //   const addressWithoutSpace = address.replace(/[\s\u3000]+/g, "");
+    //   // 市区町村の直後の地名の開始位置を取得 '東京都港区芝浦4-20-2芝浦アイランド4F' => '芝浦'の芝のindex: 5
+    //   const startIndex = addressWithoutSpace.indexOf(city) + city.length;
+    //   // 地名の終了位置を取得 (市区町村名以降の部分から起算して最初の数字の位置を探す)
+    //   const subStringFromCityEnd = addressWithoutSpace.substring(startIndex); // => '芝浦4-20-2芝浦アイランド4F'
+    //   // const relativeEndIndex = subStringFromCityEnd.search(/\d/); // 最初の数字の位置を探す(相対位置)
+    //   const relativeEndIndex = subStringFromCityEnd.search(/\d一二三四五六七八九十百千/); // 最初の数字の位置を探す(相対位置)
+
+    //   // 地名の終了位置を絶対位置に変換
+    //   const endIndex = startIndex + relativeEndIndex;
+
+    //   // 地名を抽出
+    //   const town = addressWithoutSpace.substring(startIndex, endIndex);
+
+    //   return town;
+    // };
+
+    // const { prefecture, city } = addressElements;
+    // const townName = extractTownName(address, city);
+
+    // if (!townName) throw new Error("地名が見つかりませんでした。");
+    // addressElements.town = townName;
 
     // // 🔸丁目・番地・号の抽出(番地・号はオプショナル)
     // const extractBlockName = (address: string, town: string) => {

@@ -19,6 +19,7 @@ import { ImInfo } from "react-icons/im";
 import { Towns } from "@/types";
 import { RegionNameJpType, regionsNameToIdMapJp } from "@/utils/selectOptions";
 import { regionNameToIdMapCitiesJp } from "@/utils/Helpers/AddressHelpers/citiesOptions";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 const ProviderImportModalMemo = () => {
   const language = useStore((state) => state.language);
@@ -427,6 +428,23 @@ const ProviderImportModalMemo = () => {
 
   const [isConfirmInsertModal, setIsConfirmInsertModal] = useState(false);
   const [isLoadingTransforming, setIsLoadingTransforming] = useState(false);
+  type UploadTownsCsvType = {
+    region_name: string;
+    city_name: string;
+    postal_code: string;
+    town_name_ja: string;
+    town_name_kana: string;
+  };
+  type InsertTownType = Omit<Towns, "town_id" | "created_at" | "updated_at">;
+  type TownDetail = { region_name: string; city_name: string; town_name_ja: string; town_name_kana: string };
+  const [transformedInsertTownsData, setTransformedInsertTownsData] = useState<
+    | (InsertTownType & {
+        region_name: string;
+        city_name: string;
+      })[]
+    | null
+  >(null);
+
   // 前処理実行してインサート内容を確認モーダルを開く
   const startTransformData = () => {
     setIsLoadingTransforming(true);
@@ -434,127 +452,115 @@ const ProviderImportModalMemo = () => {
     try {
       // 町域テーブル
       if (insertTableType === "towns") {
-        type UploadTownsCsvType = {
-          region_name: string;
-          city_name: string;
-          postal_code: string;
-          town_name_ja: string;
-          town_name_kana: string;
-        };
-        type InsertTownType = Omit<Towns, "town_id" | "created_at" | "updated_at">;
-        type TownDetail = { region_name: string; city_name: string; town_name_ja: string; town_name_kana: string };
+        // 🔸まずは一旦同じ郵便番号を持つ行データが１つの町域のデータかどうかを確認する
+        // const filterDataByMultipleEntries = (data: UploadTownsCsvType[]) => {
+        //   console.log("------------------------------------------");
+        //   performance.mark("Filter_Start"); // 開始点
+        //   const startTime = performance.now(); // 開始時間
 
-        // まずは一旦同じ郵便番号を持つ行データが１つの町域のデータかどうかを確認する
-        const filterDataByMultipleEntries = (data: UploadTownsCsvType[]) => {
-          console.log("------------------------------------------");
-          performance.mark("Filter_Start"); // 開始点
-          const startTime = performance.now(); // 開始時間
+        //   const postalCodeMap = new Map<string, TownDetail[]>();
 
-          const postalCodeMap = new Map<string, TownDetail[]>();
+        //   data.forEach((item) => {
+        //     const { postal_code, ...townDetail } = item;
+        //     if (postalCodeMap.has(postal_code)) {
+        //       postalCodeMap.get(postal_code)!.push(townDetail);
+        //     } else {
+        //       postalCodeMap.set(postal_code, [townDetail]);
+        //     }
+        //   });
 
-          data.forEach((item) => {
-            const { postal_code, ...townDetail } = item;
-            if (postalCodeMap.has(postal_code)) {
-              postalCodeMap.get(postal_code)!.push(townDetail);
-            } else {
-              postalCodeMap.set(postal_code, [townDetail]);
-            }
-          });
+        //   // Filter entries with multiple town details
+        //   const filteredMap = new Map<string, TownDetail[]>();
+        //   postalCodeMap.forEach((details, postalCode) => {
+        //     if (details.length > 1) {
+        //       filteredMap.set(postalCode, details);
+        //     }
+        //   });
 
-          // Filter entries with multiple town details
-          const filteredMap = new Map<string, TownDetail[]>();
-          postalCodeMap.forEach((details, postalCode) => {
-            if (details.length > 1) {
-              filteredMap.set(postalCode, details);
-            }
-          });
+        //   // 同じ郵便番号でグループ化された町域名データを走査し、開き括弧「（」で始まり閉じ括弧「）」で終わらない行を検出します。次に、その行から閉じ括弧が現れるまでの全ての行を連結し、一つの町域名として処理します。この処理をすべての郵便番号に対して適用することで、必要な町域情報のみを正確に統合できます。
 
-          // 同じ郵便番号でグループ化された町域名データを走査し、開き括弧「（」で始まり閉じ括弧「）」で終わらない行を検出します。次に、その行から閉じ括弧が現れるまでの全ての行を連結し、一つの町域名として処理します。この処理をすべての郵便番号に対して適用することで、必要な町域情報のみを正確に統合できます。
+        //   // 同じ郵便番号に対する町域データを整形する関数
+        //   const consolidateTownDetails = (
+        //     townDetails: TownDetail[]
+        //   ): { consolidatedDetails: TownDetail[]; consolidatedDetailsOnly: TownDetail[] } => {
+        //     let newDetails: TownDetail[] = [];
+        //     let consolidatedDetailsArrayOnly: TownDetail[] = [];
+        //     let consolidatedDetail = "";
+        //     let consolidatedDetailKana = "";
+        //     let isOpen = false; // 括弧が開いているかのフラグ
 
-          // 同じ郵便番号に対する町域データを整形する関数
-          const consolidateTownDetails = (
-            townDetails: TownDetail[]
-          ): { consolidatedDetails: TownDetail[]; consolidatedDetailsOnly: TownDetail[] } => {
-            let newDetails: TownDetail[] = [];
-            let consolidatedDetailsArrayOnly: TownDetail[] = [];
-            let consolidatedDetail = "";
-            let consolidatedDetailKana = "";
-            let isOpen = false; // 括弧が開いているかのフラグ
+        //     townDetails.forEach((detail) => {
+        //       const { town_name_ja, town_name_kana } = detail;
+        //       if (town_name_ja.includes("（") && !town_name_ja.includes("）")) {
+        //         // 括弧が開始され、閉じられていない行
+        //         consolidatedDetail += town_name_ja;
+        //         consolidatedDetailKana += town_name_kana;
+        //         isOpen = true;
+        //       } else if (isOpen && !town_name_ja.includes("）")) {
+        //         // 開始された括弧が閉じられていない間の行を連結
+        //         consolidatedDetail += town_name_ja;
+        //         consolidatedDetailKana += town_name_kana;
+        //       } else if (isOpen && town_name_ja.includes("）")) {
+        //         // 開始された括弧が閉じられる行
+        //         consolidatedDetail += town_name_ja;
+        //         consolidatedDetailKana += town_name_kana;
+        //         // 閉じられたタイミングでpush
+        //         const newDetail = {
+        //           ...detail,
+        //           town_name_ja: consolidatedDetail,
+        //           town_name_kana: consolidatedDetailKana,
+        //         } as TownDetail;
+        //         newDetails.push(newDetail);
+        //         consolidatedDetailsArrayOnly.push(newDetail);
+        //         // リセット
+        //         consolidatedDetail = "";
+        //         consolidatedDetailKana = "";
+        //         isOpen = false;
+        //       } else if (!isOpen) {
+        //         // 単独で完結している町域名
+        //         // consolidatedDetail += (consolidatedDetail ? " " : "") + town_name_ja;
+        //         newDetails.push(detail);
+        //       }
+        //     });
 
-            townDetails.forEach((detail) => {
-              const { town_name_ja, town_name_kana } = detail;
-              if (town_name_ja.includes("（") && !town_name_ja.includes("）")) {
-                // 括弧が開始され、閉じられていない行
-                consolidatedDetail += town_name_ja;
-                consolidatedDetailKana += town_name_kana;
-                isOpen = true;
-              } else if (isOpen && !town_name_ja.includes("）")) {
-                // 開始された括弧が閉じられていない間の行を連結
-                consolidatedDetail += town_name_ja;
-                consolidatedDetailKana += town_name_kana;
-              } else if (isOpen && town_name_ja.includes("）")) {
-                // 開始された括弧が閉じられる行
-                consolidatedDetail += town_name_ja;
-                consolidatedDetailKana += town_name_kana;
-                // 閉じられたタイミングでpush
-                const newDetail = {
-                  ...detail,
-                  town_name_ja: consolidatedDetail,
-                  town_name_kana: consolidatedDetailKana,
-                } as TownDetail;
-                newDetails.push(newDetail);
-                consolidatedDetailsArrayOnly.push(newDetail);
-                // リセット
-                consolidatedDetail = "";
-                consolidatedDetailKana = "";
-                isOpen = false;
-              } else if (!isOpen) {
-                // 単独で完結している町域名
-                // consolidatedDetail += (consolidatedDetail ? " " : "") + town_name_ja;
-                newDetails.push(detail);
-              }
-            });
+        //     // return consolidatedDetail;
+        //     return { consolidatedDetails: newDetails, consolidatedDetailsOnly: consolidatedDetailsArrayOnly };
+        //   };
 
-            // return consolidatedDetail;
-            return { consolidatedDetails: newDetails, consolidatedDetailsOnly: consolidatedDetailsArrayOnly };
-          };
+        //   // 新たな処理後の同じ郵便番号を持つ町域グループ
+        //   const consolidatedMap = new Map();
+        //   const consolidatedMapOnly = new Map();
+        //   // 郵便番号ごとにフィルタリングされたMapから町域名を統合
+        //   filteredMap.forEach((details, postalCode) => {
+        //     const { consolidatedDetails, consolidatedDetailsOnly } = consolidateTownDetails(details);
+        //     consolidatedMap.set(postalCode, consolidatedDetails);
+        //     if (0 < consolidatedDetailsOnly.length) {
+        //       consolidatedMapOnly.set(postalCode, consolidatedDetailsOnly);
+        //     }
+        //     // console.log(`Postal Code: ${postalCode}, Consolidated Details: ${consolidatedDetails}`);
+        //   });
 
-          // 新たな処理後の同じ郵便番号を持つ町域グループ
-          const consolidatedMap = new Map();
-          const consolidatedMapOnly = new Map();
-          // 郵便番号ごとにフィルタリングされたMapから町域名を統合
-          filteredMap.forEach((details, postalCode) => {
-            const { consolidatedDetails, consolidatedDetailsOnly } = consolidateTownDetails(details);
-            consolidatedMap.set(postalCode, consolidatedDetails);
-            if (0 < consolidatedDetailsOnly.length) {
-              consolidatedMapOnly.set(postalCode, consolidatedDetailsOnly);
-            }
-            // console.log(`Postal Code: ${postalCode}, Consolidated Details: ${consolidatedDetails}`);
-          });
+        //   performance.mark("Filter_End"); // 開始点
+        //   performance.measure("Filter_Time", "Filter_Start", "Filter_End"); // 計測
+        //   console.log("Measure Time: ", performance.getEntriesByName("Filter_Time")[0].duration);
+        //   performance.clearMarks();
+        //   performance.clearMeasures("Filter_Time");
+        //   const endTime = performance.now(); // 終了時間
+        //   console.log("Time: ", endTime - startTime, "ms");
+        //   console.log(
+        //     "前処理完了✅ Result:",
+        //     "統合後",
+        //     consolidatedMap,
+        //     "統合した町域のみ",
+        //     consolidatedMapOnly,
+        //     "統合前",
+        //     filteredMap
+        //   );
+        //   console.log("------------------------------------------");
 
-          performance.mark("Filter_End"); // 開始点
-          performance.measure("Filter_Time", "Filter_Start", "Filter_End"); // 計測
-          console.log("Measure Time: ", performance.getEntriesByName("Filter_Time")[0].duration);
-          performance.clearMarks();
-          performance.clearMeasures("Filter_Time");
-          const endTime = performance.now(); // 終了時間
-          console.log("Time: ", endTime - startTime, "ms");
-          console.log(
-            "前処理完了✅ Result:",
-            "統合後",
-            consolidatedMap,
-            "統合した町域のみ",
-            consolidatedMapOnly,
-            "統合前",
-            filteredMap
-          );
-          console.log("------------------------------------------");
-
-          //   return filteredMap;
-          return consolidatedMap;
-        };
-
-        // const filteredData = filterDataByMultipleEntries(uploadedData as UploadTownsCsvType[]);
+        //   //   return filteredMap;
+        //   return consolidatedMap;
+        // };
 
         // 🌠パースした全ての行データに対して、町域テーブルにインサート可能な状態にデータを整形
 
@@ -564,34 +570,21 @@ const ProviderImportModalMemo = () => {
         // 4. town_name_jaの値から（...）の部分を除去して、正規化した値をnormalized_nameにセット
         // 5. postal_codeはそのままセット
 
-        // 1. region_nameから都道府県コードregion_idに変換する関数
-        const convertRegionNameToId = (regionName: string) => {
-          if (regionsNameToIdMapJp.has(regionName)) {
-            return regionsNameToIdMapJp.get(regionName)!;
-          } else {
-            return null;
-          }
-        };
-
-        // 2. city_nameから市区町村コードcity_idに変換する関数
-        const convertCityNameToId = (cityName: string, cityMap: Map<string, number>) => {
-          if (cityMap.has(cityName)) {
-            return cityMap.get(cityName)!;
-          } else {
-            return null;
-          }
-        };
-
         // 🔸1~5の変換処理と町域名の統合を同時に行いインサート用リストを生成
         //   全行データから「町域（...」〜「...)」の複数行を「町域（...）」の一行に統合して新たなインサート用の町域リストを生成
         const transformCombinedDataByMultipleEntries = (
           uploadTownsData: UploadTownsCsvType[]
         ): {
-          transformedTownsData: InsertTownType[];
+          transformedTownsData: (InsertTownType & {
+            region_name: string;
+            city_name: string;
+          })[];
           combinedTownsDataArrayOnly: UploadTownsCsvType[];
           unfinishedRowCount: number;
           invalidRows: UploadTownsCsvType[];
           normalizedNamesArray: string[];
+          // onlyKakkoArray: { originalKakko: string; normalizedKakko: string }[];
+          // consolidatedKakkoArray: { originalKakko: string; normalizedKakko: string }[];
           //   combinedTownNamesOnly: string[];
           //   combinedTownNamesKanaOnly: string[];
         } => {
@@ -599,7 +592,10 @@ const ProviderImportModalMemo = () => {
           performance.mark("Filter_Start"); // 開始点
           const startTime = performance.now(); // 開始時間
 
-          const transformedTownsData: InsertTownType[] = [];
+          const transformedTownsData: (InsertTownType & {
+            region_name: string;
+            city_name: string;
+          })[] = [];
           const combinedTownsDataArrayOnly: UploadTownsCsvType[] = [];
           const invalidRows: UploadTownsCsvType[] = []; // 無効な行
           const normalizedNamesArray: string[] = [];
@@ -607,9 +603,11 @@ const ProviderImportModalMemo = () => {
           let consolidatedDetailKana = "";
           let isOpen = false; // 括弧が開いているかのフラグ
           let unfinishedRowCount = 0;
+          // const onlyKakkoArray: { originalKakko: string; normalizedKakko: string }[] = [];
+          // const consolidatedKakkoArray: { originalKakko: string; normalizedKakko: string }[] = [];
 
           uploadTownsData.forEach((townData) => {
-            const { town_name_ja, town_name_kana } = townData;
+            const { town_name_ja, town_name_kana, region_name, city_name, postal_code } = townData;
 
             if (town_name_ja.includes("（") && !town_name_ja.includes("）")) {
               unfinishedRowCount += 1;
@@ -625,27 +623,36 @@ const ProviderImportModalMemo = () => {
               consolidatedDetail += town_name_ja;
               consolidatedDetailKana += town_name_kana;
             } else if (isOpen && town_name_ja.includes("）")) {
+              // 🌠🌠開始された括弧が閉じられる行
               unfinishedRowCount += 1;
-              // 開始された括弧が閉じられる行
               consolidatedDetail += town_name_ja;
               consolidatedDetailKana += town_name_kana;
 
               // 閉じられたタイミングでpush
 
               // 2. 都道府県名からidを取得
-              const convertedRegionId = convertRegionNameToId(townData.region_name);
+              // const convertedRegionId = convertRegionNameToId(region_name);
+              const convertedRegionId = regionsNameToIdMapJp.get(region_name) ?? null;
               if (convertedRegionId !== null) {
                 // 取得した都道府県から対応する市区町村Mapオブジェクトを取り出して市区町村名からidを取得
-                const cityNameToIdMap = regionNameToIdMapCitiesJp[townData.region_name as RegionNameJpType];
+                const cityNameToIdMap = regionNameToIdMapCitiesJp[region_name as RegionNameJpType];
                 // 3. 市区町村idを取得
-                const convertedCityId = convertCityNameToId(townData.city_name, cityNameToIdMap);
+                // const convertedCityId = convertCityNameToId(city_name, cityNameToIdMap);
+                const convertedCityId = cityNameToIdMap.get(city_name) ?? null;
                 if (convertedCityId !== null) {
                   // 4. town_name_jaの値から（...）の部分を除去して、正規化した値をnormalized_nameにセット
                   // 「芝浦（１丁目）」 => 「芝浦」 「芝浦（２～４丁目）」 => 「芝浦」
                   //   const normalizedName = consolidatedDetail.split('(')[0];
                   // 正規表現を使用して、最初の括弧までのテキストを抽出
                   const match = consolidatedDetail.match(/^[^(^（]+/);
+                  // if (match) {
+                  //   const originalKakko = consolidatedDetail;
+                  //   const normalizedKakko = match[0];
+                  //   consolidatedKakkoArray.push({ normalizedKakko, originalKakko });
+                  // }
                   let normalizedName = match ? match[0].trim() : consolidatedDetail.trim();
+
+                  //
                   if (normalizedName.includes("の次に")) {
                     normalizedName = normalizedName.split("の次に")[0];
                   }
@@ -658,8 +665,13 @@ const ProviderImportModalMemo = () => {
                     city_id: convertedCityId, // 市区町村コード
                     town_name_en: null,
                     normalized_name: normalizedName,
-                    postal_code: townData.postal_code, // 郵便番号はそのまま格納
-                  } as InsertTownType;
+                    postal_code: postal_code, // 郵便番号はそのまま格納
+                    region_name: region_name,
+                    city_name: city_name,
+                  } as InsertTownType & {
+                    region_name: string;
+                    city_name: string;
+                  };
                   transformedTownsData.push(newTownData);
 
                   const combinedTownData = {
@@ -683,37 +695,105 @@ const ProviderImportModalMemo = () => {
               consolidatedDetailKana = "";
               isOpen = false;
             } else if (!isOpen) {
-              // 単独で完結している町域名
+              // 🌠🌠単独で完結している町域名
               //   transformedTownsData.push(townData);
 
               // 2. 都道府県名からidを取得
-              const convertedRegionId = convertRegionNameToId(townData.region_name);
+              // const convertedRegionId = convertRegionNameToId(region_name);
+              const convertedRegionId = regionsNameToIdMapJp.get(region_name) ?? null;
               if (convertedRegionId !== null) {
                 // 取得した都道府県から対応する市区町村Mapオブジェクトを取り出して市区町村名からidを取得
-                const cityNameToIdMap = regionNameToIdMapCitiesJp[townData.region_name as RegionNameJpType];
+                const cityNameToIdMap = regionNameToIdMapCitiesJp[region_name as RegionNameJpType];
                 // 3. 市区町村idを取得
-                const convertedCityId = convertCityNameToId(townData.city_name, cityNameToIdMap);
+                // const convertedCityId = convertCityNameToId(city_name, cityNameToIdMap);
+                const convertedCityId = cityNameToIdMap.get(city_name) ?? null;
                 if (convertedCityId !== null) {
-                  // 4. town_name_jaの値から（...）の部分を除去して、正規化した値をnormalized_nameにセット
+                  // 🔹normalized_name関連
+                  // 🔸4. town_name_jaの値から（...）の部分を除去して町域名を正規化
                   // 「芝浦（１丁目）」 => 「芝浦」 「芝浦（２～４丁目）」 => 「芝浦」
                   //   const normalizedName = consolidatedDetail.split('(')[0];
                   // 正規表現を使用して、最初の括弧までのテキストを抽出
+                  // /^[^(^（]+/: ここではキャプチャグループがないため、match[0] が全体のマッチを指します。つまり、括弧が現れる前のすべての文字にマッチし、その全体が match[0] に格納されます。
+
                   const match = townData.town_name_ja.match(/^[^(^（]+/);
+                  // if (match && !match[0].includes("（") && townData.town_name_ja.includes("（")) {
+                  //   const originalKakko = townData.town_name_ja;
+                  //   const normalizedKakko = match[0];
+                  //   onlyKakkoArray.push({ normalizedKakko, originalKakko });
+                  // }
                   let normalizedName = match ? match[0].trim() : townData.town_name_ja.trim();
+
+                  // // 🔸「の次に〜番地がくる場合」の前に町域名を正規化
+                  // // 「"小菅村の次に１～６６３番地がくる場合"」 => 「小菅村」
                   if (normalizedName.includes("の次に")) {
-                    normalizedName = normalizedName.split("の次に")[0];
+                    const originalTsugini = normalizedName;
+                    const normalizedTsugini = originalTsugini.split("の次に")[0];
+                    console.log("🔵「の次に」を正規化", "🔹前", originalTsugini, "🔹後", normalizedTsugini);
+                    normalizedName = normalizedTsugini;
+                  }
+
+                  // // 🔸地割が付いたパターンを正規化
+                  // 1. 「町域名 + 第〜地割」のパターン:
+                  //        「"種市第１地割～第３地割"」 => 「種市」
+                  //        「"種市第２２地割～第２３地割"」 => 「種市」
+                  // 2. 「町域名 + 〜地割」のパターン:
+                  //        「"湯田１９地割～湯田２１地割"」 => 「湯田」
+                  //        「"左草１地割～左草６地割"」 => 「左草」
+                  //        「"小繋沢５４地割～小繋沢５６地割"」 => 「小繋沢」
+                  if (normalizedName.includes("～") && normalizedName.includes("地割")) {
+                    // 「/^.../」で文字列の先頭から、
+                    // (.*?)非貪欲マッチングで最小限の文字列にマッチ
+                    // (?=\s*(?:第)?[\d０-９]+地割)で「第〜地割」か「〜地割」が直後に来る文字列にマッチ
+                    // (?=\s*(?:第)?\d+地割)で先読みアサーションで、キャプチャはしないが、マッチに指定
+                    // [\d０-９]+で半角全角数字1つ以上の繰り返しにマッチ
+
+                    const match = normalizedName.match(/^(.*?)(?=\s*(?:第)?[\d０-９]+地割)/u);
+                    if (match) {
+                      // キャプチャグループ (\p{Script=Han}+) があり、これがマッチした漢字部分を抽出します。match[1] はキャプチャグループにマッチした部分、つまり漢字部分を返します。
+                      const originalChiwari = normalizedName;
+                      const normalizedChiwari = match[1];
+                      console.log("🔴「〜地割」を正規化", "🔹前", originalChiwari, "🔹後", normalizedChiwari);
+                      normalizedName = normalizedChiwari; // matchがnullでなければマッチした部分を返し、そうでなければ元の名前を返す
+                      // normalizedName = match[1]; // matchがnullでなければマッチした部分を返し、そうでなければ元の名前を返す
+                    }
+                  }
+
+                  // 🔸山梨県北杜市 「(...)」の2段階で正規化
+                  // 「"大泉町西井出８２４０－１（美森、たかね荘、清泉寮、サンメドウズスキー場）"」
+                  // =>「"大泉町西井出８２４０－１"」
+                  // => 「大泉町西井出」
+                  if (normalizedName.includes("８２４０－１")) {
+                    const match = normalizedName.match(/^(.*?)(?=８２４０－１)/u);
+                    if (match) {
+                      const originalHyphen = normalizedName;
+                      const normalizedHyphen = match[1];
+                      console.log(
+                        "🟠「大泉町西井出８２４０－１」を正規化",
+                        "🔹前",
+                        originalHyphen,
+                        "🔹後",
+                        normalizedHyphen
+                      );
+                      normalizedName = normalizedHyphen; // matchがnullでなければマッチした部分を返し、そうでなければ元の名前を返す
+                      // normalizedName = match[1]; // matchがnullでなければマッチした部分を返し、そうでなければ元の名前を返す
+                    }
                   }
 
                   const newTownData = {
-                    town_name_ja: townData.town_name_ja,
-                    town_name_kana: townData.town_name_kana,
+                    town_name_ja: town_name_ja,
+                    town_name_en: null,
+                    town_name_kana: town_name_kana,
+                    normalized_name: normalizedName,
+                    city_name: city_name,
                     country_id: 153, // 日本
                     region_id: convertedRegionId,
                     city_id: convertedCityId,
-                    town_name_en: null,
-                    normalized_name: normalizedName,
-                    postal_code: townData.postal_code,
-                  } as InsertTownType;
+                    postal_code: postal_code,
+                    region_name: region_name,
+                  } as InsertTownType & {
+                    region_name: string;
+                    city_name: string;
+                  };
                   transformedTownsData.push(newTownData);
 
                   normalizedNamesArray.push(normalizedName);
@@ -751,6 +831,8 @@ const ProviderImportModalMemo = () => {
             unfinishedRowCount,
             invalidRows,
             normalizedNamesArray,
+            // onlyKakkoArray,
+            // consolidatedKakkoArray,
             // combinedTownNamesOnly,
             // combinedTownNamesKanaOnly,
           };
@@ -762,6 +844,8 @@ const ProviderImportModalMemo = () => {
           unfinishedRowCount,
           invalidRows,
           normalizedNamesArray,
+          // onlyKakkoArray,
+          // consolidatedKakkoArray,
           // combinedTownNamesOnly,
           // combinedTownNamesKanaOnly
         } = transformCombinedDataByMultipleEntries(uploadedData as UploadTownsCsvType[]);
@@ -783,23 +867,64 @@ const ProviderImportModalMemo = () => {
         〜(チルダ) => なし
         */
         const regexNotJaCharacter =
-          /[^a-zA-Z0-9ａ-ｚＡ-Ｚ０-９\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\uF900-\uFAFF\u2F800-\u2FA1F]/;
+          /[^a-zA-Z0-9ａ-ｚＡ-Ｚ０-９\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\uF900-\uFAFF\u2F800-\u2FA1F]/u;
         const isIncludedNotJaCharacter = regexNotJaCharacter.test(normalizedJoinedName);
 
         if (isIncludedNotJaCharacter) {
           const match = normalizedJoinedName.match(
-            /[^a-zA-Z0-9ａ-ｚＡ-Ｚ０-９\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\uF900-\uFAFF\u2F800-\u2FA1F]/g
+            /[^a-zA-Z0-9ａ-ｚＡ-Ｚ０-９\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\uF900-\uFAFF\u2F800-\u2FA1F]/gu
           );
 
           console.log("match: ", match);
           if (match) {
             console.log("非日本語文字: ", match.join(", "));
-            const containsTilde = normalizedNamesArray.filter((name) => name.includes("～"));
-            const containsBaai = normalizedNamesArray.filter((name) => name.includes("場合"));
+            const containsHyphen = normalizedNamesArray.filter((name) => name.includes("－"));
+            console.log("containsHyphen", containsHyphen);
+
+            // 🔹〜地割
+            const containsTilde = normalizedNamesArray.filter((name) => name.includes("～") && name.includes("地割"));
             console.log("チルダcontainsTilde", containsTilde);
+            // const formatTilde = (normalizedName: string) => {
+            //   let newName = normalizedName;
+            //   // 🔸地割が付いたパターンを正規化
+            //   // 1. 「町域名 + 第〜地割」のパターン: 「"種市第１地割～第３地割"」「"種市第２２地割～第２３地割"」 => 「種市」
+            //   // 2. 「町域名 + 〜地割」のパターン:「"湯田１９地割～湯田２１地割"」 => 「湯田」 「"左草１地割～左草６地割"」 => 「左草」 「"小繋沢５４地割～小繋沢５６地割"」 => 「小繋沢」
+            //   if (newName.includes("～")) {
+            //     // 「/^.../」で文字列の先頭から、
+            //     // (.*?)非貪欲マッチングで最小限の文字列にマッチ
+            //     // (?=\s*(?:第)?[\d０-９]+地割)で「第〜地割」か「〜地割」が直後に来る文字列にマッチ
+            //     // (?=\s*(?:第)?\d+地割)で先読みアサーションで、キャプチャはしないが、マッチに指定
+            //     // [\d０-９]+で半角全角数字1つ以上の繰り返しにマッチ
+            //     // const pattern =
+            //     //   /([\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]+)(?=\s*(?:第)?[\d０-９]+地割)/u;
+            //     const pattern = /^(.*?)(?=\s*(?:第)?[\d０-９]+地割)/u;
+            //     const match = newName.match(pattern);
+            //     if (match) {
+            //       // キャプチャグループ (\p{Script=Han}+) があり、これがマッチした漢字部分を抽出します。match[1] はキャプチャグループにマッチした部分、つまり漢字部分を返します。
+            //       newName = match[1]; // matchがnullでなければマッチした部分を返し、そうでなければ元の名前を返す
+            //     }
+            //   }
+            //   return newName;
+            // };
+            // // チルダが付いた町域名をフォーマット
+            // const formatContainsTilde = containsTilde.map((name) => formatTilde(name));
+            // console.log("チルダcontainsTilde", containsTilde, "フォーマット後のチルダ", formatContainsTilde);
+
+            // 🔹の次に〜場合
+            const containsBaai = normalizedNamesArray.filter((name) => name.includes("の次に"));
             console.log("containsBaai", containsBaai);
-            const excludedBaai = containsBaai.map((name) => (name.includes("の次に") ? name.split("の次に")[0] : name));
-            console.log("excludedBaai", excludedBaai);
+            // const formatBaai = (normalizedName: string) => {
+            //   let newName = normalizedName;
+            //   // 🔸「の次に〜番地がくる場合」の前に町域名を正規化
+            //   // 「"小菅村の次に１～６６３番地がくる場合"」 => 「小菅村」
+            //   if (newName.includes("の次に")) {
+            //     newName = newName.split("の次に")[0];
+            //   }
+
+            //   return newName;
+            // };
+            // const excludedBaai = containsBaai.map((name) => formatBaai(name));
+            // console.log("containsBaai", containsBaai, "フォーマット後のexcludedBaai", excludedBaai);
           } else {
             console.log("全ての文字が日本語の範囲内です。");
           }
@@ -808,6 +933,8 @@ const ProviderImportModalMemo = () => {
         console.log(
           "前処理完了✅ Result: ",
           transformedTownsData,
+          "transformedInsertTownsData[0]",
+          transformedInsertTownsData && transformedInsertTownsData[0],
           "処理前uploadedData",
           uploadedData,
           "処理適用ずみ行combinedTownsDataArrayOnly",
@@ -841,27 +968,82 @@ const ProviderImportModalMemo = () => {
         // 4. town_name_jaの値から（...）の部分を除去して、正規化した値をnormalized_nameにセット
         // 5. postal_codeはそのままセット
 
+        if (0 < invalidRows.length) {
+          console.log("エラー: 都道府県コード or 市区町村コードなし 無効な行データ発生", invalidRows);
+          throw new Error("エラー: 都道府県コード or 市区町村コードなし 無効な行データ発生");
+        }
+
+        setTransformedInsertTownsData(transformedTownsData);
+
+        // 確認モーダルを開く
         setIsConfirmInsertModal(true);
       }
       // インサート済みの町域テーブルに英語名を追加
       if (insertTableType === "towns") {
         // パースした全ての行データに対して、町域テーブルにインサート可能な状態にデータを整形
       }
-    } catch (error: any) {}
+    } catch (error: any) {
+      alert("トランスフォームエラー");
+      console.error(error);
+    }
     setIsLoadingTransforming(false);
   };
 
-  const handleStartTransformDataPreInsert = async () => {};
+  // 🔸インサート実行
+  const [isLoadingInsert, setIsLoadingInsert] = useState(false);
+  const [isCompleteInsert, setIsCompleteInsert] = useState(false);
+  const [isErrorInsert, setIsErrorInsert] = useState(false);
 
-  // 🔸紐付け確認モーダルに渡してモーダル側で実行する
-  const handleCompleteMappingColumns = () => {
+  const supabase = useSupabaseClient();
+
+  const handleStartBulkInsert = async () => {
     // ステップ3に移行
     setStep(3);
 
     setIsConfirmInsertModal(false);
+    setInsertCsvColumnNameToDBColumnMap(null);
 
-    // データ前処理を実行
-    handleStartTransformDataPreInsert();
+    // ローディング開始
+    setIsLoadingInsert(true);
+
+    try {
+      if (!transformedInsertTownsData) throw new Error("データなし");
+
+      console.log("------------------------------------------");
+      performance.mark("Bulk_Insert_Start"); // 開始点
+      const startTime = performance.now(); // 開始時間
+
+      const tempData = [transformedInsertTownsData[0]];
+      // console.log("一括インサート実行🔥 transformedInsertTownsData", transformedInsertTownsData);
+      console.log("一括インサート実行🔥 tempData", tempData);
+
+      // const { data, error } = await supabase.rpc("insert_towns", { _towns_data: transformedInsertTownsData });
+      const { data, error } = await supabase.rpc("insert_towns", { _towns_data: tempData });
+
+      performance.mark("Bulk_Insert_End"); // 開始点
+      performance.measure("Bulk_Insert_Time", "Bulk_Insert_Start", "Bulk_Insert_End"); // 計測
+      console.log("Measure Time: ", performance.getEntriesByName("Bulk_Insert_Time")[0].duration);
+      performance.clearMarks();
+      performance.clearMeasures("Bulk_Insert_Time");
+      const endTime = performance.now(); // 終了時間
+      console.log("Time: ", endTime - startTime, "ms");
+      console.log("------------------------------------------");
+
+      if (error) throw error;
+
+      console.log("一括インサート成功✅", data, error, transformedInsertTownsData);
+
+      toast.success("一括インサート成功✅");
+      setIsCompleteInsert(true);
+      setInsertCsvColumnNameToDBColumnMap(null);
+      setIsConfirmInsertModal(false);
+    } catch (error: any) {
+      alert("インサートエラー");
+      console.error("インサートエラー", error);
+      setIsErrorInsert(true);
+    }
+
+    setIsLoadingInsert(false);
   };
   // ------------------------------ 🌠紐付け確定🌠 ここまで ------------------------------
   // ------------------------------ 🌟step2🌟 ここまで ------------------------------
@@ -961,12 +1143,20 @@ const ProviderImportModalMemo = () => {
     // modalHeight,
     "uploadedDisplayRowList",
     uploadedDisplayRowList,
-    "uploadedColumnFields",
-    uploadedColumnFields,
-    "selectedColumnFieldsArray",
-    selectedColumnFieldsArray,
-    "alreadySelectColumnsSetObj",
-    alreadySelectColumnsSetObj
+    // "uploadedColumnFields",
+    // uploadedColumnFields,
+    // "selectedColumnFieldsArray",
+    // selectedColumnFieldsArray,
+    // "alreadySelectColumnsSetObj",
+    // alreadySelectColumnsSetObj,
+    "regionsNameToIdMapJp",
+    regionsNameToIdMapJp,
+    "regionNameToIdMapCitiesJp",
+    regionNameToIdMapCitiesJp,
+    "tableColumnContentBoxWidth",
+    tableColumnContentBoxWidth,
+    "transformedInsertTownsData[0]",
+    transformedInsertTownsData && transformedInsertTownsData[0]
     // "remainingOptionsColumnFieldsArray",
     // remainingOptionsColumnFieldsArray
   );
@@ -975,11 +1165,19 @@ const ProviderImportModalMemo = () => {
     <>
       {/* モーダルオーバーレイ */}
       {<div className={`modal_overlay`} onClick={handleCancel} />}
-      {isLoadingTransforming && (
-        <div className={`flex-center fixed inset-0 z-[10000] h-screen w-screen bg-[00000020]`}>
-          <SpinnerX />
-        </div>
-      )}
+      {isLoadingInsert ||
+        (isLoadingTransforming && (
+          <>
+            <div
+              className={`flex-center fixed left-[-100vw] top-[-100vh] z-[10000] h-[200vh] w-[200vw]  bg-[#00000060]`}
+            >
+              <SpinnerX />
+            </div>
+            <div className={`flex-center fixed left-0 top-0 z-[12000] h-[100vh] w-[100vw]`}>
+              <SpinnerX />
+            </div>
+          </>
+        ))}
 
       {/* モーダルコンテナ */}
       <div ref={modalContainerRef} className={`${styles.modal_container} fade03 text-[var(--color-text-title)]`}>
@@ -1064,6 +1262,13 @@ const ProviderImportModalMemo = () => {
                       </div>
                     </>
                   )}
+                  {step === 3 && (
+                    <>
+                      {isCompleteInsert && <span>{`インサートが完了しました！🌠`}</span>}
+                      {isErrorInsert && <span>{`インサートに失敗しました。。。`}</span>}
+                      {isLoadingInsert && <span>{`インサート実行中...`}</span>}
+                    </>
+                  )}
                 </div>
                 <div
                   className={`mt-[6px] flex min-h-[39px] whitespace-pre-wrap text-[12px] text-[var(--color-text-sub)]`}
@@ -1084,6 +1289,13 @@ const ProviderImportModalMemo = () => {
                   {step === 2 && (
                     <>
                       <p>{`TRUSTiFYデータベースの項目名と紐付けるCSVファイルの項目名を選択してください。\n保存しない不要な列の項目名には「スキップ」を指定してください。`}</p>
+                    </>
+                  )}
+                  {step === 3 && (
+                    <>
+                      {isCompleteInsert && <p>{`インサートが完了しました！🌠`}</p>}
+                      {isErrorInsert && <p>{`インサートに失敗しました。。。`}</p>}
+                      {isLoadingInsert && <p>{`インサート実行中...`}</p>}
                     </>
                   )}
                 </div>
@@ -1169,6 +1381,11 @@ const ProviderImportModalMemo = () => {
                   {step === 2 && (
                     <>
                       <span>次へ ({`${selectedRequiredColumnCount} / ${requiredImportColumnOptionsSet.size}`})</span>
+                    </>
+                  )}
+                  {step === 3 && (
+                    <>
+                      <span>閉じる</span>
                     </>
                   )}
                 </div>
@@ -1531,6 +1748,67 @@ const ProviderImportModalMemo = () => {
               </div>
             )}
             {/* -------------------------- step2 マッピング ここまで -------------------------- */}
+            {/* -------------------------- step3 インサート -------------------------- */}
+            {step === 3 && (
+              <div
+                className={`${styles.file_upload_box_container} mb-[24px] h-full w-full bg-[var(--color-modal-solid-bg-main)] p-[12px]`}
+              >
+                {isCompleteInsert && (
+                  <div className={`${styles.file_upload_box} flex-center h-full w-full flex-col`}>
+                    <div className={`mb-[6px] mt-[-60px]`}>
+                      <BsCheck2 className="pointer-events-none stroke-1 text-[120px] text-[var(--bright-green)]" />
+                    </div>
+                    <h2 className={`flex flex-col items-center text-[16px] text-[var(--color-text-sub)]`}>
+                      <span>{language === "ja" ? "インサートが完了しました！" : ``}</span>
+                      <div
+                        className={`transition-bg02 brand_btn_active flex-center mb-[-13px] mt-[13px] space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[15px]`}
+                        onClick={() => {
+                          handleCloseModal();
+                        }}
+                      >
+                        <span>閉じる</span>
+                      </div>
+                    </h2>
+                  </div>
+                )}
+                {!isCompleteInsert && (
+                  <div
+                    ref={fileUploadBoxRef}
+                    className={`${styles.file_upload_box} flex-center h-full w-full flex-col`}
+                  >
+                    {isLoadingInsert && (
+                      <>
+                        {<CheckingAnime /> ?? <SpinnerX />}
+                        <div className={`mr-[-2px] flex min-w-[45px] items-center`}>
+                          <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
+                            インサート実行中
+                          </p>
+                        </div>
+                      </>
+                    )}
+                    {!isLoadingInsert && (
+                      <>
+                        {!isErrorInsert && (
+                          <div className={`mr-[-2px] flex min-w-[45px] items-center`}>
+                            <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
+                              インサート準備中
+                            </p>
+                          </div>
+                        )}
+                        {!isErrorInsert && (
+                          <div className={`mr-[-2px] flex min-w-[45px] items-center`}>
+                            <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
+                              インサートに失敗しました...🙇‍♀️
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            {/* -------------------------- step3 インサート ここまで -------------------------- */}
           </div>
         </>
 
@@ -1588,7 +1866,7 @@ const ProviderImportModalMemo = () => {
       )}
       {/* ----------------------- 前処理確認モーダル ここまで ----------------------- */}
       {/* ----------------------- Insert確認モーダル ----------------------- */}
-      {isConfirmInsertModal && (
+      {isConfirmInsertModal && !!transformedInsertTownsData && (
         <ConfirmationModal
           titleText={`インサートを実行してもよろしいですか？`}
           sectionP1={`インサート内容をコンソールで確認してください。`}
@@ -1606,8 +1884,9 @@ const ProviderImportModalMemo = () => {
           clickEventClose={() => {
             setIsConfirmInsertModal(false);
             setInsertCsvColumnNameToDBColumnMap(null);
+            setTransformedInsertTownsData(null);
           }}
-          clickEventSubmit={handleCompleteMappingColumns}
+          clickEventSubmit={handleStartBulkInsert}
           marginTopP1={`15px`}
         />
       )}

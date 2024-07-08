@@ -547,7 +547,7 @@ export const citiesNameToIdMapIbaraki08 = new Map(
 
 // 🔸栃木県 9 / 25件 464 ~ 488 -----------------------------------
 
-export const optionCitiesIbaraki09 = [
+export const optionCitiesTochigi09 = [
   "宇都宮市",
   "足利市",
   "栃木市",
@@ -576,8 +576,8 @@ export const optionCitiesIbaraki09 = [
 ];
 
 // 都道府県名 => id のMapオブジェクト 25件 464 ~ 488
-export const citiesNameToIdMapIbaraki09 = new Map(
-  optionCitiesIbaraki09.map((cityName, index) => [cityName, 464 + index])
+export const citiesNameToIdMapTochigi09 = new Map(
+  optionCitiesTochigi09.map((cityName, index) => [cityName, 464 + index])
 );
 
 // 🔸群馬県 10 / 35件 489 ~ 523 -----------------------------------
@@ -1013,7 +1013,7 @@ export const citiesNameToIdMapIshikawa17 = new Map(
 
 // 🔸福井県 18 / 17件 846 ~ 862 -----------------------------------
 
-export const optionCitiesIshikawa18 = [
+export const optionCitiesFukui18 = [
   "福井市",
   "敦賀市",
   "小浜市",
@@ -1034,13 +1034,11 @@ export const optionCitiesIshikawa18 = [
 ];
 
 // 都道府県名 => id のMapオブジェクト 17件 846 ~ 862
-export const citiesNameToIdMapIshikawa18 = new Map(
-  optionCitiesIshikawa18.map((cityName, index) => [cityName, 846 + index])
-);
+export const citiesNameToIdMapFukui18 = new Map(optionCitiesFukui18.map((cityName, index) => [cityName, 846 + index]));
 
 // 🔸山梨県 19 / 27件 863 ~ 889 -----------------------------------
 
-export const optionCitiesIshikawa19 = [
+export const optionCitiesYamanashi19 = [
   "甲府市",
   "富士吉田市",
   "都留市",
@@ -1071,8 +1069,8 @@ export const optionCitiesIshikawa19 = [
 ];
 
 // 都道府県名 => id のMapオブジェクト 27件 863 ~ 889
-export const citiesNameToIdMapIshikawa19 = new Map(
-  optionCitiesIshikawa19.map((cityName, index) => [cityName, 863 + index])
+export const citiesNameToIdMapYamanashi19 = new Map(
+  optionCitiesYamanashi19.map((cityName, index) => [cityName, 863 + index])
 );
 
 // 🔸長野県 20 / 77件 890 ~ 966 -----------------------------------
@@ -2343,7 +2341,7 @@ export const regionNameToOptionsCitiesJp: { [K in RegionNameJpType]: string[] } 
   山形県: optionCitiesYamagata06,
   福島県: optionCitiesFukushima07,
   茨城県: optionCitiesIbaraki08,
-  栃木県: optionCitiesIbaraki09,
+  栃木県: optionCitiesTochigi09,
   群馬県: optionCitiesGunma10,
   埼玉県: optionCitiesSaitama11,
   千葉県: optionCitiesChiba12,
@@ -2352,8 +2350,8 @@ export const regionNameToOptionsCitiesJp: { [K in RegionNameJpType]: string[] } 
   新潟県: optionCitiesNiigata15,
   富山県: optionCitiesToyama16,
   石川県: optionCitiesIshikawa17,
-  福井県: optionCitiesIshikawa18,
-  山梨県: optionCitiesIshikawa19,
+  福井県: optionCitiesFukui18,
+  山梨県: optionCitiesYamanashi19,
   長野県: optionCitiesNagano20,
   岐阜県: optionCitiesGifu21,
   静岡県: optionCitiesShizuoka22,
@@ -2393,7 +2391,7 @@ export const regionNameToIdMapCitiesJp: { [K in RegionNameJpType]: Map<string, n
   山形県: citiesNameToIdMapYamagata06,
   福島県: citiesNameToIdMapFukushima07,
   茨城県: citiesNameToIdMapIbaraki08,
-  栃木県: citiesNameToIdMapIbaraki09,
+  栃木県: citiesNameToIdMapTochigi09,
   群馬県: citiesNameToIdMapGunma10,
   埼玉県: citiesNameToIdMapSaitama11,
   千葉県: citiesNameToIdMapChiba12,
@@ -2402,8 +2400,8 @@ export const regionNameToIdMapCitiesJp: { [K in RegionNameJpType]: Map<string, n
   新潟県: citiesNameToIdMapNiigata15,
   富山県: citiesNameToIdMapToyama16,
   石川県: citiesNameToIdMapIshikawa17,
-  福井県: citiesNameToIdMapIshikawa18,
-  山梨県: citiesNameToIdMapIshikawa19,
+  福井県: citiesNameToIdMapFukui18,
+  山梨県: citiesNameToIdMapYamanashi19,
   長野県: citiesNameToIdMapNagano20,
   岐阜県: citiesNameToIdMapGifu21,
   静岡県: citiesNameToIdMapShizuoka22,

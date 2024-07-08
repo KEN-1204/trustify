@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, Dispatch, SetStateAction, CSSProperties } 
 import styles from "./CustomSelectMapping.module.css";
 import { HiChevronDown } from "react-icons/hi2";
 import { BsCheck2 } from "react-icons/bs";
+import useStore from "@/store";
 
 type Props = {
   stateArray: any[];
@@ -143,6 +144,46 @@ export const CustomSelectMapping = ({
     };
   }, [selectRef]);
 
+  // ================== 🌟ツールチップ ==================
+  const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
+  const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display?: "top" | "right" | "bottom" | "left" | "";
+    content: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+  const handleOpenTooltip = ({ e, display = "top", content, content2, marginTop, itemsPosition }: TooltipParams) => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+    const content2DataSet = ((e.target as HTMLDivElement).dataset.text2 as string)
+      ? ((e.target as HTMLDivElement).dataset.text2 as string)
+      : "";
+    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+      ? ((e.target as HTMLDivElement).dataset.text3 as string)
+      : "";
+    setHoveredItemPosWrap({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: content ?? ((e.target as HTMLDivElement).dataset.text as string),
+      content2: content2 ?? content2DataSet,
+      content3: content3,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    if (hoveredItemPosWrap) setHoveredItemPosWrap(null);
+  };
+  // ================== ✅ツールチップ ==================
+
   return (
     <div
       ref={selectRef}
@@ -157,27 +198,46 @@ export const CustomSelectMapping = ({
         } as CSSProperties
       }
       //   onMouseDown={(e) => console.log(e)}
-      onClick={() => setShowOptions(!showOptions)}
+      onClick={() => {
+        setShowOptions(!showOptions);
+        handleCloseTooltip();
+      }}
     >
       <div
         className={`${styles.value} ${maxWidth ? `truncate` : ``}`}
         // selectBoxのmaxWidthからarrow: 20, valueのmr: 9を引いた値がmaxWidth
         style={{
           ...(maxWidth && {
-            maxWidth: `calc(${maxWidth - 20 - 9})`,
-            ...(isSelectedActiveColor &&
-              stateArray[targetIndex] !== "" && {
-                color: activeColor ? activeColor : `var(--main-color-f)`,
-              }),
-            ...(isBoldActiveText &&
-              stateArray[targetIndex] !== "" && {
-                fontWeight: 600,
-              }),
-            ...(requiredOptionsSet &&
-              requiredOptionsSet.has(stateArray[targetIndex]) && { color: `var(--main-color-tk)`, fontWeight: 600 }),
+            maxWidth: `calc(${maxWidth}px - 20px - 9px - 4px)`,
           }),
+          ...(isSelectedActiveColor &&
+            stateArray[targetIndex] !== "" && {
+              color: activeColor ? activeColor : `var(--main-color-f)`,
+            }),
+          ...(isBoldActiveText &&
+            stateArray[targetIndex] !== "" && {
+              fontWeight: 600,
+            }),
+          ...(requiredOptionsSet &&
+            requiredOptionsSet.has(stateArray[targetIndex]) && { color: `var(--main-color-tk)`, fontWeight: 600 }),
         }}
         // style={{ ...(maxWidth && { maxWidth: `calc(${maxWidth - 1 - 3 - 20 - 9})` }) }}
+        onMouseEnter={(e) => {
+          const tooltipText = !getOptionName ? stateArray[targetIndex] : getOptionName(stateArray[targetIndex]);
+          if (!tooltipText) return;
+          const el = e.currentTarget;
+          console.log("エンター", el.scrollWidth, el.offsetWidth, el.scrollHeight, el.offsetHeight, tooltipText);
+          if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight) {
+            console.log("エンター表示✅");
+            handleOpenTooltip({
+              e: e,
+              display: "top",
+              content: tooltipText,
+              itemsPosition: "left",
+            });
+          }
+        }}
+        onMouseLeave={handleCloseTooltip}
       >
         {!getOptionName ? (
           <span>{stateArray[targetIndex]}</span>
