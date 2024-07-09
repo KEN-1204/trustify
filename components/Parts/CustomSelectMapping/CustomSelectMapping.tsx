@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, Dispatch, SetStateAction, CSSProperties } from "react";
+import { useState, useRef, useEffect, Dispatch, SetStateAction, CSSProperties, memo } from "react";
 import styles from "./CustomSelectMapping.module.css";
 import { HiChevronDown } from "react-icons/hi2";
 import { BsCheck2 } from "react-icons/bs";
@@ -31,7 +31,7 @@ type Props = {
 };
 
 // stateが配列で、それぞれのカラムに対応したstateと選択肢をマッピング 選択済みは新たに選択できないようにする
-export const CustomSelectMapping = ({
+const CustomSelectMappingMemo = ({
   stateArray,
   dispatch,
   targetIndex,
@@ -326,5 +326,7 @@ export const CustomSelectMapping = ({
     </div>
   );
 };
+
+export const CustomSelectMapping = memo(CustomSelectMappingMemo);
 
 // #00d436

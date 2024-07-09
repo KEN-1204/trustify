@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, Dispatch, SetStateAction, CSSProperties, useMemo } from "react";
+import { useState, useRef, useEffect, Dispatch, SetStateAction, CSSProperties, useMemo, memo } from "react";
 import styles from "./CustomSelectMultiple.module.css";
 import { HiChevronDown } from "react-icons/hi2";
 import { BsCheck2 } from "react-icons/bs";
@@ -32,7 +32,7 @@ type Props = {
 };
 
 // stateが配列で、それぞれのカラムに対応したstateと選択肢をマッピング 選択済みは新たに選択できないようにする
-export const CustomSelectMultiple = ({
+const CustomSelectMultipleMemo = ({
   stateArray,
   dispatch,
   selectedSetObj,
@@ -433,5 +433,7 @@ export const CustomSelectMultiple = ({
     </>
   );
 };
+
+export const CustomSelectMultiple = memo(CustomSelectMultipleMemo);
 
 // #00d436

@@ -51,8 +51,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMutateClientCompany } from "@/hooks/useMutateClientCompany";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
-import { Spinner78 } from "@/components/Parts/Spinner78/Spinner78";
-import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { Client_company_row_data, ProductCategoriesLarge, ProductCategoriesMedium } from "@/types";
 import { validateAndFormatPhoneNumber } from "@/utils/Helpers/validateAndFormatPhoneNumber";
 import { validateAndFormatPostalCode } from "@/utils/Helpers/validateAndFormatPostalCode";
@@ -108,6 +106,7 @@ import {
   setArrayParam,
 } from "@/utils/Helpers/MainContainer/commonHelper";
 import { LuCopyPlus } from "react-icons/lu";
+import { ProgressCircleIncrement } from "@/components/Parts/Charts/ProgressCircle/ProgressCircleIncrement";
 // 名前付きエクスポートの場合のダイナミックインポート
 // const UnderRightActivityLog = dynamic(
 //   () => import("./UnderRightActivityLog/UnderRightActivityLog").then((mod) => mod.UnderRightActivityLog),
@@ -153,6 +152,9 @@ const CompanyMainContainerMemo: FC = () => {
   const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+
+  // テスト
+  const [progressInserted, setProgressInserted] = useState(0);
 
   const supabase = useSupabaseClient();
   // const queryClient = useQueryClient();
@@ -2038,24 +2040,25 @@ const CompanyMainContainerMemo: FC = () => {
   // -------------------------- 🌠サーチモード input下の追加エリア関連🌠 --------------------------ここまで
 
   console.log(
-    "🔥 CompanyMainContainerレンダリング searchMode",
-    searchMode,
-    "newSearchCompanyParams",
-    newSearchCompanyParams,
-    "selectedRowDataCompany",
-    selectedRowDataCompany,
-    "inputIndustryTypeArray",
-    inputIndustryTypeArray,
-    "selectedIndustryTypeArraySet",
-    selectedIndustryTypeArraySet,
-    "isNullNotNullIndustryType",
-    isNullNotNullIndustryType,
-    "inputFiscalArray",
-    inputFiscalArray,
-    "selectedFiscalArraySet",
-    selectedFiscalArraySet,
-    "isNullNotNullFiscal",
-    isNullNotNullFiscal
+    "CompanyMainContainerレンダリング"
+    // 'searchMode',
+    // searchMode,
+    // "newSearchCompanyParams",
+    // newSearchCompanyParams,
+    // "selectedRowDataCompany",
+    // selectedRowDataCompany,
+    // "inputIndustryTypeArray",
+    // inputIndustryTypeArray,
+    // "selectedIndustryTypeArraySet",
+    // selectedIndustryTypeArraySet,
+    // "isNullNotNullIndustryType",
+    // isNullNotNullIndustryType,
+    // "inputFiscalArray",
+    // inputFiscalArray,
+    // "selectedFiscalArraySet",
+    // selectedFiscalArraySet,
+    // "isNullNotNullFiscal",
+    // isNullNotNullFiscal
     // "inputEmployeesClassArray",
     // inputEmployeesClassArray,
     // "isNullNotNullEmployeesClass",
@@ -8282,9 +8285,220 @@ const CompanyMainContainerMemo: FC = () => {
                   >
                     テスト
                   </button>
+                  <button
+                    type="button"
+                    className={`${styles.btn} transition-base02 ${
+                      isOpenSidebar ? "min-h-[30px] text-[14px]" : `min-h-[38px] text-[15px]`
+                    }`}
+                    onClick={async () => {
+                      type TestObj = {
+                        no: number | null;
+                        name: string | null;
+                        chunk_count: string | null;
+                        normalized_name: string | null;
+                        kana: string | null;
+                        country_id: number | null;
+                        region_id: number | null;
+                        city_id: number | null;
+                      };
+                      try {
+                        const handleStart = async () => {
+                          console.log("関数実行");
+                          console.log("------------------------------------------");
+                          performance.mark("Bulk_Insert_Start"); // 開始点
+                          const startTime = performance.now(); // 開始時間
+
+                          try {
+                            const obj = {
+                              no: null,
+                              name: `虎ノ門虎ノ門ヒルズステーションタワー（１階）`,
+                              chunk_count: null,
+                              normalized_name: `虎ノ門虎ノ門ヒルズステーションタワー`,
+                              kana: `ﾄﾗﾉﾓﾝﾄﾗﾉﾓﾝﾋﾙｽﾞｽﾃｰｼｮﾝﾀﾜｰ(1ｶｲ)`,
+                              postal_code: `1055501`,
+                              country_id: 153,
+                              region_id: 1,
+                              city_id: 1,
+                            } as TestObj;
+
+                            const InsertDataArray = new Array(120000).fill(obj) as TestObj[];
+
+                            // 🔸12万行を1000行ごとのチャンクに分割する関数
+                            const createChunkArray = (array: any[], chunkSize: number) => {
+                              const chunksArray: TestObj[][] = [];
+
+                              for (let i = 0; i < array.length; i += chunkSize) {
+                                // chunkSize が 1000行 の場合は 1000行単位のチャンクを作成して、全てのチャンクをまとめた配列を返す
+                                chunksArray.push(array.slice(i, i + chunkSize));
+                              }
+
+                              return chunksArray;
+                            };
+
+                            // 🔸12万行を2500行ごとのチャンクに分割
+                            const baseChunkSize = 2500;
+                            let chunkSize = baseChunkSize; // 実際のチャンクサイズ
+                            const totalChunks = Math.ceil(InsertDataArray.length / chunkSize);
+                            let chunkedTownsArray = createChunkArray(InsertDataArray, chunkSize);
+
+                            let requestBodyBlob: null | Blob = new Blob([JSON.stringify(chunkedTownsArray)]);
+                            let chunkBlob: null | Blob = new Blob([JSON.stringify(chunkedTownsArray[0])]);
+                            console.log("全体サイズ(12万行): ", requestBodyBlob.size);
+                            console.log("チャンクサイズ(2500行): ", chunkBlob.size);
+
+                            // 1チャンクあたりのサイズが1MBを超えている場合は2500行ではなく、1000行ずつに分割し直して、
+                            // チャンクサイズを小さくする 1048576バイト: 1MB
+                            if (1048576 < chunkBlob.size) {
+                              chunkSize = 2000; // 2000行に変更
+                              chunkedTownsArray = createChunkArray(InsertDataArray, chunkSize);
+                              chunkBlob = new Blob([JSON.stringify(chunkedTownsArray[0])]);
+                              console.log("変更後のチャンクサイズ(2000行): ", chunkBlob.size);
+                            }
+                            if (1048576 < chunkBlob.size) {
+                              chunkSize = 1500; // 1500行に変更
+                              chunkedTownsArray = createChunkArray(InsertDataArray, chunkSize);
+                              chunkBlob = new Blob([JSON.stringify(chunkedTownsArray[0])]);
+                              console.log("変更後のチャンクサイズ(1500行): ", chunkBlob.size);
+                            }
+                            if (1048576 < chunkBlob.size) {
+                              chunkSize = 1000; // 1000行に変更
+                              chunkedTownsArray = createChunkArray(InsertDataArray, chunkSize);
+                              chunkBlob = new Blob([JSON.stringify(chunkedTownsArray[0])]);
+                              console.log("変更後のチャンクサイズ(1000行): ", chunkBlob.size);
+                            }
+                            const bodySizePerRequest = chunkBlob.size;
+                            requestBodyBlob = null;
+                            chunkBlob = null;
+
+                            console.log(
+                              `${InsertDataArray.length}行バルクインサート開始🔥 ${chunkSize}行ずつ分割 合計チャンク数${totalChunks}`,
+                              ", 1チャンク: ",
+                              chunkedTownsArray[0],
+                              ", 1チャンクサイズ(ボディサイズ): ",
+                              bodySizePerRequest,
+                              ", InsertDataArray: ",
+                              InsertDataArray
+                            );
+
+                            // const { error } = await supabase.from("tests").insert(chunkedTownsArray[0]);
+                            // if (error) throw error;
+
+                            /* 🔺バルクインサート 行数・サイズ別インサート時間
+                            ※(SupabaseのSQLステートメント実行時間デフォルトタイムアウト値8秒)
+                            
+                            ○5000行 リクエストボディサイズ 1.6MB  秒数: 1.6秒
+                            ○10000行 リクエストボディサイズ 3.2MB  秒数: 4秒
+                            
+                            【12万行】
+                            ○5000行/チャンク サイズ:1.6MB/チャンク * 24 合計38.4MB  合計秒数43秒
+                            ○10000行/チャンク サイズ:3.2MB/チャンク * 12 合計38.4MB  合計秒数38秒
+
+                            */
+                            for (const iterator of chunkedTownsArray.entries()) {
+                              const [index, array] = iterator;
+                              const chunkCount = index + 1;
+                              const insertCount = (index + 1) * array.length;
+
+                              console.log(`リクエスト送信実行${chunkCount}回目`);
+                              const { error } = await supabase.from("tests").insert(array);
+
+                              if (error) {
+                                throw error;
+                                break; // エラーが発生したら処理を中断
+                              }
+
+                              // 進行状況を更新
+                              const progress = Math.round((chunkCount / totalChunks) * 100);
+                              setProgressInserted(progress);
+
+                              // 1秒間隔をあけて次のリクエストを行う
+                              await new Promise((resolve, reject) => setTimeout(resolve, 1000));
+
+                              console.log(
+                                `イテレーション${chunkCount}回目 INSERT成功`,
+                                `, 進行状況progress: ${progress}%`,
+                                `, insertCount: ${insertCount}個`,
+                                `, totalChunks: ${totalChunks}個`
+                              );
+                            }
+
+                            console.log("実行完了✅");
+                            toast.success(`成功🌲`);
+                          } catch (error: any) {
+                            console.error("error occurred", error);
+                            toast.error(`エラー🙇‍♀️`);
+                          }
+                          performance.mark("Bulk_Insert_End"); // 開始点
+                          performance.measure("Bulk_Insert_Time", "Bulk_Insert_Start", "Bulk_Insert_End"); // 計測
+                          console.log("Measure Time: ", performance.getEntriesByName("Bulk_Insert_Time")[0].duration);
+                          performance.clearMarks();
+                          performance.clearMeasures("Bulk_Insert_Time");
+                          const endTime = performance.now(); // 終了時間
+                          console.log("Time: ", endTime - startTime, "ms");
+                          console.log("------------------------------------------");
+                          setProgressInserted(0);
+                        };
+
+                        handleStart();
+                      } catch (error: any) {
+                        console.error("error", error);
+                        toast.error(`エラー🙇‍♀️`);
+                      }
+                    }}
+                  >
+                    カスタム
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.btn} transition-base02 ${
+                      isOpenSidebar ? "min-h-[30px] text-[14px]" : `min-h-[38px] text-[15px]`
+                    }`}
+                    onClick={async () => {
+                      for (let i = 0; i <= 100; i += 10) {
+                        setProgressInserted(i);
+                        console.log("progress: ", i);
+
+                        await new Promise((resolve, reject) => setTimeout(resolve, 1000));
+                      }
+
+                      setProgressInserted(0);
+                    }}
+                  >
+                    ロード
+                  </button>
+                  {/* {progressInserted !== 0 && (
+                    <div className={`flex-col-center space-y-[10px]`}>
+                      <SpinnerX />
+                      <div className={`text-[15px] font-bold text-[var(--color-bg-brand-f)]`}>{progressInserted}%</div>
+                    </div>
+                  )} */}
                 </div>
               </div>
             </div>
+            {progressInserted !== 0 && (
+              <div className={`flex-col-center space-y-[10px]`}>
+                <ProgressCircleIncrement
+                  circleId={`bulk_insert`}
+                  textId={`bulk_insert`}
+                  progress={progressInserted}
+                  duration={5000}
+                  easeFn="Quartic"
+                  size={48}
+                  strokeWidth={6}
+                  // fontSize={13}
+                  fontSize={12}
+                  fontWeight={500}
+                  fontFamily="var(--font-family-str)"
+                  textColor="var(--color-text-title)"
+                  isReady={true}
+                  withShadow={false}
+                  // fade={`fade08_forward`}
+                  // customText="達成率"
+                  // customFontSize={12}
+                  // customTextTop={`calc(50% + 28px)`}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

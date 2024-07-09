@@ -437,13 +437,7 @@ const ProviderImportModalMemo = () => {
   };
   type InsertTownType = Omit<Towns, "town_id" | "created_at" | "updated_at">;
   type TownDetail = { region_name: string; city_name: string; town_name_ja: string; town_name_kana: string };
-  const [transformedInsertTownsData, setTransformedInsertTownsData] = useState<
-    | (InsertTownType & {
-        region_name: string;
-        city_name: string;
-      })[]
-    | null
-  >(null);
+  const [transformedInsertTownsData, setTransformedInsertTownsData] = useState<InsertTownType[] | null>(null);
 
   // 前処理実行してインサート内容を確認モーダルを開く
   const startTransformData = () => {
@@ -575,10 +569,11 @@ const ProviderImportModalMemo = () => {
         const transformCombinedDataByMultipleEntries = (
           uploadTownsData: UploadTownsCsvType[]
         ): {
-          transformedTownsData: (InsertTownType & {
-            region_name: string;
-            city_name: string;
-          })[];
+          transformedTownsData: InsertTownType[];
+          // transformedTownsData: (InsertTownType & {
+          //   region_name: string;
+          //   city_name: string;
+          // })[];
           combinedTownsDataArrayOnly: UploadTownsCsvType[];
           unfinishedRowCount: number;
           invalidRows: UploadTownsCsvType[];
@@ -592,10 +587,11 @@ const ProviderImportModalMemo = () => {
           performance.mark("Filter_Start"); // 開始点
           const startTime = performance.now(); // 開始時間
 
-          const transformedTownsData: (InsertTownType & {
-            region_name: string;
-            city_name: string;
-          })[] = [];
+          // const transformedTownsData: (InsertTownType & {
+          //   region_name: string;
+          //   city_name: string;
+          // })[] = [];
+          const transformedTownsData: InsertTownType[] = [];
           const combinedTownsDataArrayOnly: UploadTownsCsvType[] = [];
           const invalidRows: UploadTownsCsvType[] = []; // 無効な行
           const normalizedNamesArray: string[] = [];
@@ -666,12 +662,9 @@ const ProviderImportModalMemo = () => {
                     town_name_en: null,
                     normalized_name: normalizedName,
                     postal_code: postal_code, // 郵便番号はそのまま格納
-                    region_name: region_name,
-                    city_name: city_name,
-                  } as InsertTownType & {
-                    region_name: string;
-                    city_name: string;
-                  };
+                    // region_name: region_name,
+                    // city_name: city_name,
+                  } as InsertTownType;
                   transformedTownsData.push(newTownData);
 
                   const combinedTownData = {
@@ -784,15 +777,10 @@ const ProviderImportModalMemo = () => {
                     town_name_en: null,
                     town_name_kana: town_name_kana,
                     normalized_name: normalizedName,
-                    city_name: city_name,
                     country_id: 153, // 日本
                     region_id: convertedRegionId,
                     city_id: convertedCityId,
                     postal_code: postal_code,
-                    region_name: region_name,
-                  } as InsertTownType & {
-                    region_name: string;
-                    city_name: string;
                   };
                   transformedTownsData.push(newTownData);
 
@@ -884,47 +872,10 @@ const ProviderImportModalMemo = () => {
             // 🔹〜地割
             const containsTilde = normalizedNamesArray.filter((name) => name.includes("～") && name.includes("地割"));
             console.log("チルダcontainsTilde", containsTilde);
-            // const formatTilde = (normalizedName: string) => {
-            //   let newName = normalizedName;
-            //   // 🔸地割が付いたパターンを正規化
-            //   // 1. 「町域名 + 第〜地割」のパターン: 「"種市第１地割～第３地割"」「"種市第２２地割～第２３地割"」 => 「種市」
-            //   // 2. 「町域名 + 〜地割」のパターン:「"湯田１９地割～湯田２１地割"」 => 「湯田」 「"左草１地割～左草６地割"」 => 「左草」 「"小繋沢５４地割～小繋沢５６地割"」 => 「小繋沢」
-            //   if (newName.includes("～")) {
-            //     // 「/^.../」で文字列の先頭から、
-            //     // (.*?)非貪欲マッチングで最小限の文字列にマッチ
-            //     // (?=\s*(?:第)?[\d０-９]+地割)で「第〜地割」か「〜地割」が直後に来る文字列にマッチ
-            //     // (?=\s*(?:第)?\d+地割)で先読みアサーションで、キャプチャはしないが、マッチに指定
-            //     // [\d０-９]+で半角全角数字1つ以上の繰り返しにマッチ
-            //     // const pattern =
-            //     //   /([\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]+)(?=\s*(?:第)?[\d０-９]+地割)/u;
-            //     const pattern = /^(.*?)(?=\s*(?:第)?[\d０-９]+地割)/u;
-            //     const match = newName.match(pattern);
-            //     if (match) {
-            //       // キャプチャグループ (\p{Script=Han}+) があり、これがマッチした漢字部分を抽出します。match[1] はキャプチャグループにマッチした部分、つまり漢字部分を返します。
-            //       newName = match[1]; // matchがnullでなければマッチした部分を返し、そうでなければ元の名前を返す
-            //     }
-            //   }
-            //   return newName;
-            // };
-            // // チルダが付いた町域名をフォーマット
-            // const formatContainsTilde = containsTilde.map((name) => formatTilde(name));
-            // console.log("チルダcontainsTilde", containsTilde, "フォーマット後のチルダ", formatContainsTilde);
 
             // 🔹の次に〜場合
             const containsBaai = normalizedNamesArray.filter((name) => name.includes("の次に"));
             console.log("containsBaai", containsBaai);
-            // const formatBaai = (normalizedName: string) => {
-            //   let newName = normalizedName;
-            //   // 🔸「の次に〜番地がくる場合」の前に町域名を正規化
-            //   // 「"小菅村の次に１～６６３番地がくる場合"」 => 「小菅村」
-            //   if (newName.includes("の次に")) {
-            //     newName = newName.split("の次に")[0];
-            //   }
-
-            //   return newName;
-            // };
-            // const excludedBaai = containsBaai.map((name) => formatBaai(name));
-            // console.log("containsBaai", containsBaai, "フォーマット後のexcludedBaai", excludedBaai);
           } else {
             console.log("全ての文字が日本語の範囲内です。");
           }
@@ -993,6 +944,8 @@ const ProviderImportModalMemo = () => {
   const [isLoadingInsert, setIsLoadingInsert] = useState(false);
   const [isCompleteInsert, setIsCompleteInsert] = useState(false);
   const [isErrorInsert, setIsErrorInsert] = useState(false);
+  // 進捗状況 INSERT済みのチャンク数 / 総チャンク数
+  const [progressInserted, setProgressInserted] = useState<number | null>(null);
 
   const supabase = useSupabaseClient();
 
@@ -1013,12 +966,57 @@ const ProviderImportModalMemo = () => {
       performance.mark("Bulk_Insert_Start"); // 開始点
       const startTime = performance.now(); // 開始時間
 
-      const tempData = [transformedInsertTownsData[0]];
+      // const tempData = [transformedInsertTownsData[0]];
       // console.log("一括インサート実行🔥 transformedInsertTownsData", transformedInsertTownsData);
-      console.log("一括インサート実行🔥 tempData", tempData);
 
-      // const { data, error } = await supabase.rpc("insert_towns", { _towns_data: transformedInsertTownsData });
-      const { data, error } = await supabase.rpc("insert_towns", { _towns_data: tempData });
+      // SupabaseはデフォルトでSQLステートメント実行時間のタイムアウト値が8秒のため、
+      // １つのトランザクションがタイムアウト値を超えることなく処理できるよう
+      // 1000行ごとにチャンクを分割し、バッチ処理(まとめて処理)をする
+
+      // 🔸12万行を1000行ごとのチャンクに分割する関数
+      const createChunkArray = (array: Omit<Towns, "town_id" | "created_at" | "updated_at">[], chunkSize: number) => {
+        const chunksArray: Omit<Towns, "town_id" | "created_at" | "updated_at">[][] = [];
+
+        for (let i = 0; i < array.length; i += chunkSize) {
+          // chunkSize が 1000行 の場合は 1000行単位のチャンクを作成して、全てのチャンクをまとめた配列を返す
+          chunksArray.push(array.slice(i, i + chunkSize));
+        }
+
+        return chunksArray;
+      };
+
+      // 🔸12万行を1000行ごとのチャンクに分割
+      const chunkedTownsArray = createChunkArray(transformedInsertTownsData, 1000);
+
+      // 🔸インサートの開始とともにINSERT進捗をUIで表示
+      setProgressInserted(0);
+
+      console.log(
+        "一括インサート実行🔥 chunk count: ",
+        chunkedTownsArray.length,
+        "chunkedTownsArray",
+        chunkedTownsArray
+      );
+
+      // // 🔸分割したチャンクごとにバルクインサート 分割数を分母にINSERT達成率を%で表示して、ユーザーに進捗状況をUIで知らせる
+      // for (const iterator of chunkedTownsArray.entries()) {
+      //   const [index, chunk] = iterator;
+
+      //   const chunkCount = index + 1;
+
+      //   const { error } = await supabase.rpc("insert_towns", { _towns_data: chunk });
+
+      //   if (error) {
+      //     alert(`インサートエラーが発生しました。count: ${chunkCount}`);
+      //     throw error;
+      //   }
+
+      //   console.log(`insert success chunk count: ${chunkCount}`);
+      //   // Insert達成率・進捗を更新
+      //   const newProgress =
+      //     chunkedTownsArray.length === chunkCount ? 100 : Math.round((chunkCount / chunkedTownsArray.length) * 100);
+      //   setProgressInserted(newProgress);
+      // }
 
       performance.mark("Bulk_Insert_End"); // 開始点
       performance.measure("Bulk_Insert_Time", "Bulk_Insert_Start", "Bulk_Insert_End"); // 計測
@@ -1029,9 +1027,12 @@ const ProviderImportModalMemo = () => {
       console.log("Time: ", endTime - startTime, "ms");
       console.log("------------------------------------------");
 
-      if (error) throw error;
-
-      console.log("一括インサート成功✅", data, error, transformedInsertTownsData);
+      // let request = new Request("/api/hello", {
+      //   method: "POST",
+      //   body: JSON.stringify(transformedInsertTownsData),
+      // });
+      // console.log("リクエスト", request);
+      // console.log("サイズ", new Blob([JSON.stringify(transformedInsertTownsData)]).size);
 
       toast.success("一括インサート成功✅");
       setIsCompleteInsert(true);
@@ -1165,19 +1166,16 @@ const ProviderImportModalMemo = () => {
     <>
       {/* モーダルオーバーレイ */}
       {<div className={`modal_overlay`} onClick={handleCancel} />}
-      {isLoadingInsert ||
-        (isLoadingTransforming && (
-          <>
-            <div
-              className={`flex-center fixed left-[-100vw] top-[-100vh] z-[10000] h-[200vh] w-[200vw]  bg-[#00000060]`}
-            >
-              <SpinnerX />
-            </div>
-            <div className={`flex-center fixed left-0 top-0 z-[12000] h-[100vh] w-[100vw]`}>
-              <SpinnerX />
-            </div>
-          </>
-        ))}
+      {(isLoadingInsert || isLoadingTransforming) && (
+        <>
+          <div className={`flex-center fixed left-[-100vw] top-[-100vh] z-[10000] h-[200vh] w-[200vw]  bg-[#00000060]`}>
+            {/* <SpinnerX /> */}
+          </div>
+          <div className={`flex-center fixed left-0 top-0 z-[12000] h-[100vh] w-[100vw]`}>
+            <SpinnerX />
+          </div>
+        </>
+      )}
 
       {/* モーダルコンテナ */}
       <div ref={modalContainerRef} className={`${styles.modal_container} fade03 text-[var(--color-text-title)]`}>
