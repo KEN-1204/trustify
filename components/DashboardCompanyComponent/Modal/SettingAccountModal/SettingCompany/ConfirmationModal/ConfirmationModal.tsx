@@ -1,4 +1,3 @@
-import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import React, { ChangeEvent, FC } from "react";
 import { MdClose } from "react-icons/md";

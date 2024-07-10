@@ -4,6 +4,7 @@ type Props = {
   circleId: string;
   textId: string;
   progress?: number;
+  startProgress?: number;
   duration?: number;
   size?: number;
   strokeWidth?: number;
@@ -35,6 +36,7 @@ const ProgressCircleIncrementMemo = ({
   circleId,
   textId,
   progress = 75,
+  startProgress = 0,
   duration = 3000,
   size = 150,
   strokeWidth = 12,
@@ -58,7 +60,7 @@ const ProgressCircleIncrementMemo = ({
   customTextTop,
 }: Props) => {
   // プログレスアニメーション用state
-  const [animatedProgress, setAnimatedProgress] = useState(0);
+  const [animatedProgress, setAnimatedProgress] = useState(startProgress);
 
   // 動的にprogressがインクリメントされても対応するバージョン (バルクインサートなどの進行状況などに使用)
   // progressの値が動的に変更された場合でも現在加算中の値を開始値として変更されたprogressを目標値として徐々に加算していく

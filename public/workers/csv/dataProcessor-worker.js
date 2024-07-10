@@ -13,6 +13,10 @@
 
 self.onmessage = function (e) {
   console.log("Worker: Message received from main thread");
+
+  // postMessage が呼び出されたときにメッセージを送ったウィンドウのオリジンが正しいことをチェック
+  if (e.origin !== process.env.CLIENT_URL) return console.log("❌オリジンチェックに失敗 リターン");
+
   const { parsedData, columnMap } = e.data;
 
   // 1行ずつ取り出して必要なカラムのみ前処理してインサート用配列データを生成

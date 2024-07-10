@@ -15,6 +15,7 @@ import { RiDragMove2Fill } from "react-icons/ri";
 import { toast } from "react-toastify";
 import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import {
+  RegionNameJpType,
   mappingClientCompaniesFiledToNameForInsert,
   optionsClientCompaniesColumnFieldForInsertArray,
   requiredImportColumnOptionsSet,
@@ -24,8 +25,13 @@ import { IoIosArrowRoundDown } from "react-icons/io";
 import { ImInfo } from "react-icons/im";
 import { ConfirmationMappingModal } from "../ConfirmationModal/ConfirmationMappingModal/ConfirmationMappingModal";
 import { DataProcessWorker } from "./DataProcessWorker/DataProcessWorker";
+import { isPlainObject } from "@/utils/Helpers/isObjectPlain";
+import { regExpPrefecture, regionNameToRegExpCitiesJp } from "@/utils/Helpers/AddressHelpers/regExpAddress";
+import { regionNameToIdMapCitiesJp } from "@/utils/Helpers/AddressHelpers/citiesOptions";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 const ImportModalMemo = () => {
+  const supabase = useSupabaseClient();
   const language = useStore((state) => state.language);
   const setIsOpenImportModal = useDashboardStore((state) => state.setIsOpenImportModal);
 
@@ -150,6 +156,14 @@ const ImportModalMemo = () => {
   const [isTransformProcessing, setIsTransformProcessing] = useState(false);
   // 🔸データ前処理完了後の一括インサート用データ
   const [processedData, setProcessedData] = useState<any[]>([]);
+
+  // 進捗状況 INSERT済みのチャンク数 / 総チャンク数
+  const [progressProcessing, setProgressProcessing] = useState<number | null>(null);
+
+  // 現在の処理内容をユーザーに明示するためのstate
+  const [processingName, setProcessingName] = useState<"fetching_address" | "transforming" | "bulk_inserting" | null>(
+    null
+  );
   // -------------------------- ステップ3 「データ前処理」用state ここまで --------------------------
 
   // 🔸既に選択済みのカラムのSetオブジェクト 空文字は除去
@@ -427,23 +441,136 @@ const ImportModalMemo = () => {
    * product_category_large: TEXT => 製品分類(大分類) それぞれの製品分類に類する特定の文字列を用意して、マッチしていれば
    */
 
-  const handleStartTransformDataPreInsert = () => {
+  // 🔸紐付けを完了してデータ前処理へ移行
+  const handleCompleteMappingColumnsAndStartTransformDataPreInsert = async () => {
     // ユーザーのブラウザーがWeb Workerをサポートしているかチェックしてからデータ前処理を実行
+
+    if (!insertCsvColumnNameToDBColumnMap) return alert("紐付けデータが存在しません。エラー：IM02");
+
     if (window.Worker) {
-      setIsTransformProcessing(true);
+      try {
+        // 🔸ステップ3に移行
+        setStep(3);
+
+        // 🔸全国の住所データをフェッチングをユーザーに明示
+        setProcessingName("fetching_address");
+
+        // 進行状況を明示
+        setProgressProcessing(0);
+
+        // 🔸addressフィールドに対応するcsvカラムヘッダーを取得
+        const entryForCsvColumnAddress = Array.from(insertCsvColumnNameToDBColumnMap.entries()).find(
+          ([key, value]) => value === "address"
+        );
+
+        if (!entryForCsvColumnAddress) throw new Error(`住所カラムが存在しません。 エラー：IM03`);
+
+        const [columnHeaderForAddress, addressField] = entryForCsvColumnAddress;
+
+        // 🔸パースしたCSVデータから住所のみを抽出
+        const addresses = uploadedData
+          .map((row) => {
+            if (isPlainObject(row) && Object.hasOwn(row, columnHeaderForAddress)) {
+              return row[columnHeaderForAddress];
+            }
+            return null;
+          })
+          .filter((row) => !!row);
+
+        // 🔸会社住所リストの全ての住所データから、今回の住所リストで使用されている都道府県と市区町村を特定してリストを作成
+        const identifyRegionsAndCities = (addresses: string[]) => {
+          const prefecturesSet: Set<RegionNameJpType> = new Set();
+          const citiesSet: Set<string> = new Set();
+
+          addresses.forEach((address) => {
+            // 🔹都道府県を抽出
+            const prefectureMatch = address.match(regExpPrefecture);
+            if (prefectureMatch) {
+              const prefecture = prefectureMatch[0] as RegionNameJpType;
+              prefecturesSet.add(prefecture); // キャプチャグループではないためindexは0で文字列全体マッチ
+
+              // 🔺マッチした都道府県に対応する市区町村の正規表現リストを取り出して、市区町村を抽出
+              if (Object.hasOwn(regionNameToRegExpCitiesJp, prefecture)) {
+                const regexCities = regionNameToRegExpCitiesJp[prefecture];
+                // 市区町村を抽出
+                const cityMatch = address.match(regexCities);
+                if (cityMatch) {
+                  const city = cityMatch[0];
+                  citiesSet.add(city);
+                }
+              }
+            }
+          });
+
+          return { prefectures: Array.from(prefecturesSet), cities: Array.from(citiesSet) };
+        };
+
+        const regionsCities = identifyRegionsAndCities(addresses);
+        const { cities } = regionsCities;
+
+        // 抽出した全住所リスト内で使用されている市区町村データに紐づく町域リストを取得
+
+        // 🔸市区町村データを25個ずつのチャンクに分割 1市区町村あたり100件程度のため約2500件ずつ取得
+
+        // 市区町村リストを25個ずつのチャンクに分割する関数
+        const createChunkArray = (array: string[], chunkSize: number) => {
+          const chunksArray: string[][] = [];
+
+          for (let i = 0; i < array.length; i += chunkSize) {
+            // chunkSize が 1000行 の場合は 1000行単位のチャンクを作成して、全てのチャンクをまとめた配列を返す
+            chunksArray.push(array.slice(i, i + chunkSize));
+          }
+
+          return chunksArray;
+        };
+
+        const chunkSize = 25;
+        const totalChunks = Math.ceil(cities.length / chunkSize);
+
+        const chunkedCitiesArray = createChunkArray(cities, chunkSize);
+
+        // 🔸分割したチャンクごとにバルクインサート Insert済みチャンク数を基に%で進捗状況をUIに表示
+        for (const iterator of chunkedCitiesArray.entries()) {
+          const [index, chunkArray] = iterator;
+          const chunkCount = index + 1;
+          const selectCount = (index + 1) * chunkArray.length;
+
+          console.log(`リクエスト送信実行${chunkCount}回目`);
+          const { error } = await supabase.rpc("select_towns", { _cities_data: chunkArray });
+
+          if (error) {
+            throw error;
+            break; // エラーが発生したら処理を中断
+          }
+
+          // 進行状況を更新
+          const progress = Math.round((chunkCount / totalChunks) * 100);
+          setProgressProcessing(progress);
+
+          // 1秒間隔をあけて次のリクエストを行う
+          await new Promise((resolve, reject) => setTimeout(resolve, 1000));
+
+          console.log(
+            `イテレーション${chunkCount}回目 SELECT成功`,
+            `, 進行状況progress: ${progress}%`,
+            `, selectCount: ${selectCount}個`,
+            `, totalChunks: ${totalChunks}個`
+          );
+        }
+
+        setProgressProcessing(null);
+
+        // 🔸Web Workerを起動してデータ前処理を実行
+        setIsTransformProcessing(true);
+      } catch (error: any) {
+        console.error("町域リストプロセスエラーIM04：", error);
+        alert("エラー：アップロードした会社リスト内で無効な住所が存在します。 IM04");
+      }
     } else {
       alert("Your Browser doesn't support web workers.");
     }
   };
 
-  // 🔸紐付け確認モーダルに渡してモーダル側で実行する
-  const handleCompleteMappingColumns = () => {
-    // ステップ3に移行
-    setStep(3);
-
-    // データ前処理を実行
-    handleStartTransformDataPreInsert();
-  };
   // ------------------------------ 🌠紐付け確定🌠 ここまで ------------------------------
   // ------------------------------ 🌟step2🌟 ここまで ------------------------------
 
