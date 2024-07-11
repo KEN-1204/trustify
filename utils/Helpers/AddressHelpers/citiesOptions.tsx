@@ -2,7 +2,7 @@
 
 import { RegionNameJpType } from "@/utils/selectOptions";
 
-// 🔸北海道 1 / 188件 -----------------------------------
+// 🔸北海道 1 / 188件 1 ~ 188 -----------------------------------
 // export const optionCitiesHokkaido01 = Array(188)
 //   .fill(null)
 //   .map((option, index) => index + 1);
@@ -199,7 +199,7 @@ export const optionCitiesHokkaido01 = [
 
 // export const mappingCitiesHokkaido01: { [key: number]: { [key: string | "ja" | "en"]: string } } = optionCitiesHokkaido01Jp.forEach((id) => ())
 
-// 都道府県名 => id のMapオブジェクト
+// 都道府県名 => id のMapオブジェクト 1 ~ 188
 export const citiesNameToIdMapHokkaido01 = new Map(
   optionCitiesHokkaido01.map((cityName, index) => [cityName, index + 1])
 );
@@ -249,9 +249,9 @@ export const optionCitiesAomori02 = [
   "三戸郡新郷村",
 ];
 
-// 都道府県名 => id のMapオブジェクト
+// 都道府県名 => id のMapオブジェクト 189 ~ 228 = 39(228-189)
 export const citiesNameToIdMapAomori02 = new Map(
-  optionCitiesAomori02.map((cityName, index) => [cityName, 228 + index])
+  optionCitiesAomori02.map((cityName, index) => [cityName, 189 + index])
 );
 
 // 🔸岩手県 3 / 33件 229 ~ 261 -----------------------------------
@@ -292,7 +292,7 @@ export const optionCitiesIwate03 = [
   "二戸郡一戸町",
 ];
 
-// 都道府県名 => id のMapオブジェクト
+// 都道府県名 => id のMapオブジェクト 229 ~ 261
 export const citiesNameToIdMapIwate03 = new Map(optionCitiesIwate03.map((cityName, index) => [cityName, 229 + index]));
 
 // 🔸宮城県 4 / 25件 262 ~ 300 -----------------------------------
@@ -339,7 +339,7 @@ export const optionCitiesMiyagi04 = [
   "本吉郡南三陸町",
 ];
 
-// 都道府県名 => id のMapオブジェクト
+// 都道府県名 => id のMapオブジェクト 262 ~ 300
 export const citiesNameToIdMapMiyagi04 = new Map(
   optionCitiesMiyagi04.map((cityName, index) => [cityName, 262 + index])
 );
@@ -374,7 +374,7 @@ export const optionCitiesAkita05 = [
   "雄勝郡東成瀬村",
 ];
 
-// 都道府県名 => id のMapオブジェクト
+// 都道府県名 => id のMapオブジェクト 301 ~ 325
 export const citiesNameToIdMapAkita05 = new Map(optionCitiesAkita05.map((cityName, index) => [cityName, 301 + index]));
 
 // 🔸山形県 6 / 25件 326 ~ 360 -----------------------------------
@@ -417,7 +417,7 @@ export const optionCitiesYamagata06 = [
   "飽海郡遊佐町",
 ];
 
-// 都道府県名 => id のMapオブジェクト
+// 都道府県名 => id のMapオブジェクト 326 ~ 360
 export const citiesNameToIdMapYamagata06 = new Map(
   optionCitiesYamagata06.map((cityName, index) => [cityName, 326 + index])
 );
@@ -486,7 +486,7 @@ export const optionCitiesFukushima07 = [
   "相馬郡飯舘村",
 ];
 
-// 都道府県名 => id のMapオブジェクト
+// 都道府県名 => id のMapオブジェクト 361 ~ 419
 export const citiesNameToIdMapFukushima07 = new Map(
   optionCitiesFukushima07.map((cityName, index) => [cityName, 361 + index])
 );

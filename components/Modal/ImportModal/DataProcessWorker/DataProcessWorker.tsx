@@ -1,4 +1,17 @@
+import { RegionNameJpType } from "@/utils/selectOptions";
 import { Dispatch, SetStateAction, useEffect } from "react";
+
+type TownsByCitiesType = {
+  town_id: string;
+  normalized_name: string;
+  postal_code: string;
+  country_id: string;
+  region_id: string;
+  city_id: string;
+  region_name_ja: RegionNameJpType;
+  city_name_ja: string;
+};
+type GroupedTownsByRegionCity = { [K in RegionNameJpType]: { [key: string]: TownsByCitiesType[] } };
 
 type WorkerMessageEventType = {
   parsedData: any[];
@@ -13,11 +26,18 @@ type Props = {
   columnMap: Map<string, string>;
   setIsTransformProcessing: Dispatch<SetStateAction<boolean>>;
   setProcessedData: Dispatch<SetStateAction<any[]>>;
+  groupedTownsByRegionCity: GroupedTownsByRegionCity; // 町域名の正規表現で使用するリスト
 };
 
 // Web Worker起動用コンポーネント
 // Web Worker(バックグラウンドスレッド)で数十万行のデータを全てINSERT可能な形に前処理
-export const DataProcessWorker = ({ parsedData, columnMap, setIsTransformProcessing, setProcessedData }: Props) => {
+export const DataProcessWorker = ({
+  parsedData,
+  columnMap,
+  setIsTransformProcessing,
+  setProcessedData,
+  groupedTownsByRegionCity,
+}: Props) => {
   useEffect(() => {
     // データ前処理用のWeb Workerスクリプトを「public/workers/csv/dataProcessor-worker.js」に配置
     const worker = new Worker("/workers/csv/dataProcessor-worker.js");

@@ -6,7 +6,6 @@ import useStore from "@/store";
 import Papa from "papaparse";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 
-import CheckingAnime from "@/components/assets/Animations/Checking";
 import { FaCompress } from "react-icons/fa";
 import { BiFullscreen } from "react-icons/bi";
 import { BsCheck2, BsChevronLeft, BsChevronRight } from "react-icons/bs";
@@ -24,6 +23,7 @@ import { ProgressCircleIncrement } from "@/components/Parts/Charts/ProgressCircl
 import { DotsLoaderBounceF } from "@/components/Parts/Loaders/LoaderDotsBounce/LoaderDotsBounce";
 import { ProgressNumberIncrement } from "@/components/Parts/Charts/ProgressNumber/ProgressNumberIncrement";
 import { MdClose } from "react-icons/md";
+import { AnimeCheck, AnimeChecking, AnimeUploading } from "@/components/assets/Animations";
 
 const ProviderImportModalMemo = () => {
   const language = useStore((state) => state.language);
@@ -2343,7 +2343,10 @@ const ProviderImportModalMemo = () => {
                   {isCompletedConvert && (
                     <div className={`${styles.file_upload_box} flex-center h-full w-full flex-col`}>
                       <div className={`mb-[6px] mt-[-60px]`}>
-                        <BsCheck2 className="pointer-events-none stroke-1 text-[120px] text-[var(--bright-green)]" />
+                        {/* <BsCheck2 className="pointer-events-none stroke-1 text-[120px] text-[var(--bright-green)]" /> */}
+                        <AnimeCheck height="270px" />
+                        {/* <CheckingAnime /> */}
+                        {/* <UploadingAnime /> */}
                       </div>
                       <h2 className={`flex flex-col items-center text-[16px] text-[var(--color-text-sub)]`}>
                         <span>{language === "ja" ? "CSVデータの読み込みが完了しました！" : ``}</span>
@@ -2370,7 +2373,7 @@ const ProviderImportModalMemo = () => {
                     >
                       {isConverting && (
                         <>
-                          {<CheckingAnime /> ?? <SpinnerX />}
+                          {<AnimeChecking /> ?? <SpinnerX />}
                           <div className={`mr-[-2px] flex min-w-[45px] items-center`}>
                             <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
                               読み込み中

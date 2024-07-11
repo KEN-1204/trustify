@@ -81,7 +81,7 @@ export function normalizeAddress(address: string) {
     const prefectureMatch = address.match(regExpPrefecture);
     // 適切な住所が入力されていなければ、この行データ自体をnullで返し、最後に削除
     if (!prefectureMatch) throw new Error("都道府県が見つかりませんでした。");
-    addressElements.prefecture = prefectureMatch[0];
+    addressElements.prefecture = prefectureMatch[1];
 
     // 🔸市区町村の抽出
     const regExpCity = regionNameToRegExpCitiesJp[addressElements.prefecture as RegionNameJpType];

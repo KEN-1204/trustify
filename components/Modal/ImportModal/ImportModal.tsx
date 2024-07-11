@@ -7,7 +7,6 @@ import useStore from "@/store";
 import Papa from "papaparse";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 
-import CheckingAnime from "@/components/assets/Animations/Checking";
 import { FaCompress } from "react-icons/fa";
 import { BiFullscreen } from "react-icons/bi";
 import { BsCheck2, BsChevronLeft, BsChevronRight } from "react-icons/bs";
@@ -27,8 +26,10 @@ import { ConfirmationMappingModal } from "../ConfirmationModal/ConfirmationMappi
 import { DataProcessWorker } from "./DataProcessWorker/DataProcessWorker";
 import { isPlainObject } from "@/utils/Helpers/isObjectPlain";
 import { regExpPrefecture, regionNameToRegExpCitiesJp } from "@/utils/Helpers/AddressHelpers/regExpAddress";
-import { regionNameToIdMapCitiesJp } from "@/utils/Helpers/AddressHelpers/citiesOptions";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { ProgressCircleIncrement } from "@/components/Parts/Charts/ProgressCircle/ProgressCircleIncrement";
+import { DotsLoaderBounceF } from "@/components/Parts/Loaders/LoaderDotsBounce/LoaderDotsBounce";
+import { AnimeCheck, AnimeChecking, AnimeUploading } from "@/components/assets/Animations";
 
 const ImportModalMemo = () => {
   const supabase = useSupabaseClient();
@@ -47,8 +48,6 @@ const ImportModalMemo = () => {
   const fileBrowseTextRef = useRef<HTMLSpanElement | null>(null);
   const inputFileUploadRef = useRef<HTMLInputElement | null>(null);
   const stepBtnRef = useRef<HTMLDivElement | null>(null);
-
-  const [step, setStep] = useState(1);
 
   // ------------------ CSV to JSON変換中ローディングテキストアニメーション ------------------
   // CSV to JSON変換中ローディング 5MB以上
@@ -116,6 +115,8 @@ const ImportModalMemo = () => {
   };
   const handleCloseModal = () => {
     setIsOpenImportModal(false);
+    if (processingName !== null) setProcessingName(null);
+    if (step !== 1) setStep(1);
   };
   // ----------------------------------------------
   // ---------------- 🌠Browse選択クリック🌠 ----------------
@@ -126,6 +127,7 @@ const ImportModalMemo = () => {
   };
   // ----------------------------------------------
 
+  const [step, setStep] = useState(1);
   // -------------------------- ステップ1 「CSVのパース・解析」用state --------------------------
   // 🔸パース後のCSVデータ配列 result.data
   // => 1000以上は10000個ずつの配列を配列に格納した出力される:
@@ -148,6 +150,28 @@ const ImportModalMemo = () => {
   // -------------------------- ステップ2 「ユーザーによるカラムの紐付け」用state ここまで --------------------------
 
   // -------------------------- ステップ3 「データ前処理」用state --------------------------
+  // 🔸進捗状況 INSERT済みのチャンク数 / 総チャンク数
+  const [progressProcessing, setProgressProcessing] = useState<number | null>(null);
+
+  // 🔸現在の処理内容をユーザーに明示するためのstate
+  const [processingName, setProcessingName] = useState<
+    "fetching_address" | "transforming" | "bulk_inserting" | "complete" | null
+  >(null);
+  // >("complete");
+  // 🔸会社リストの全ての住所で使用されている市区町村に対応した町域データのみを格納するstate: Workerに渡して使用
+  type TownsByCitiesType = {
+    town_id: string;
+    normalized_name: string;
+    postal_code: string;
+    country_id: string;
+    region_id: string;
+    city_id: string;
+    region_name_ja: RegionNameJpType;
+    city_name_ja: string;
+  };
+  type GroupedTownsByRegionCity = { [K in RegionNameJpType]: { [key: string]: TownsByCitiesType[] } };
+  const [groupedTownsByRegionCity, setGroupedTownsByRegionCity] = useState<GroupedTownsByRegionCity | null>(null);
+
   // 🔸CSVカラム名 to データベースカラム名
   const [insertCsvColumnNameToDBColumnMap, setInsertCsvColumnNameToDBColumnMap] = useState<Map<string, string> | null>(
     null
@@ -155,16 +179,16 @@ const ImportModalMemo = () => {
   // 🔸Web Worker(バックグラウンドスレッド)でデータ前処理中
   const [isTransformProcessing, setIsTransformProcessing] = useState(false);
   // 🔸データ前処理完了後の一括インサート用データ
-  const [processedData, setProcessedData] = useState<any[]>([]);
+  const [transformProcessedData, setTransformProcessedData] = useState<any[]>([]);
 
-  // 進捗状況 INSERT済みのチャンク数 / 総チャンク数
-  const [progressProcessing, setProgressProcessing] = useState<number | null>(null);
-
-  // 現在の処理内容をユーザーに明示するためのstate
-  const [processingName, setProcessingName] = useState<"fetching_address" | "transforming" | "bulk_inserting" | null>(
-    null
-  );
   // -------------------------- ステップ3 「データ前処理」用state ここまで --------------------------
+
+  // -------------------------- テスト --------------------------
+  const [uploadPrefectures, setUploadPrefectures] = useState<any[]>([]);
+  const [uploadCities, setUploadCities] = useState<any[]>([]);
+  const [gotPrefectures, setGotPrefectures] = useState<any[]>([]);
+  const [gotCities, setGotCities] = useState<any[]>([]);
+  // -------------------------- テスト --------------------------
 
   // 🔸既に選択済みのカラムのSetオブジェクト 空文字は除去
   const alreadySelectColumnsSetObj = useMemo(() => {
@@ -442,10 +466,12 @@ const ImportModalMemo = () => {
    */
 
   // 🔸紐付けを完了してデータ前処理へ移行
-  const handleCompleteMappingColumnsAndStartTransformDataPreInsert = async () => {
+  const handleCompleteMappingColumnsAndStartTransformDataPreInsert = async (
+    csvColumnNameToDBColumnMap: Map<string, string>
+  ) => {
     // ユーザーのブラウザーがWeb Workerをサポートしているかチェックしてからデータ前処理を実行
 
-    if (!insertCsvColumnNameToDBColumnMap) return alert("紐付けデータが存在しません。エラー：IM02");
+    if (!csvColumnNameToDBColumnMap) return alert("紐付けデータが存在しません。エラー：IM02");
 
     if (window.Worker) {
       try {
@@ -458,8 +484,12 @@ const ImportModalMemo = () => {
         // 進行状況を明示
         setProgressProcessing(0);
 
+        console.log("-----------------------------------🌠-----------------------------------");
+        performance.mark("fetch_towns_Start"); // 開始点
+        const startTime = performance.now(); // 開始時間
+
         // 🔸addressフィールドに対応するcsvカラムヘッダーを取得
-        const entryForCsvColumnAddress = Array.from(insertCsvColumnNameToDBColumnMap.entries()).find(
+        const entryForCsvColumnAddress = Array.from(csvColumnNameToDBColumnMap.entries()).find(
           ([key, value]) => value === "address"
         );
 
@@ -477,17 +507,24 @@ const ImportModalMemo = () => {
           })
           .filter((row) => !!row);
 
+        console.log("🔸パースしたCSVデータから住所のみを抽出", addresses);
+
         // 🔸会社住所リストの全ての住所データから、今回の住所リストで使用されている都道府県と市区町村を特定してリストを作成
         const identifyRegionsAndCities = (addresses: string[]) => {
           const prefecturesSet: Set<RegionNameJpType> = new Set();
           const citiesSet: Set<string> = new Set();
+          const filteredCitiesByPrefectures = {} as { [K in RegionNameJpType]: Set<string> };
 
           addresses.forEach((address) => {
             // 🔹都道府県を抽出
             const prefectureMatch = address.match(regExpPrefecture);
             if (prefectureMatch) {
-              const prefecture = prefectureMatch[0] as RegionNameJpType;
+              const prefecture = prefectureMatch[1] as RegionNameJpType;
               prefecturesSet.add(prefecture); // キャプチャグループではないためindexは0で文字列全体マッチ
+              // 新たな都道府県ならキーを追加
+              if (!Object.hasOwn(filteredCitiesByPrefectures, prefecture)) {
+                filteredCitiesByPrefectures[prefecture] = new Set();
+              }
 
               // 🔺マッチした都道府県に対応する市区町村の正規表現リストを取り出して、市区町村を抽出
               if (Object.hasOwn(regionNameToRegExpCitiesJp, prefecture)) {
@@ -495,75 +532,235 @@ const ImportModalMemo = () => {
                 // 市区町村を抽出
                 const cityMatch = address.match(regexCities);
                 if (cityMatch) {
-                  const city = cityMatch[0];
+                  const city = cityMatch[1];
                   citiesSet.add(city);
+
+                  // 新たな市区町村ならSetに追加
+                  if (!filteredCitiesByPrefectures[prefecture].has(city))
+                    filteredCitiesByPrefectures[prefecture].add(city);
                 }
               }
             }
           });
 
-          return { prefectures: Array.from(prefecturesSet), cities: Array.from(citiesSet) };
+          return {
+            prefectures: Array.from(prefecturesSet),
+            cities: Array.from(citiesSet),
+            filteredCitiesByPrefectures: filteredCitiesByPrefectures,
+          };
         };
 
         const regionsCities = identifyRegionsAndCities(addresses);
-        const { cities } = regionsCities;
+        const { prefectures, cities, filteredCitiesByPrefectures } = regionsCities;
+
+        console.log(
+          "🔸住所リストで使用されている都道府県と市区町村を特定してリストを作成",
+          regionsCities,
+          "都道府県ごとの市区町村filteredCitiesByPrefectures",
+          filteredCitiesByPrefectures
+        );
 
         // 抽出した全住所リスト内で使用されている市区町村データに紐づく町域リストを取得
 
-        // 🔸市区町村データを25個ずつのチャンクに分割 1市区町村あたり100件程度のため約2500件ずつ取得
+        // 都道府県内の町域データの最大数は北海道の8002件
+        // 全ての市区町村内で町域データが多い市区町村順
+        // 富山市：1146件、
+        // 港区：970件、
+        // 岐阜市：836件、
+        // 上越市：754件、
+        // 新宿区：695件、
 
-        // 市区町村リストを25個ずつのチャンクに分割する関数
-        const createChunkArray = (array: string[], chunkSize: number) => {
-          const chunksArray: string[][] = [];
+        // 🔸市区町村リストに紐づく町域データを1000件ずつ取得 ('normalized_name', 'region_name', 'city_name')
+        const fetchAllTownsByPrefecturesCities = async (
+          prefectures: RegionNameJpType[],
+          cities: string[],
+          pageSize: number,
+          totalCount: number
+        ): Promise<GroupedTownsByRegionCity> => {
+          let offset = 0;
+          let allTowns: TownsByCitiesType[] = [];
+          let hasNext = true;
 
-          for (let i = 0; i < array.length; i += chunkSize) {
-            // chunkSize が 1000行 の場合は 1000行単位のチャンクを作成して、全てのチャンクをまとめた配列を返す
-            chunksArray.push(array.slice(i, i + chunkSize));
+          /* allTowns = {
+                        北海道: {
+                          札幌市中央区: [...],
+                          札幌市北区: [...],
+                          札幌市東区: [...],
+                        },
+                        青森: {...},
+                        秋田: {...},
+                        ...
+                      }
+           */
+
+          // 🔸全てのtownデータを取得するまで、1000行ずつオフセットしながら取得
+          while (hasNext) {
+            const currentRange = offset + pageSize;
+            console.log(`${offset}行目〜${currentRange}行目までリクエスト送信実行🔥, 目標取得数: ${totalCount}`);
+            const { data: towns, error } = await supabase.rpc("select_filtered_towns_by_city_names", {
+              _prefecture_names: prefectures,
+              _city_names: cities,
+              _offset: offset,
+              _limit: pageSize,
+            });
+
+            if (error) {
+              console.error("Error fetching towns: ", error);
+              throw new Error("町域データを取得できませんでした。IM05");
+              break;
+            }
+
+            // 取得した行をallTownsに追加
+            allTowns.push(...towns);
+
+            // 進行状況を更新
+            const progress = Math.round((allTowns.length / totalCount) * 100);
+            setProgressProcessing(100 <= progress ? 100 : progress);
+
+            console.log(`取得成功✅ 達成率: ${progress}%, ${towns.length}行取得 現在の取得行数: ${allTowns.length}行`);
+
+            if (towns.length < pageSize) {
+              console.log(
+                `要求した${pageSize}行よりも取得した行数(${towns.length})が下回っているため全て取得完了 リクエスト終了✅✅✅`
+              );
+              hasNext = false; // データがページサイズより少ない場合は終了
+            } else {
+              offset += pageSize; // 次のチャンクのデータを取得
+            }
+
+            await new Promise((resolve, reject) => setTimeout(resolve, 1000)); // 1秒間隔で次のリクエスト
           }
 
-          return chunksArray;
+          console.log("✅✅✅全てのtownsリスト取得成功 allTowns: ", allTowns);
+
+          // -------------------------- テスト --------------------------
+          // 青森チェック
+          const prefNames = allTowns.map((obj) => obj.region_name_ja);
+          const prefNamesSet = new Set(prefNames);
+          const _cityNames = allTowns.map((obj) => obj.city_name_ja);
+          const _cityNamesSet = new Set(_cityNames);
+          const excludesCities = cities.filter((cityName) => !_cityNamesSet.has(cityName));
+
+          setGotPrefectures(Array.from(prefNamesSet));
+          setGotCities(Array.from(_cityNamesSet));
+          setUploadPrefectures(prefectures);
+          setUploadCities(cities);
+          console.log(
+            "アップロードprefectures",
+            prefectures,
+            "prefNamesSet",
+            prefNamesSet,
+            "prefNames",
+            prefNames,
+            "アップロードcities",
+            cities,
+            "_cityNamesSet",
+            _cityNamesSet,
+            "取得結果に含まれていないアップロードcity",
+            excludesCities,
+            "_cityNames",
+            _cityNames,
+            "アップロードした都道府県ごとの市区町村filteredCitiesByPrefectures",
+            filteredCitiesByPrefectures,
+            "allTowns",
+            allTowns
+          );
+          // -------------------------- テスト --------------------------
+
+          // 🔸インポートする会社リストに必要な全てのtownsテーブルの町域データが取得後
+          // 都道府県ごと、市区町村ごとに町域データをグループ化
+          const groupedTownsData = (allTowns as TownsByCitiesType[]).reduce((acc, town) => {
+            const { region_name_ja, city_name_ja, normalized_name } = town;
+            // 都道府県グループ トップレベル 未挿入の都道府県名のプロパティの場合は新たにregion_name_jaをキーに追加
+            if (!Object.hasOwn(acc, region_name_ja)) {
+              acc[region_name_ja] = {};
+            }
+            // 市区町村 ネスト region_name_jaの都道府県名オブジェクト内で未挿入の市区町村名のプロパティの場合は新たにcity_name_jaをキーに追加
+            if (!Object.hasOwn(acc[region_name_ja], city_name_ja)) {
+              // keyが市区町村名のvalueはtownsのrowが配列に格納されるため空の配列をセット
+              acc[region_name_ja][city_name_ja] = [];
+            }
+            acc[region_name_ja][city_name_ja].push(town);
+
+            return acc;
+          }, {} as { [K in RegionNameJpType]: { [key: string]: TownsByCitiesType[] } });
+
+          return groupedTownsData;
         };
 
-        const chunkSize = 25;
-        const totalChunks = Math.ceil(cities.length / chunkSize);
+        // 🔸先に今回使用される市区町村名に紐づく町域データの合計数を取得する(進捗UI用)
+        const { data: totalTownsCount, error: totalError } = await supabase.rpc("select_filtered_total_towns_count", {
+          _prefecture_names: prefectures,
+          _city_names: cities,
+        });
 
-        const chunkedCitiesArray = createChunkArray(cities, chunkSize);
+        console.log("✅今回の取得合計数: ", totalTownsCount);
 
-        // 🔸分割したチャンクごとにバルクインサート Insert済みチャンク数を基に%で進捗状況をUIに表示
-        for (const iterator of chunkedCitiesArray.entries()) {
-          const [index, chunkArray] = iterator;
-          const chunkCount = index + 1;
-          const selectCount = (index + 1) * chunkArray.length;
-
-          console.log(`リクエスト送信実行${chunkCount}回目`);
-          const { error } = await supabase.rpc("select_towns", { _cities_data: chunkArray });
-
-          if (error) {
-            throw error;
-            break; // エラーが発生したら処理を中断
-          }
-
-          // 進行状況を更新
-          const progress = Math.round((chunkCount / totalChunks) * 100);
-          setProgressProcessing(progress);
-
-          // 1秒間隔をあけて次のリクエストを行う
-          await new Promise((resolve, reject) => setTimeout(resolve, 1000));
-
-          console.log(
-            `イテレーション${chunkCount}回目 SELECT成功`,
-            `, 進行状況progress: ${progress}%`,
-            `, selectCount: ${selectCount}個`,
-            `, totalChunks: ${totalChunks}個`
-          );
+        if (totalError) {
+          console.log("❌住所データの合計行数が見つかりませんでした。エラー: IM07");
+          throw totalError;
         }
 
-        setProgressProcessing(null);
+        // 🔸1000行ずつ取得し、抽出した市区町村名に対応する町域リストを全て取得
+        // SupabaseダッシュボードのData API SettingsのMax rowsがデフォルトで1000になっている これはそのままにしておきmax_rowsに準じる形で取得する
+        const _groupedTownsByRegionCity = await fetchAllTownsByPrefecturesCities(
+          prefectures,
+          cities,
+          1000,
+          totalTownsCount
+        );
 
-        // 🔸Web Workerを起動してデータ前処理を実行
-        setIsTransformProcessing(true);
+        if (!_groupedTownsByRegionCity) throw new Error("町域データが見つかりませんでした。IM06");
+
+        console.log(
+          "✅townsリストを都道府県ごと、市区町村ごとにグループ化したリスト取得成功: ",
+          _groupedTownsByRegionCity
+        );
+
+        if (true) {
+          // データベースから取得したグループから都道府県別に市区町村のキーがいくつあるか取得
+          const groupedCitiesCountByPrefectures = Array.from(Object.entries(_groupedTownsByRegionCity)).map(
+            ([key, value]) => {
+              const citiesArray = Object.keys(value);
+              return { [key]: citiesArray };
+            }
+          );
+          console.log(
+            "✅終了 _groupedTownsByRegionCity: ",
+            _groupedTownsByRegionCity,
+            "DBから取得した都道府県ごとの市区町村groupedCitiesCountByPrefectures",
+            groupedCitiesCountByPrefectures,
+            "アップロードした都道府県ごとの市区町村filteredCitiesByPrefectures",
+            filteredCitiesByPrefectures,
+            prefectures,
+            cities,
+            addresses
+          );
+          // console.log("✅groupedTownsData: ", _groupedTownsByRegionCity);
+          setProgressProcessing(null); // 完了したため進捗を一度リセット
+          setProcessingName("complete");
+
+          performance.mark("fetch_towns_End"); // 開始点
+          performance.measure("fetch_towns_Time", "fetch_towns_Start", "fetch_towns_End"); // 計測
+          console.log("Measure Time: ", performance.getEntriesByName("fetch_towns_Time")[0].duration);
+          performance.clearMarks();
+          performance.clearMeasures("fetch_towns_Time");
+          const endTime = performance.now(); // 終了時間
+          console.log("Time: ", endTime - startTime, "ms");
+          console.log("-----------------------------------🌠-----------------------------------");
+          return;
+        }
+
+        setGroupedTownsByRegionCity(_groupedTownsByRegionCity); // townsリストを格納
+
+        setProgressProcessing(null); // 完了したため進捗を一度リセット
+
+        // 🔸プロセス内容をデータ前処理に移行
+        setProcessingName("transforming");
+
+        setIsTransformProcessing(true); // 🔸Web Workerを起動してデータ前処理を実行
       } catch (error: any) {
-        console.error("町域リストプロセスエラーIM04：", error);
+        console.error("❌町域リストプロセスエラーIM04：", error);
         alert("エラー：アップロードした会社リスト内で無効な住所が存在します。 IM04");
       }
     } else {
@@ -800,6 +997,15 @@ const ImportModalMemo = () => {
         return inactiveStyle;
       }
     }
+    if (step === 3) {
+      // 必須カラム選択数が4に到達したらアクティブにする 会社名と住所の2つを含んでいたらアクティブに変更
+      if (processingName === "complete") {
+        return activeStyle;
+      } else {
+        return inactiveStyle;
+      }
+    }
+
     return activeStyle;
   };
 
@@ -1041,6 +1247,14 @@ const ImportModalMemo = () => {
                         </div>
                       </>
                     )}
+                    {step === 3 && (
+                      <>
+                        {processingName === "fetching_address" && <span>{`CSVデータ変換処理の準備中...`}</span>}
+                        {processingName === "transforming" && <span>{`CSVデータ変換処理中...`}</span>}
+                        {processingName === "bulk_inserting" && <span>{`CSVデータインポート中...`}</span>}
+                        {processingName === "complete" && <span>{`CSVデータインポート完了`}</span>}
+                      </>
+                    )}
                   </div>
                   <div
                     className={`mt-[6px] flex min-h-[39px] whitespace-pre-wrap text-[12px] text-[var(--color-text-sub)]`}
@@ -1063,10 +1277,80 @@ const ImportModalMemo = () => {
                         <p>{`TRUSTiFYデータベースの項目名と紐付けるCSVファイルの項目名を選択してください。\n保存しない不要な列の項目名には「スキップ」を指定してください。`}</p>
                       </>
                     )}
+                    {step === 3 && (
+                      <>
+                        {processingName === "fetching_address" && <span>{`住所データ取得しています...`}</span>}
+                        {processingName === "transforming" && isTransformProcessing && (
+                          <span>{`アップロードしたCSVデータをデータベースへインポート可能な形式に変換処理中...`}</span>
+                        )}
+                        {processingName === "bulk_inserting" && (
+                          <span>{`アップロードしたCSVデータをデータベースへインポート中...`}</span>
+                        )}
+                        {processingName === "complete" && (
+                          <span>{`CSVデータからデータベースへのインポートが完了しました！🌠`}</span>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
 
                 <div className={`${styles.right_wrapper} flex h-full w-[40%] items-end justify-end space-x-[15px]`}>
+                  {/* <button
+                    type="button"
+                    className={`transition-bg02 flex-center brand_btn_active space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[12px]`}
+                    style={{
+                      transition: `background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease width 0.2s ease`,
+                    }}
+                    onClick={async () => {
+                      const testProgress = async () => {
+                        setProcessingName("fetching_address");
+                        for (let i = 0; i <= 100; i += 5) {
+                          setProgressProcessing(i);
+                          console.log("progress: ", i);
+
+                          await new Promise((resolve, reject) => setTimeout(resolve, 1000));
+                        }
+
+                        setProgressProcessing(null);
+                        setProcessingName(null);
+                      };
+                      const testAnime = async () => {
+                        setProcessingName("fetching_address");
+                        for (let i = 0; i <= 100; i += 10) {
+                          setProgressProcessing(i);
+                          console.log("progress: ", i);
+
+                          await new Promise((resolve, reject) => setTimeout(resolve, 1000));
+                        }
+                        setProgressProcessing(null);
+
+                        // 🔸LottieAnimeのみ ❌フリーズ 3回〜4回目
+                        setProcessingName("transforming");
+                        await new Promise((resolve, reject) => setTimeout(resolve, 5000));
+                        setProcessingName("bulk_inserting");
+                        await new Promise((resolve, reject) => setTimeout(resolve, 5000));
+                        setProcessingName("complete");
+                        await new Promise((resolve, reject) => setTimeout(resolve, 5000));
+
+                        // 🔸LottieAnimeのみ
+                        // setProcessingName("transforming");
+                        // await new Promise((resolve, reject) => setTimeout(resolve, 5000));
+                        // setProcessingName("bulk_inserting");
+                        // await new Promise((resolve, reject) => setTimeout(resolve, 5000));
+                        // setProcessingName("transforming");
+                        // await new Promise((resolve, reject) => setTimeout(resolve, 5000));
+                        // setProcessingName("bulk_inserting");
+                        // await new Promise((resolve, reject) => setTimeout(resolve, 5000));
+
+                        setProcessingName(null);
+                      };
+
+                      // testProgress();
+                      testAnime();
+                    }}
+                  >
+                    ロード
+                  </button> */}
                   <div
                     className={`transition-bg02 flex-center basic_btn space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[12px]`}
                     // text-[#b9b9b9]
@@ -1101,6 +1385,7 @@ const ImportModalMemo = () => {
                       transition: `background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease width 0.2s ease`,
                     }}
                     onMouseEnter={(e) => {
+                      if (step === 3) return;
                       let tooltipContent = ``;
                       if (step === 2) {
                         if (selectedRequiredColumnCount < 2) tooltipContent = `未選択の必須項目があります`;
@@ -1117,6 +1402,7 @@ const ImportModalMemo = () => {
                     onMouseLeave={handleCloseTooltip}
                     onClick={() => {
                       handleCloseTooltip();
+                      if (step === 3) return;
                       if (step === 1) {
                         if (isConverting) return;
                         if (!isCompletedConvert) {
@@ -1150,9 +1436,11 @@ const ImportModalMemo = () => {
                         {isCompletedConvert && <span>次へ</span>}
                       </>
                     )}
-                    {step === 2 && (
+                    {step === 2 && <span>次へ ({`${selectedRequiredColumnCount} / 2`})</span>}
+                    {step === 3 && (
                       <>
-                        <span>次へ ({`${selectedRequiredColumnCount} / 2`})</span>
+                        {processingName !== "complete" && <span>次へ</span>}
+                        {processingName === "complete" && <span>閉じる</span>}
                       </>
                     )}
                   </div>
@@ -1172,9 +1460,10 @@ const ImportModalMemo = () => {
                   {isCompletedConvert && (
                     <div className={`${styles.file_upload_box} flex-center h-full w-full flex-col`}>
                       <div className={`mb-[6px] mt-[-60px]`}>
-                        <BsCheck2 className="pointer-events-none stroke-1 text-[120px] text-[var(--bright-green)]" />
+                        {/* <BsCheck2 className="fade08_forward pointer-events-none stroke-1 text-[120px] text-[var(--bright-green)]" /> */}
+                        <AnimeCheck />
                       </div>
-                      <h2 className={`flex flex-col items-center text-[16px] text-[var(--color-text-sub)]`}>
+                      <h2 className={`mt-[-30px] flex flex-col items-center text-[16px] text-[var(--color-text-sub)]`}>
                         <span>{language === "ja" ? "CSVデータの読み込みが完了しました！" : ``}</span>
                         <span>{language === "ja" ? "次のステップに進んでください！" : ``}</span>
                         <div
@@ -1199,7 +1488,7 @@ const ImportModalMemo = () => {
                     >
                       {isConverting && (
                         <>
-                          {<CheckingAnime /> ?? <SpinnerX />}
+                          {<AnimeChecking /> ?? <SpinnerX />}
                           <div className={`mr-[-2px] flex min-w-[45px] items-center`}>
                             <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
                               読み込み中
@@ -1519,20 +1808,94 @@ const ImportModalMemo = () => {
               {/* -------------------------- step2 マッピング ここまで -------------------------- */}
               {/* -------------------------- step3 データ前処理 Web Worker -------------------------- */}
               {step === 3 && (
-                <div
-                  className={`${styles.file_upload_box_container} mb-[24px] h-full w-full bg-[var(--color-modal-solid-bg-main)] p-[12px]`}
-                >
-                  {isTransformProcessing && (
-                    <>
-                      {<CheckingAnime /> ?? <SpinnerX />}
-                      <div className={`mr-[-2px] flex min-w-[45px] items-center`}>
-                        <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
-                          データ変換処理中
-                        </p>
-                      </div>
-                    </>
-                  )}
-                </div>
+                <>
+                  <div
+                    className={`${styles.file_upload_box_container} flex-col-center mb-[24px] h-full w-full bg-[var(--color-modal-solid-bg-main)] p-[12px]`}
+                  >
+                    {processingName === "fetching_address" && (
+                      <>
+                        {progressProcessing !== null && (
+                          <div className={`flex-col-center relative space-y-[10px]`}>
+                            <ProgressCircleIncrement
+                              circleId={`csv_bulk_insert`}
+                              textId={`csv_bulk_insert`}
+                              progress={progressProcessing}
+                              startProgress={progressProcessing}
+                              duration={5000}
+                              easeFn="Quartic"
+                              size={156}
+                              fontSize={33}
+                              // size={145}
+                              // fontSize={30}
+                              strokeWidth={13}
+                              fontWeight={500}
+                              fontFamily="var(--font-family-str)"
+                              textColor="var(--color-text-title)"
+                              isReady={true}
+                              withShadow={false}
+                              // fade={`fade08_forward`}
+                              // customText="達成率"
+                              // customFontSize={12}
+                              // customTextTop={`calc(50% + 28px)`}
+                            />
+                          </div>
+                        )}
+                        <div className={`flex-col-center mb-[5px] mr-[-2px] mt-[13px] min-w-[45px]`}>
+                          <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
+                            チェック・変換処理の準備中...
+                          </p>
+                        </div>
+                        <div className="flex-center mb-[-10px] pl-[2px]">
+                          <DotsLoaderBounceF shadow={`unset`} />
+                        </div>
+                      </>
+                    )}
+                    {processingName === "transforming" && (
+                      <>
+                        {<AnimeChecking /> ?? <SpinnerX />}
+                        <div className={`flex-col-center mr-[-2px] flex min-w-[45px]`}>
+                          <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
+                            CSVデータのチェック・変換処理中...
+                          </p>
+                          <p className={`text-[16px] text-[var(--color-text-sub)]`}>しばらくお待ちください。</p>
+                        </div>
+                      </>
+                    )}
+                    {/* {true && ( */}
+                    {processingName === "bulk_inserting" && (
+                      <>
+                        {<AnimeUploading /> ?? <SpinnerX />}
+                        <div className={`flex-col-center mr-[-2px] flex min-w-[45px]`}>
+                          <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
+                            CSVデータをインポート中...
+                          </p>
+                          <p className={`text-[16px] text-[var(--color-text-sub)]`}>しばらくお待ちください。</p>
+                        </div>
+                      </>
+                    )}
+                    {processingName === "complete" && (
+                      <>
+                        <div className={`${styles.file_upload_box} flex-center h-full w-full flex-col`}>
+                          <div className={`mb-[6px] mt-[-60px]`}>
+                            {/* <BsCheck2 className="fade08_forward pointer-events-none stroke-1 text-[120px] text-[var(--bright-green)]" /> */}
+                            <AnimeCheck />
+                          </div>
+                          <h2
+                            className={`mt-[-30px] flex flex-col items-center text-[16px] text-[var(--color-text-sub)]`}
+                          >
+                            <span>{language === "ja" ? "CSVデータのインポートが完了しました！" : ``}</span>
+                            <div
+                              className={`transition-bg02 brand_btn_active flex-center mb-[-13px] mt-[13px] space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[15px]`}
+                              onClick={handleCloseModal}
+                            >
+                              <span>閉じる</span>
+                            </div>
+                          </h2>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
               )}
               {/* -------------------------- step3 データ前処理 Web Worker ここまで -------------------------- */}
             </div>
@@ -1636,14 +1999,30 @@ const ImportModalMemo = () => {
                       </div>
                     </div>
                   )}
-                  {step === 3 && isTransformProcessing && (
+                  {/* ミニサイズ */}
+                  {/* {true && ( */}
+                  {step === 3 && (
                     <>
-                      <SpinnerX h="h-[24px]" w="w-[24px]" />
-                      <div className={`ml-[15px] flex min-w-max items-center`}>
-                        <p ref={convertingTextRef} className={`text-[13px] text-[var(--color-text-sub)]`}>
-                          変換処理中
-                        </p>
-                      </div>
+                      {processingName === "complete" && (
+                        <>
+                          <BsCheck2 className="pointer-events-none min-h-[18px] min-w-[24px] stroke-1 text-[24px] text-[var(--bright-green)]" />
+                          <div className={`ml-[15px] flex min-w-max items-center`}>
+                            <p ref={convertingTextRef} className={`text-[13px] text-[var(--color-text-sub)]`}>
+                              読み込み完了
+                            </p>
+                          </div>
+                        </>
+                      )}
+                      {processingName !== "complete" && (
+                        <>
+                          <SpinnerX h="h-[24px]" w="w-[24px]" />
+                          <div className={`ml-[15px] flex min-w-max items-center`}>
+                            <p ref={convertingTextRef} className={`text-[13px] text-[var(--color-text-sub)]`}>
+                              変換処理中
+                            </p>
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
@@ -1718,7 +2097,7 @@ const ImportModalMemo = () => {
               .map((column, index) => (column !== "" ? index : null))
               .filter((num): num is number => num !== null);
             // InsertするCsvデータのカラム名 to データベースのカラム名 のMapオブジェクトを作成
-            const insertCsvColumnNameToDBColumnMap = new Map(
+            const _insertCsvColumnNameToDBColumnMap = new Map(
               selectedIndexesArray.map((i) => [uploadedColumnFields[i], selectedColumnFieldsArray[i]])
             );
             // アップロードされたCSVデータから選択されたindexのみのカラムに絞ったデータを抽出
@@ -1726,11 +2105,15 @@ const ImportModalMemo = () => {
             console.log(
               "selectedIndexesArray",
               selectedIndexesArray,
-              "insertCsvColumnNameToDBColumnMap",
-              insertCsvColumnNameToDBColumnMap,
+              "_insertCsvColumnNameToDBColumnMap",
+              _insertCsvColumnNameToDBColumnMap,
               "uploadedData",
               uploadedData
             );
+            setInsertCsvColumnNameToDBColumnMap(_insertCsvColumnNameToDBColumnMap);
+
+            handleCompleteMappingColumnsAndStartTransformDataPreInsert(_insertCsvColumnNameToDBColumnMap);
+
             setIsMappingConfirmationModal(false);
           }}
           buttonColor="brand"
@@ -1749,14 +2132,19 @@ const ImportModalMemo = () => {
       {/* ----------------------- step2 紐付け設定完了確認モーダル ここまで ----------------------- */}
 
       {/* ----------------------- step3 データ前処理Web Workerコンポーネント起動 ----------------------- */}
-      {step === 3 && isTransformProcessing && !!uploadedData.length && insertCsvColumnNameToDBColumnMap !== null && (
-        <DataProcessWorker
-          parsedData={uploadedData}
-          columnMap={insertCsvColumnNameToDBColumnMap}
-          setIsTransformProcessing={setIsTransformProcessing}
-          setProcessedData={setProcessedData}
-        />
-      )}
+      {step === 3 &&
+        isTransformProcessing &&
+        !!uploadedData.length &&
+        insertCsvColumnNameToDBColumnMap !== null &&
+        groupedTownsByRegionCity && (
+          <DataProcessWorker
+            parsedData={uploadedData}
+            columnMap={insertCsvColumnNameToDBColumnMap}
+            setIsTransformProcessing={setIsTransformProcessing}
+            setProcessedData={setTransformProcessedData}
+            groupedTownsByRegionCity={groupedTownsByRegionCity}
+          />
+        )}
       {/* ----------------------- step3 データ前処理Web Workerコンポーネント起動 ここまで ----------------------- */}
     </>
   );
