@@ -146,7 +146,7 @@ const ImportModalMemo = () => {
   // 🔸テーブルに展開するための最初の5行
   const [uploadedDisplayRowList, setUploadedDisplayRowList] = useState<any[]>([]);
   // 🔸紐付け完了確認モーダル開閉state
-  const [isOpenMappingConfirmationModal, setIsMappingConfirmationModal] = useState(false);
+  const [isOpenMappingConfirmationModal, setIsOpenMappingConfirmationModal] = useState(false);
   // -------------------------- ステップ2 「ユーザーによるカラムの紐付け」用state ここまで --------------------------
 
   // -------------------------- ステップ3 「データ前処理」用state --------------------------
@@ -184,10 +184,10 @@ const ImportModalMemo = () => {
   // -------------------------- ステップ3 「データ前処理」用state ここまで --------------------------
 
   // -------------------------- テスト --------------------------
-  const [uploadPrefectures, setUploadPrefectures] = useState<any[]>([]);
-  const [uploadCities, setUploadCities] = useState<any[]>([]);
-  const [gotPrefectures, setGotPrefectures] = useState<any[]>([]);
-  const [gotCities, setGotCities] = useState<any[]>([]);
+  // const [uploadPrefectures, setUploadPrefectures] = useState<any[]>([]);
+  // const [uploadCities, setUploadCities] = useState<any[]>([]);
+  // const [gotPrefectures, setGotPrefectures] = useState<any[]>([]);
+  // const [gotCities, setGotCities] = useState<any[]>([]);
   // -------------------------- テスト --------------------------
 
   // 🔸既に選択済みのカラムのSetオブジェクト 空文字は除去
@@ -465,12 +465,34 @@ const ImportModalMemo = () => {
    * product_category_large: TEXT => 製品分類(大分類) それぞれの製品分類に類する特定の文字列を用意して、マッチしていれば
    */
 
-  // 🔸紐付けを完了してデータ前処理へ移行
-  const handleCompleteMappingColumnsAndStartTransformDataPreInsert = async (
-    csvColumnNameToDBColumnMap: Map<string, string>
-  ) => {
-    // ユーザーのブラウザーがWeb Workerをサポートしているかチェックしてからデータ前処理を実行
+  // 🔸紐付け確定 カラムマップ作成 townsデータ取得 データ前処理実行
+  const handleCompleteMappingColumns = async () => {
+    // カラムマップ作成-----------------------------------
+    // アップロードされたCSVデータから選択されたindexのカラムに絞った列を抽出
+    //  => selectedColumnFieldsArrayから空文字でないindexを抽出してSetオブジェクトを作成
+    const selectedIndexesArray = selectedColumnFieldsArray
+      .map((column, index) => (column !== "" ? index : null))
+      .filter((num): num is number => num !== null);
+    // InsertするCsvデータのカラム名 to データベースのカラム名 のMapオブジェクトを作成
+    const csvColumnNameToDBColumnMap = new Map(
+      selectedIndexesArray.map((i) => [uploadedColumnFields[i], selectedColumnFieldsArray[i]])
+    );
 
+    console.log(
+      "selectedIndexesArray",
+      selectedIndexesArray,
+      "csvColumnNameToDBColumnMap",
+      csvColumnNameToDBColumnMap,
+      "uploadedData",
+      uploadedData
+    );
+    setInsertCsvColumnNameToDBColumnMap(csvColumnNameToDBColumnMap);
+
+    // 確認モーダルを閉じる
+    setIsOpenMappingConfirmationModal(false);
+
+    // 🔸会社リストに使用される都道府県、市区町村に紐づくtownsデータを全て取得-----------------------------------
+    // ユーザーのブラウザーがWeb Workerをサポートしているかチェックしてからデータ前処理を実行
     if (!csvColumnNameToDBColumnMap) return alert("紐付けデータが存在しません。エラー：IM02");
 
     if (window.Worker) {
@@ -641,10 +663,6 @@ const ImportModalMemo = () => {
           const _cityNamesSet = new Set(_cityNames);
           const excludesCities = cities.filter((cityName) => !_cityNamesSet.has(cityName));
 
-          setGotPrefectures(Array.from(prefNamesSet));
-          setGotCities(Array.from(_cityNamesSet));
-          setUploadPrefectures(prefectures);
-          setUploadCities(cities);
           console.log(
             "アップロードprefectures",
             prefectures,
@@ -712,44 +730,34 @@ const ImportModalMemo = () => {
 
         if (!_groupedTownsByRegionCity) throw new Error("町域データが見つかりませんでした。IM06");
 
-        console.log(
-          "✅townsリストを都道府県ごと、市区町村ごとにグループ化したリスト取得成功: ",
-          _groupedTownsByRegionCity
+        // データベースから取得したグループから都道府県別に市区町村のキーがいくつあるか取得
+        const groupedCitiesCountByPrefectures = Array.from(Object.entries(_groupedTownsByRegionCity)).map(
+          ([key, value]) => {
+            const citiesArray = Object.keys(value);
+            return { [key]: citiesArray };
+          }
         );
 
-        if (true) {
-          // データベースから取得したグループから都道府県別に市区町村のキーがいくつあるか取得
-          const groupedCitiesCountByPrefectures = Array.from(Object.entries(_groupedTownsByRegionCity)).map(
-            ([key, value]) => {
-              const citiesArray = Object.keys(value);
-              return { [key]: citiesArray };
-            }
-          );
-          console.log(
-            "✅終了 _groupedTownsByRegionCity: ",
-            _groupedTownsByRegionCity,
-            "DBから取得した都道府県ごとの市区町村groupedCitiesCountByPrefectures",
-            groupedCitiesCountByPrefectures,
-            "アップロードした都道府県ごとの市区町村filteredCitiesByPrefectures",
-            filteredCitiesByPrefectures,
-            prefectures,
-            cities,
-            addresses
-          );
-          // console.log("✅groupedTownsData: ", _groupedTownsByRegionCity);
-          setProgressProcessing(null); // 完了したため進捗を一度リセット
-          setProcessingName("complete");
+        console.log(
+          "✅終了 townsリストを都道府県ごと、市区町村ごとにグループ化したリスト取得成功: ",
+          _groupedTownsByRegionCity,
+          "DBから取得した都道府県ごとの市区町村groupedCitiesCountByPrefectures",
+          groupedCitiesCountByPrefectures,
+          "アップロードした都道府県ごとの市区町村filteredCitiesByPrefectures",
+          filteredCitiesByPrefectures,
+          prefectures,
+          cities,
+          addresses
+        );
 
-          performance.mark("fetch_towns_End"); // 開始点
-          performance.measure("fetch_towns_Time", "fetch_towns_Start", "fetch_towns_End"); // 計測
-          console.log("Measure Time: ", performance.getEntriesByName("fetch_towns_Time")[0].duration);
-          performance.clearMarks();
-          performance.clearMeasures("fetch_towns_Time");
-          const endTime = performance.now(); // 終了時間
-          console.log("Time: ", endTime - startTime, "ms");
-          console.log("-----------------------------------🌠-----------------------------------");
-          return;
-        }
+        performance.mark("fetch_towns_End"); // 開始点
+        performance.measure("fetch_towns_Time", "fetch_towns_Start", "fetch_towns_End"); // 計測
+        console.log("Measure Time: ", performance.getEntriesByName("fetch_towns_Time")[0].duration);
+        performance.clearMarks();
+        performance.clearMeasures("fetch_towns_Time");
+        const endTime = performance.now(); // 終了時間
+        console.log("Time: ", endTime - startTime, "ms");
+        console.log("-----------------------------------🌠-----------------------------------");
 
         setGroupedTownsByRegionCity(_groupedTownsByRegionCity); // townsリストを格納
 
@@ -758,7 +766,8 @@ const ImportModalMemo = () => {
         // 🔸プロセス内容をデータ前処理に移行
         setProcessingName("transforming");
 
-        setIsTransformProcessing(true); // 🔸Web Workerを起動してデータ前処理を実行
+        // 🔸Web Workerを起動してデータ前処理を実行
+        setIsTransformProcessing(true);
       } catch (error: any) {
         console.error("❌町域リストプロセスエラーIM04：", error);
         alert("エラー：アップロードした会社リスト内で無効な住所が存在します。 IM04");
@@ -1040,16 +1049,15 @@ const ImportModalMemo = () => {
   }, [modalContainerRef.current]);
 
   console.log(
-    "ImportModalレンダリング",
-    // modalHeight,
-    "uploadedDisplayRowList",
-    uploadedDisplayRowList,
-    "uploadedColumnFields",
-    uploadedColumnFields,
-    "selectedColumnFieldsArray",
-    selectedColumnFieldsArray,
-    "alreadySelectColumnsSetObj",
-    alreadySelectColumnsSetObj
+    "ImportModalレンダリング"
+    // "uploadedDisplayRowList",
+    // uploadedDisplayRowList,
+    // "uploadedColumnFields",
+    // uploadedColumnFields,
+    // "selectedColumnFieldsArray",
+    // selectedColumnFieldsArray,
+    // "alreadySelectColumnsSetObj",
+    // alreadySelectColumnsSetObj
     // "remainingOptionsColumnFieldsArray",
     // remainingOptionsColumnFieldsArray
   );
@@ -1421,7 +1429,7 @@ const ImportModalMemo = () => {
                           );
 
                         // 前処理を実行する前に本当に現在のカラム内容でINSERTして良いかアラームで確認
-                        setIsMappingConfirmationModal(true);
+                        setIsOpenMappingConfirmationModal(true);
                       }
                     }}
                   >
@@ -2089,33 +2097,9 @@ const ImportModalMemo = () => {
           submitText="紐付けを確定して次へ"
           cancelText="戻る"
           clickEventClose={() => {
-            setIsMappingConfirmationModal(false);
+            setIsOpenMappingConfirmationModal(false);
           }}
-          clickEventSubmit={() => {
-            // 選択されているindexを取り出す => selectedColumnFieldsArrayから空文字でないindexのみのSetオブジェクトを作成
-            const selectedIndexesArray = selectedColumnFieldsArray
-              .map((column, index) => (column !== "" ? index : null))
-              .filter((num): num is number => num !== null);
-            // InsertするCsvデータのカラム名 to データベースのカラム名 のMapオブジェクトを作成
-            const _insertCsvColumnNameToDBColumnMap = new Map(
-              selectedIndexesArray.map((i) => [uploadedColumnFields[i], selectedColumnFieldsArray[i]])
-            );
-            // アップロードされたCSVデータから選択されたindexのみのカラムに絞ったデータを抽出
-            // const uploadCsvDataOnlySelectedColumns =
-            console.log(
-              "selectedIndexesArray",
-              selectedIndexesArray,
-              "_insertCsvColumnNameToDBColumnMap",
-              _insertCsvColumnNameToDBColumnMap,
-              "uploadedData",
-              uploadedData
-            );
-            setInsertCsvColumnNameToDBColumnMap(_insertCsvColumnNameToDBColumnMap);
-
-            handleCompleteMappingColumnsAndStartTransformDataPreInsert(_insertCsvColumnNameToDBColumnMap);
-
-            setIsMappingConfirmationModal(false);
-          }}
+          clickEventSubmit={handleCompleteMappingColumns}
           buttonColor="brand"
           zIndexModal="3000px"
           zIndexOverlay="2800px"

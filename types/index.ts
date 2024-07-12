@@ -1,6 +1,7 @@
 // =================== Language ===================
 
 import { ProductCategoriesSmall } from "@/utils/productCategoryS";
+import { RegionNameJpType } from "@/utils/selectOptions";
 
 // クリック位置
 export type ClickedItemPos = {
@@ -579,6 +580,18 @@ export type Towns = {
   region_id: number | null;
   city_id: number | null;
 };
+// 都道府県別・市区町村別townsリスト(CSVインポート時に正規表現で使用)
+export type TownsByCitiesType = {
+  town_id: string;
+  normalized_name: string;
+  postal_code: string;
+  country_id: string;
+  region_id: string;
+  city_id: string;
+  region_name_ja: RegionNameJpType;
+  city_name_ja: string;
+};
+export type GroupedTownsByRegionCity = { [K in RegionNameJpType]: { [key: string]: TownsByCitiesType[] } };
 
 // 営業先会社 client_companiesテーブル
 export type Client_company = {

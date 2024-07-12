@@ -17,19 +17,84 @@ self.onmessage = function (e) {
   // postMessage が呼び出されたときにメッセージを送ったウィンドウのオリジンが正しいことをチェック
   if (e.origin !== process.env.CLIENT_URL) return console.log("❌オリジンチェックに失敗 リターン");
 
-  const { parsedData, columnMap } = e.data;
+  const { parsedData, columnMap, groupedTownsByRegionCity } = e.data;
 
   // 1行ずつ取り出して必要なカラムのみ前処理してインサート用配列データを生成
   const processedData = parsedData
     .map((row) => {
-      const processedRow = {};
+      // 行の前処理
+      const processedRow = {}; // 最終的にインサートする処理後の行
 
       try {
+        let townsByCities = [];
+        let countryId = null;
+        let regionId = null;
+        let cityId = null;
+        let townId = null; // 郵便番号とaddress処理で得た町域リストを組み合わせてtown_idを取得
+        let normalizedTownName = null;
+        let streetAddress = null;
+        // カラムごとの前処理
         Array.from(columnMap.entries()).forEach(([csvHeader, dbField]) => {
+          // 住所カラム
+          if (dbField === "address") {
+            // addressの場合は、address以外に町域リストを取り出す
+            const responseAddress = transformData(row[csvHeader], dbField);
+
+            if (responseAddress === null) throw new Error("無効な住所のためこの行をスルー");
+
+            const {
+              address,
+              prefecture,
+              city,
+              street_address,
+              country_id,
+              region_id,
+              city_id,
+              normalized_town_name,
+              grouped_towns_by_cities,
+            } = responseAddress;
+            townsByCities = grouped_towns_by_cities ?? [];
+            countryId = country_id;
+            regionId = region_id;
+            cityId = city_id;
+            normalizedTownName = normalized_town_name;
+            streetAddress = street_address;
+
+            processedRow[dbField] = address;
+          }
+          // 通常のカラム
           processedRow[dbField] = transformData(row[csvHeader], dbField);
         });
 
-        return processedRow;
+        // ----------------------------------- town_idの取得 -----------------------------------
+        // 郵便番号と正規化した町域名の2つで抽出するが、同じ組み合わせがある場合は後で手動で修正する
+        if (0 < townsByCities.length && !!normalized_town_name) {
+          // dbFieldにzipcodeカラムとaddressカラムが存在する場合は、town_idを取得する
+          const dbFieldsArray = Array.from(columnMap.values());
+          if (dbFieldsArray.includes("address") && dbFieldsArray.includes("zipcode")) {
+            // 町域データから取得した郵便番号とnormalized_nameと一致する行を取得
+            const gotTown = townsByCities.find(
+              (obj) => obj.postal_code === processedRow["zipcode"] && obj.normalized_name === normalized_town_name
+            );
+            if (!!gotTown) {
+              townId = gotTown.town_id;
+            }
+          }
+        }
+        // ----------------------------------- town_idの取得 -----------------------------------
+
+        // 🔸処理後の行にcounty_idやregion_id, city_id, town_id, street_addressなどを追加してリターン
+        const addColumns = {
+          country_id: countryId ?? null,
+          region_id: regionId ?? null,
+          city_id: cityId ?? null,
+          town_id: townId ?? null,
+          street_address: streetAddress || null,
+        };
+
+        const responseRow = { ...processedRow, ...addColumns };
+
+        return responseRow;
       } catch (error) {
         // エラーが発生した場合は、その行は無効としてnullを返し最終的にfilter()で無効な行は取り除きインサート対象から除外する
         console.log("Worker: transformData関数エラー 無効な行のためスルー", error);
@@ -46,7 +111,7 @@ function transformData(csvValue, dbField) {
   // ここで型変換やデータクリーニングを行う
   // 例: 日付の変換、数値の変換、文字列のトリム等
 
-  // let processedValue = csvValue.trim(); // 基本的なトリミング
+  let processedValue = csvValue.trim(); // 基本的なトリミング
 
   switch (dbField) {
     case "name":
@@ -75,7 +140,7 @@ function transformData(csvValue, dbField) {
       break;
   }
 
-  return csvValue; // 変換後の値を返す
+  return processedValue; // 変換後の値を返す
 }
 
 // 🔸会社名の正規化・標準化 -----------------------------------
@@ -116,20 +181,119 @@ function normalizeCompanyName(name) {
 // ・ch.charCodeAt(0) - 0xFEE0: 各文字のUnicodeコードポイントから 0xFEE0 を引くことで、対応する半角文字のコードポイントに変換します。
 */
 
+// -----------------------------------🔸address🔸-----------------------------------
 function normalizeAddress(address) {
   address = address.trim(); // 基本的なトリミング
   // 🔹1. 正規化
   // 全角英数字と全角記号の両方を半角に変換
   address = address.replace(/[\uFF01-\uFF5E]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0));
 
-  // 全角ハイフンと全角スペースを半角に変換 *3
+  // 全角ハイフンと全角スペースを半角に変換(長音「ー」はそのまま残す) *3
   address = address.replace(/ー/g, "-").replace(/\u3000/g, " ");
 
   // 連続するスペースを1つに正規化
   address = address.replace(/[\s+]/g, " "); // 全角スペースを半角に変換後、連続するスペースを１つの半角スペースに正規化 (\s: すべての空白文字（半角スペース、タブ、改行など(全角スペースは含まない))
 
   // 🔹2. 形式の統一
+  // 2-1. 各住所の要素を取り出しやすくするため住所の全ての空白を除去した変数を作成
+  // 2-2. 日本か英語圏かの識別 都道府県Setオブジェクトにマッチすれば日本の住所 / 番地から始まっていれば英語圏の住所
+  // 【日本の住所の形式統一】
+  // 2-3. 都道府県Setオブジェクトにマッチした場合は変数から都道府県を取り出す
+  // 2-4. 取り出した都道府県に対応する市区町村Setオブジェクトにマッチするかチェックし、マッチしたら市区町村を取り出す
+  // 2-5. 「町域名・丁目・番地・号・建物名」はstreet_addressに格納
+  // 2-6. 取り出した住所の各要素を結合して、番地と建物名の間に半角スペースをセットする
+
+  // 日本の住所 形式統一
+
+  // 各住所のセクションごとに格納
+  // townは一致する町域名が抽出できた時にそのtown_idをtown_idカラムにセットする
+  const addressElements = {
+    prefecture: null,
+    city: null,
+    street_address: null,
+  };
+
+  // region_id, city_id, town_id
+  const responseElements = {
+    address: null, // addressElementsを結合した値
+    prefecture: null,
+    city: null,
+    street_address: null,
+    country_id: 153,
+    region_id: null,
+    city_id: null,
+    normalized_town_name: null,
+    grouped_towns_by_cities: null,
+  };
+
+  try {
+    // 🔸都道府県の抽出
+    const prefectureMatch = address.match(regExpPrefecture);
+    // 適切な住所が入力されていなければ、この行データ自体をnullで返し、最後に削除
+    if (!prefectureMatch) throw new Error("都道府県が見つかりませんでした。");
+    addressElements.prefecture = prefectureMatch[1];
+    // region_idセット
+    responseElements.region_id = regionsNameToIdMapJp.get(prefectureMatch[1]) ?? null;
+
+    // 🔸市区町村の抽出
+    const regExpCity = regionNameToRegExpCitiesJp[addressElements.prefecture];
+    const cityMatch = address.match(regExpCity);
+    if (!cityMatch) throw new Error("市区町村が見つかりませんでした。");
+    addressElements.city = cityMatch[1]; // 0はマッチ全体の文字列で 1はキャプチャグループでマッチした１つ目の文字
+    // city_idセット
+    const cityNameToIdMap = regionNameToIdMapCitiesJp[addressElements.prefecture];
+    responseElements.city_id = cityNameToIdMap.get(cityMatch[1]) ?? null;
+
+    // 🔸正規化された町域名の取得
+    // 抽出した都道府県名と市区町村名に一致する町域リストを取得
+    let townsList = [];
+    if (Object.hasOwn(groupedTownsByRegionCity, addressElements.prefecture)) {
+      const prefectureObj = groupedTownsByRegionCity[addressElements.prefecture];
+      if (Object.hasOwn(prefectureObj, addressElements.city)) {
+        townsList = prefectureObj[addressElements.city];
+      }
+    }
+
+    // 町域リストが取得できなかった場合は、都道府県名と市区町村名を除く残りの値をstreet_addressにセットしてリターン
+    if (0 < townsList.length) {
+      // 町域リストを格納
+      responseElements.grouped_towns_by_cities = townsList;
+
+      // 正規化した町域名のみ配列にまとめて、重複があるので、Setオブジェクトに変換して一意にする
+      const townNamesSet = new Set(townsList.map((obj) => obj.normalized_name));
+
+      // 一意な町域名の一覧を使用して正規表現を作成(キャプチャグループ)
+      const regexTowns = new RegExp("(" + Array.from(townNamesSet).join("|") + ")", "g");
+
+      // 都道府県名と市区町村名を除く住所を変数に格納
+      const addressWithoutCity = address
+        .replace(addressElements.prefecture, "")
+        .replace(addressElements.city, "")
+        .trim();
+
+      // 町域名をチェック マッチしたならtown_idをセット 町域名は完全でないので、そのままstreet_addressに残りをセット
+      const matchTown = addressWithoutCity.match(regexTowns);
+      if (matchTown) {
+        responseElements.normalized_town_name = matchTown[1];
+      }
+    }
+
+    // 🔸市区町村以下の情報を一括して扱う; 結城市大字七五三場六百四十五番地七 建物名 のように
+    // 「丁目・番地(番)・号」が漢数字の場合、「町名(地名)」と「丁目・番地(番)・号」や
+    // 「六百四十五番地七」と「一二三ビル」のように両者の末尾と先頭が漢数字場合の境界を正確に特定するのが困難のため
+    addressElements.street_address = addressWithoutCity;
+
+    // 🔸prefecture, city, street_addressを全て結合して標準化したaddressを返す
+    const { prefecture, city, street_address } = addressElements;
+    responseElements.address = prefecture + city + street_address ?? "";
+
+    return responseElements;
+  } catch (error) {
+    console.log("❌addressカラムの標準化に失敗しました エラー：", error);
+    return null;
+  }
 }
+// -----------------------------------🔸address🔸-----------------------------------ここまで
 
 // 🔸郵便番号の正規化・標準化 -----------------------------------
 /*
@@ -163,7 +327,8 @@ function validateAndNormalizePostalCode(postalCode) {
     .replace(/－/g, "-") // 全角ハイフンを半角に変換
     .replace(/−/g, "-"); // 全角ハイフンを半角に変換 // カタカナの長音記号も半角ハイフンに変換
 
-  formattedPostalCodeCode = halfWidth;
+  // 郵便番号は7桁でハイフンなしにフォーマット (郵便局の町域データの郵便番号もハイフンなしのため)
+  formattedPostalCodeCode = halfWidth.replace("-", "");
 
   // 数字、英字、ハイフン、スペースを許容
   const regex = /^[0-9A-Za-z\s\-]+$/;

@@ -20,8 +20,10 @@ CRMサービスや他のデータ管理システムでのデータ標準化に�
 
 */
 
-import { RegionNameJpType } from "@/utils/selectOptions";
+import { RegionNameJpType, regionsNameToIdMapJp } from "@/utils/selectOptions";
 import { regExpPrefecture, regionNameToRegExpCitiesJp } from "./regExpAddress";
+import { GroupedTownsByRegionCity, TownsByCitiesType } from "@/types";
+import { regionNameToIdMapCitiesJp } from "./citiesOptions";
 
 // 【記号の許容について】
 // ・記号の使用：半角ハイフンは番地、アパートの番号の区切り文字として使用されるため許容
@@ -41,7 +43,7 @@ import { regExpPrefecture, regionNameToRegExpCitiesJp } from "./regExpAddress";
    ・可能であれば、郵便番号の正確性を検証し、存在しない住所や誤った郵便番号を修正
  */
 
-export function normalizeAddress(address: string) {
+export function normalizeAddress(address: string, groupedTownsByRegionCity: GroupedTownsByRegionCity) {
   address = address.trim(); // 基本的なトリミング
 
   // 🔹1. 正規化
@@ -52,7 +54,7 @@ export function normalizeAddress(address: string) {
   address = address.replace(/[－−]/g, "-").replace(/\u3000/gu, " ");
 
   // 連続するスペースを1つに正規化
-  address = address.replace(/[\s+]/g, " "); // 全角スペースを半角に変換後、連続するスペースを１つの半角スペースに正規化 (\s: すべての空白文字（半角スペース、タブ、改行など(全角スペースは含まない))
+  address = address.replace(/[　]+/g, " ").replace(/[\s+]/g, " "); // 全角スペースを半角に変換後、連続するスペースを１つの半角スペースに正規化 (\s: すべての空白文字（半角スペース、タブ、改行など(全角スペースは含まない))
 
   // 🔹2. 形式の統一
   // 2-1. 各住所の要素を取り出しやすくするため住所の全ての空白を除去した変数を作成
@@ -60,66 +62,118 @@ export function normalizeAddress(address: string) {
   // 【日本の住所の形式統一】
   // 2-3. 都道府県Setオブジェクトにマッチした場合は変数から都道府県を取り出す
   // 2-4. 取り出した都道府県に対応する市区町村Setオブジェクトにマッチするかチェックし、マッチしたら市区町村を取り出す
-  // 2-5. 丁目か「1-1」などの番地までの文字列を町名として取り出す
-  // 2-6. 番地の形式統一処理して取り出す
-  // 2-7. 取り出した番地以降の文字列が存在する場合は建物名として取り出す
-  // 2-8. 取り出した住所の各要素を結合して、番地と建物名の間に半角スペースをセットする
+  // 2-5. 「町域名・丁目・番地・号・建物名」はstreet_addressに格納
+  // 2-6. 取り出した住所の各要素を結合して、番地と建物名の間に半角スペースをセットする
 
   const isJa = true;
 
   // 日本の住所 形式統一
   if (isJa) {
     // 住所の各要素を保持するオブジェクト
-    const addressElements: { [K in "prefecture" | "city" | "town" | "block" | "building"]: string | null } = {
+    // const addressElements: { [K in "prefecture" | "city" | "town" | "block" | "building"]: string | null } = {
+    //   prefecture: null,
+    //   city: null,
+    //   town: null,
+    //   block: null,
+    //   building: null,
+    // };
+
+    // townは一致する町域名が抽出できた時にそのtown_idをtown_idカラムにセットする
+    const addressElements: { [K in "prefecture" | "city" | "street_address"]: string | null } = {
       prefecture: null,
       city: null,
-      town: null,
-      block: null,
-      building: null,
+      street_address: null,
     };
+
+    // region_id, city_id, town_id
+    const responseElements: {
+      [K in "address" | "country_id" | "region_id" | "city_id" | "normalized_town_name"]: number | string | null;
+    } = {
+      address: null,
+      country_id: 153,
+      region_id: null,
+      city_id: null,
+      normalized_town_name: null,
+    };
+
     // 🔸都道府県の抽出
     const prefectureMatch = address.match(regExpPrefecture);
     // 適切な住所が入力されていなければ、この行データ自体をnullで返し、最後に削除
     if (!prefectureMatch) throw new Error("都道府県が見つかりませんでした。");
     addressElements.prefecture = prefectureMatch[1];
+    // region_idセット
+    responseElements.region_id = regionsNameToIdMapJp.get(prefectureMatch[1]) ?? null;
 
     // 🔸市区町村の抽出
     const regExpCity = regionNameToRegExpCitiesJp[addressElements.prefecture as RegionNameJpType];
     const cityMatch = address.match(regExpCity);
     if (!cityMatch) throw new Error("市区町村が見つかりませんでした。");
     addressElements.city = cityMatch[1]; // 0はマッチ全体の文字列で 1はキャプチャグループでマッチした１つ目の文字
+    // city_idセット
+    const cityNameToIdMap = regionNameToIdMapCitiesJp[addressElements.prefecture as RegionNameJpType];
+    responseElements.city_id = cityNameToIdMap.get(cityMatch[1]) ?? null;
 
-    // 🔸市区町村以下の情報を一括して扱う; 結城市大字七五三場六百四十五番地七 のように
-    // 「丁目・番地(番)・号」が漢数字の場合、「町名(地名)」と「丁目・番地(番)・号」の境界を正確に特定するのが困難のため
+    // 町域・地名・町名の抽出　これは一旦使用しない
+    const extractTownName = (address: string, city: string) => {
+      // prefectureとcityの後の地名を抽出する正規表現を動的に生成
+      // const regex = new RegExp(`${prefecture}\\s*${city}\\s*(.*?)\\d`, "i");
 
-    // // 🔸地名・町名の抽出 (番地の数字までを抜き出し)
-    // const extractTownName = (address: string, city: string) => {
-    //   // prefectureとcityの後の地名を抽出する正規表現を動的に生成
-    //   // const regex = new RegExp(`${prefecture}\\s*${city}\\s*(.*?)\\d`, "i");
+      // 空白文字を削除 '東京都 港区 芝浦 4-20-2 芝浦アイランド4F' => '東京都港区芝浦4-20-2芝浦アイランド4F'
+      const addressWithoutSpace = address.replace(/[\s\u3000]+/g, "");
+      // 市区町村の直後の地名の開始位置を取得 '東京都港区芝浦4-20-2芝浦アイランド4F' => '芝浦'の芝のindex: 5
+      const startIndex = addressWithoutSpace.indexOf(city) + city.length;
+      // 地名の終了位置を取得 (市区町村名以降の部分から起算して最初の数字の位置を探す)
+      const subStringFromCityEnd = addressWithoutSpace.substring(startIndex); // => '芝浦4-20-2芝浦アイランド4F'
+      // const relativeEndIndex = subStringFromCityEnd.search(/\d/); // 最初の数字の位置を探す(相対位置)
+      const relativeEndIndex = subStringFromCityEnd.search(/\d一二三四五六七八九十百千/); // 最初の数字の位置を探す(相対位置)
 
-    //   // 空白文字を削除 '東京都 港区 芝浦 4-20-2 芝浦アイランド4F' => '東京都港区芝浦4-20-2芝浦アイランド4F'
-    //   const addressWithoutSpace = address.replace(/[\s\u3000]+/g, "");
-    //   // 市区町村の直後の地名の開始位置を取得 '東京都港区芝浦4-20-2芝浦アイランド4F' => '芝浦'の芝のindex: 5
-    //   const startIndex = addressWithoutSpace.indexOf(city) + city.length;
-    //   // 地名の終了位置を取得 (市区町村名以降の部分から起算して最初の数字の位置を探す)
-    //   const subStringFromCityEnd = addressWithoutSpace.substring(startIndex); // => '芝浦4-20-2芝浦アイランド4F'
-    //   // const relativeEndIndex = subStringFromCityEnd.search(/\d/); // 最初の数字の位置を探す(相対位置)
-    //   const relativeEndIndex = subStringFromCityEnd.search(/\d一二三四五六七八九十百千/); // 最初の数字の位置を探す(相対位置)
+      // 地名の終了位置を絶対位置に変換
+      const endIndex = startIndex + relativeEndIndex;
 
-    //   // 地名の終了位置を絶対位置に変換
-    //   const endIndex = startIndex + relativeEndIndex;
+      // 地名を抽出
+      const town = addressWithoutSpace.substring(startIndex, endIndex);
 
-    //   // 地名を抽出
-    //   const town = addressWithoutSpace.substring(startIndex, endIndex);
-
-    //   return town;
-    // };
-
-    // const { prefecture, city } = addressElements;
+      return town;
+    };
     // const townName = extractTownName(address, city);
 
-    // if (!townName) throw new Error("地名が見つかりませんでした。");
-    // addressElements.town = townName;
+    const { prefecture, city } = addressElements;
+
+    // 🔸市区町村以下の情報を一括して扱う; 結城市大字七五三場六百四十五番地七 建物名 のように
+    // 「丁目・番地(番)・号」が漢数字の場合、「町名(地名)」と「丁目・番地(番)・号」や
+    // 「六百四十五番地七」と「一二三ビル」のように両者の末尾と先頭が漢数字場合の境界を正確に特定するのが困難のため
+
+    // 抽出した都道府県名と市区町村名に一致する町域リストを取得
+    let townsList: TownsByCitiesType[] = [];
+    if (Object.hasOwn(groupedTownsByRegionCity, addressElements.prefecture)) {
+      const prefectureObj = groupedTownsByRegionCity[addressElements.prefecture as RegionNameJpType];
+      if (Object.hasOwn(prefectureObj, addressElements.city)) {
+        townsList = prefectureObj[addressElements.city];
+      }
+    }
+
+    // 町域リストが取得できなかった場合は、都道府県名と市区町村名を除く残りの値をstreet_addressにセットしてリターン
+    if (townsList.length === 0) {
+      addressElements.street_address = address.replace(prefecture, "").replace(city, "").trim();
+
+      // ここでリターン
+      return addressElements;
+    }
+
+    // 正規化した町域名のみ配列にまとめて、重複があるので、Setオブジェクトに変換して一意にする
+    const townNamesSet = new Set(townsList.map((obj) => obj.normalized_name));
+
+    // 一意な町域名の一覧を使用して正規表現を作成(キャプチャグループ)
+    const regexTowns = new RegExp("(" + Array.from(townNamesSet).join("|") + ")", "g");
+
+    // 都道府県名と市区町村名を除く住所を変数に格納
+    const addressWithoutCity = address.replace(prefecture, "").replace(city, "").trim();
+
+    // 町域名をチェック マッチしたならtown_idをセット 町域名は完全でないので、そのままstreet_addressに残りをセット
+    const matchTown = addressWithoutCity.match(regexTowns);
+    if (matchTown) {
+      responseElements.normalized_town_name = matchTown[1];
+    }
 
     // // 🔸丁目・番地・号の抽出(番地・号はオプショナル)
     // const extractBlockName = (address: string, town: string) => {
@@ -133,7 +187,7 @@ export function normalizeAddress(address: string) {
     //   // 住所の「丁目」「番地(番)」「号」のパターンは、一般的に「◯丁目・◯番地（番）・◯号」のように記載。
     //   // たとえば、「中央区築地1-1-1」に住んでいる場合は、「中央区築地一丁目1番1号」と表記
 
-    //   const kanjiNumbers = `一|二|三|四|五|六|七|八|九|十`
+    //   const kanjiNumbers = `一|二|三|四|五|六|七|八|九|十`;
 
     //   // 下記のパターンに対応
     //   // 「4丁目10番地1号」=>「4-10-1」

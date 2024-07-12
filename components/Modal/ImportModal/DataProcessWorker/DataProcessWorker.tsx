@@ -1,17 +1,6 @@
+import { GroupedTownsByRegionCity } from "@/types";
 import { RegionNameJpType } from "@/utils/selectOptions";
 import { Dispatch, SetStateAction, useEffect } from "react";
-
-type TownsByCitiesType = {
-  town_id: string;
-  normalized_name: string;
-  postal_code: string;
-  country_id: string;
-  region_id: string;
-  city_id: string;
-  region_name_ja: RegionNameJpType;
-  city_name_ja: string;
-};
-type GroupedTownsByRegionCity = { [K in RegionNameJpType]: { [key: string]: TownsByCitiesType[] } };
 
 type WorkerMessageEventType = {
   parsedData: any[];
@@ -57,6 +46,7 @@ export const DataProcessWorker = ({
     worker.postMessage({
       parsedData: parsedData, // Papa Parseで解析されたデータ
       columnMap: columnMap, // csvカラムヘッダー名 to データベースのclient_companiesテーブルのカラム名
+      groupedTownsByRegionCity: groupedTownsByRegionCity, // 会社リストで使用される都道府県・市区町村別の町域リスト
     } as WorkerMessageEventType);
 
     return () => worker.terminate();
