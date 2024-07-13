@@ -3627,6 +3627,9 @@ textarea {
 .font-hiragino {
   font-family: var(--font-family-discord);
 }
+.font-sans {
+  font-family: sans-serif, "Hiragino Sans", Roboto, system-ui;
+}
 
 /* ブランドグラデーション */
 .brand_f_radial_gradient {
@@ -3743,7 +3746,25 @@ textarea {
 }
 
 /* テキストグラデーション */
+.text_brand_f_gradient {
+  background: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd 0.89%,
+    #bef3f5 17.23%,
+    #7de2eb 42.04%,
+    #7dc8eb 55.12%,
+    #0ab5ff 71.54%,
+    rgb(0, 136, 255) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
 
+.text_brand_shadow {
+  filter: drop-shadow(0 0 0.3rem var(--color-text-brand-shadow));
+}
 .text_gradient {
   font-size: 70px;
   color: #fff;
@@ -4590,3 +4611,18 @@ textarea {
   background: var(--color-bg-brand-f-deep);
 }
 /* サーチモードのinputホバー時の下に表示されるエリア ここまで */
+
+/* 初回表示ロゴアニメーション */
+
+.first_mount_logo_anime {
+  animation: first_pulse 1s cubic-bezier(0.2, 0, 0.4, 1) alternate-reverse infinite;
+  /* animation: first_pulse 1s cubic-bezier(0.2, 0, 0.3, 1) alternate-reverse infinite; */
+}
+@keyframes first_pulse {
+  0% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+  }
+}

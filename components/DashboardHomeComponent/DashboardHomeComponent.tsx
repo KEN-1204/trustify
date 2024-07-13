@@ -267,7 +267,7 @@ export const DashboardHomeComponent = () => {
                       </div>
                     </div>
                     {/* <div className={`${styles.contents_area} h-fit w-full max-w-[400px]`}> */}
-                    <div className={`${styles.contents_area} h-full w-full max-w-[400px]`}>
+                    <div className={`${styles.contents_area} fade08_forward h-full w-full max-w-[400px]`}>
                       {home_cards.map((item, index) => (
                         <div
                           key={item.name}

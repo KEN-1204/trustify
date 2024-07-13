@@ -7,8 +7,8 @@ import { useRouter } from "next/router";
 import React, { useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 
-// export const useSubscribeSubscription = () => {
-export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscription) => {
+// ----------------------------------- テストコード -----------------------------------
+export const useSubscribeSubscription = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
   const supabase = useSupabaseClient();
@@ -24,16 +24,14 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
     //   );
 
     // console.log("リアルタイム サブスクリプション契約状況をサブスクライブ useEffect実行", userProfileState);
-    if (!userProfile && !userProfileState)
+    if (!userProfileState)
       return console.log(
         "リアルタイム useSubscribeSubscriptionリアルタイムフック ユーザー情報無し userProfile",
-        userProfile,
         userProfileState
       );
 
     console.log(
       "リアルタイム useSubscribeSubscriptionサブスクリプション契約状況をサブスクライブ useEffect実行  userProfile",
-      userProfile,
       userProfileState
     );
 
@@ -45,29 +43,22 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
         console.log(
           "🌟リアルタイム サブスクライブを解除 useSubscribeSubscription subscriptionRef.current",
           subscriptionRef.current,
-          "userProfile",
-          userProfile
-          // "userProfileState",
-          // userProfileState
+          "userProfileState",
+          userProfileState
         );
         supabase.removeChannel(subscriptionRef.current);
         subscriptionRef.current = null;
       }
     };
 
-    // if (userProfileState.subscription_id) {
-    if (userProfile.subscription_id || userProfileState?.subscription_id) {
+    if (userProfileState?.subscription_id) {
       // subscriber_idが非nullの場合はsubscriptionsテーブルの監視を開始
       console.log(
         "🌟リアルタイム subscriptions UPDATEイベント監視を開始 useSubscribeSubscription",
-        userProfile.subscription_id,
         userProfileState?.subscription_id
       );
 
-      const subscriptionId = userProfileState?.subscription_id
-        ? userProfileState?.subscription_id
-        : userProfile.subscription_id;
-
+      const subscriptionId = userProfileState?.subscription_id;
       channel = supabase
         .channel("table-db-changes:subscriptions")
         .on(
@@ -82,7 +73,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
           async (payload: any) => {
             console.log("🌟🔥リアルタイム subscriptions UPDATE検知発火🔥", payload);
             // subscriptionsテーブルの変更を検知したら現在のuserProfileStateのsubscriptionsテーブルの内容のみ更新する
-            const previousUserProfile = userProfile.subscription_id ? { ...userProfile } : { ...userProfileState };
+            const previousUserProfile = { ...userProfileState };
             const newUserData = {
               // ...userProfileState,
               // ...userProfile,
@@ -291,11 +282,10 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
 
       console.log(
         "🌟リアルタイム subscribed_accounts INSERTイベント監視を開始 useSubscribeSubscription",
-        userProfile,
         userProfileState
       );
 
-      const userId = userProfileState?.id ? userProfileState?.id : userProfile.id;
+      const userId = userProfileState?.id;
 
       channel = supabase
         .channel("table-db-changes:subscribed_accounts")
@@ -315,7 +305,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
             try {
               const { data: userProfileCompanySubscriptionData, error } = await supabase
                 // .rpc("get_user_data", { _user_id: userProfileState.id })
-                .rpc("get_user_data", { _user_id: userProfile.id })
+                .rpc("get_user_data", { _user_id: userProfileState.id })
                 .single();
 
               // if (error) throw error;
@@ -348,5 +338,352 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
       stopSubscription(); // useEffectがアンマウントされたときに購読を解除
     };
     // }, [supabase, userProfileState, setUserProfileState]);
-  }, [supabase, userProfile, setUserProfileState, userProfileState]);
+  }, [supabase, setUserProfileState, userProfileState]);
 };
+
+// ----------------------------------- テストコード -----------------------------------ここまで
+// ----------------------------------- 元のコード -----------------------------------
+// export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscription) => {
+//   const userProfileState = useDashboardStore((state) => state.userProfileState);
+//   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
+//   const supabase = useSupabaseClient();
+//   const router = useRouter();
+
+//   const subscriptionRef = useRef<RealtimeChannel | null>(null);
+
+//   useEffect(() => {
+//     // if (!userProfileState)
+//     //   return console.log(
+//     //     "リアルタイム useSubscribeSubscriptionリアルタイムフック ユーザー情報無し userProfileState",
+//     //     userProfileState
+//     //   );
+
+//     // console.log("リアルタイム サブスクリプション契約状況をサブスクライブ useEffect実行", userProfileState);
+//     if (!userProfile && !userProfileState)
+//       return console.log(
+//         "リアルタイム useSubscribeSubscriptionリアルタイムフック ユーザー情報無し userProfile",
+//         userProfile,
+//         userProfileState
+//       );
+
+//     console.log(
+//       "リアルタイム useSubscribeSubscriptionサブスクリプション契約状況をサブスクライブ useEffect実行  userProfile",
+//       userProfile,
+//       userProfileState
+//     );
+
+//     let channel;
+
+//     // テーブルのイベント監視の購読を解除
+//     const stopSubscription = () => {
+//       if (subscriptionRef.current) {
+//         console.log(
+//           "🌟リアルタイム サブスクライブを解除 useSubscribeSubscription subscriptionRef.current",
+//           subscriptionRef.current,
+//           "userProfile",
+//           userProfile
+//           // "userProfileState",
+//           // userProfileState
+//         );
+//         supabase.removeChannel(subscriptionRef.current);
+//         subscriptionRef.current = null;
+//       }
+//     };
+
+//     // if (userProfileState.subscription_id) {
+//     if (userProfile.subscription_id || userProfileState?.subscription_id) {
+//       // subscriber_idが非nullの場合はsubscriptionsテーブルの監視を開始
+//       console.log(
+//         "🌟リアルタイム subscriptions UPDATEイベント監視を開始 useSubscribeSubscription",
+//         userProfile.subscription_id,
+//         userProfileState?.subscription_id
+//       );
+
+//       const subscriptionId = userProfileState?.subscription_id
+//         ? userProfileState?.subscription_id
+//         : userProfile.subscription_id;
+
+//       channel = supabase
+//         .channel("table-db-changes:subscriptions")
+//         .on(
+//           "postgres_changes",
+//           {
+//             event: "UPDATE",
+//             schema: "public",
+//             table: "subscriptions",
+//             // filter: `id=eq.${userProfileState.subscription_id}`,
+//             filter: `id=eq.${subscriptionId}`,
+//           },
+//           async (payload: any) => {
+//             console.log("🌟🔥リアルタイム subscriptions UPDATE検知発火🔥", payload);
+//             // subscriptionsテーブルの変更を検知したら現在のuserProfileStateのsubscriptionsテーブルの内容のみ更新する
+//             const previousUserProfile = userProfile.subscription_id ? { ...userProfile } : { ...userProfileState };
+//             const newUserData = {
+//               // ...userProfileState,
+//               // ...userProfile,
+//               ...previousUserProfile,
+//               ...{
+//                 subscription_id: (payload.new as Subscription).id,
+//                 subscription_created_at: (payload.new as Subscription).created_at,
+//                 subscription_subscriber_id: (payload.new as Subscription).subscriber_id,
+//                 stripe_subscription_id: (payload.new as Subscription).stripe_subscription_id,
+//                 // subscription_stripe_subscription_id: (payload.new as Subscription).stripe_subscription_id,
+//                 subscription_stripe_customer_id: (payload.new as Subscription).stripe_customer_id,
+//                 status: (payload.new as Subscription).status,
+//                 subscription_interval: (payload.new as Subscription).subscription_interval,
+//                 current_period_start: (payload.new as Subscription).current_period_start,
+//                 current_period_end: (payload.new as Subscription).current_period_end,
+//                 subscription_plan: (payload.new as Subscription).subscription_plan,
+//                 subscription_stage: (payload.new as Subscription).subscription_stage,
+//                 accounts_to_create: (payload.new as Subscription).accounts_to_create,
+//                 number_of_active_subscribed_accounts: (payload.new as Subscription)
+//                   .number_of_active_subscribed_accounts,
+//                 cancel_at_period_end: (payload.new as Subscription).cancel_at_period_end,
+//               },
+//             };
+//             // payloadに基づいてZustandのStateを更新
+//             setUserProfileState(newUserData as UserProfileCompanySubscription);
+
+//             // ================== 🌟キャンセルリクエストルート ==================
+//             // 請求期間終了でdeletedタイプのwebhookによって解約されリアルタイムが発火した場合には「メンバーシップがキャンセルされました」をトーストで表示する。
+//             if (
+//               payload.new.status === "canceled" &&
+//               payload.old.status === "active" &&
+//               payload.new.subscription_plan === "free_plan" &&
+//               payload.old.subscription_plan !== "free_plan" &&
+//               payload.new.subscription_stage === "is_canceled" &&
+//               payload.old.subscription_stage === "is_subscribed"
+//             ) {
+//               toast.info(`メンバーシップがキャンセルされました🙇‍♀️ リスタートを始めます。`, {
+//                 position: "top-right",
+//                 autoClose: 5000,
+//                 hideProgressBar: false,
+//                 closeOnClick: true,
+//                 pauseOnHover: true,
+//                 draggable: true,
+//                 progress: undefined,
+//               });
+//               setTimeout(() => {
+//                 router.reload();
+//               }, 3000);
+//             }
+//             // ================== ✅キャンセルリクエストルート ここまで ==================
+//             // ================== 🌟キャンセル後、新たに「メンバーシップを再開」ルート ==================
+//             if (
+//               payload.new.status === "active" &&
+//               payload.old.status === "canceled" &&
+//               payload.new.subscription_plan !== "free_plan" &&
+//               payload.old.subscription_plan === "free_plan" &&
+//               payload.new.subscription_stage === "is_subscribed" &&
+//               payload.old.subscription_stage === "is_canceled" &&
+//               payload.new.stripe_subscription_id === newUserData.stripe_subscription_id &&
+//               payload.old.stripe_subscription_id !== newUserData.stripe_subscription_id
+//             ) {
+//               toast.success(`おかえりなさい🌟TRUSTiFYへようこそ！ リスタートを始めます🙇‍♀️`, {
+//                 position: "top-right",
+//                 autoClose: 5000,
+//                 hideProgressBar: false,
+//                 closeOnClick: true,
+//                 pauseOnHover: true,
+//                 draggable: true,
+//                 progress: undefined,
+//               });
+//               setTimeout(() => {
+//                 router.reload();
+//               }, 3000);
+//             }
+//             // ================== ✅キャンセル後、新たに「メンバーシップを再開」ルート ここまで ==================
+//             // ================== 🌟「プランアップグレード」が適用された後リロードする ==================
+//             if (
+//               payload.old.subscription_plan === "business_plan" &&
+//               payload.new.subscription_plan === "premium_plan" &&
+//               new Date(payload.new.current_period_end).getTime() === new Date(payload.old.current_period_end).getTime()
+//             ) {
+//               // toast.success(`プランのアップグレードが適用されました！🌟 リスタートを始めます。`, {
+//               //   position: "top-right",
+//               //   autoClose: 5000,
+//               //   hideProgressBar: false,
+//               //   closeOnClick: true,
+//               //   pauseOnHover: true,
+//               //   draggable: true,
+//               //   progress: undefined,
+//               // });
+//               // setTimeout(() => {
+//               //   router.reload();
+//               // }, 3000);
+//             }
+//             // ================== ✅「プランアップグレード」が適用された後リロードする ==================
+//             // ================== 🌟「アカウントを減らす」「プランダウングレード」スケジュール適用ルート(請求期間更新) ==================
+//             if (
+//               payload.new.accounts_to_create < payload.old.accounts_to_create &&
+//               payload.new.subscription_plan !== payload.old.subscription_plan &&
+//               new Date(payload.new.current_period_end).getTime() > new Date(payload.old.current_period_end).getTime() &&
+//               new Date(payload.new.current_period_start).getTime() >
+//                 new Date(payload.old.current_period_start).getTime()
+//             ) {
+//               toast.info(
+//                 `プランのダウングレードとアカウントの削除リクエストが適用されました！ リスタートを始めます🙇‍♀️`,
+//                 {
+//                   position: "top-right",
+//                   autoClose: 5000,
+//                   hideProgressBar: false,
+//                   closeOnClick: true,
+//                   pauseOnHover: true,
+//                   draggable: true,
+//                   progress: undefined,
+//                 }
+//               );
+//               setTimeout(() => {
+//                 router.reload();
+//               }, 3000);
+//               return;
+//               // ================== ✅「アカウントを減らす」「プランダウングレード」スケジュール適用ルート(請求期間更新) ==================
+//             } else if (
+//               // ================== 🌟「アカウントを減らす」スケジュール適用ルート(請求期間更新) ==================
+//               payload.new.accounts_to_create < payload.old.accounts_to_create &&
+//               new Date(payload.new.current_period_end).getTime() > new Date(payload.old.current_period_end).getTime() &&
+//               new Date(payload.new.current_period_start).getTime() >
+//                 new Date(payload.old.current_period_start).getTime()
+//             ) {
+//               toast.info(`アカウントの削除リクエストが適用されました！ リスタートを始めます🙇‍♀️`, {
+//                 position: "top-right",
+//                 autoClose: 5000,
+//                 hideProgressBar: false,
+//                 closeOnClick: true,
+//                 pauseOnHover: true,
+//                 draggable: true,
+//                 progress: undefined,
+//               });
+//               setTimeout(() => {
+//                 router.reload();
+//               }, 3000);
+//               // ================== ✅「アカウントを減らす」スケジュール適用ルート(請求期間更新) ==================
+//             } else if (
+//               // ================== 🌟「プランダウングレード」スケジュール適用ルート(請求期間更新) ==================
+//               payload.new.subscription_plan !== payload.old.subscription_plan &&
+//               new Date(payload.new.current_period_end).getTime() > new Date(payload.old.current_period_end).getTime() &&
+//               new Date(payload.new.current_period_start).getTime() >
+//                 new Date(payload.old.current_period_start).getTime()
+//             ) {
+//               toast.info(`プランのダウングレードリクエストが適用されました！ リスタートを始めます🙇‍♀️`, {
+//                 position: "top-right",
+//                 autoClose: 5000,
+//                 hideProgressBar: false,
+//                 closeOnClick: true,
+//                 pauseOnHover: true,
+//                 draggable: true,
+//                 progress: undefined,
+//               });
+//               setTimeout(() => {
+//                 router.reload();
+//               }, 3000);
+//             }
+//             // ================== ✅「プランダウングレード」スケジュール適用ルート(請求期間更新) ==================
+//           }
+//         )
+//         .subscribe();
+
+//       subscriptionRef.current = channel;
+//     } else {
+//       // console.log("リアルタイム profiles UPDATE 監視を開始");
+
+//       // channel = supabase
+//       //   .channel("table-db-changes:profiles")
+//       //   .on(
+//       //     "postgres_changes",
+//       //     {
+//       //       event: "UPDATE",
+//       //       scheme: "public",
+//       //       table: "subscribed_accounts",
+//       //       filter: `id=eq.${userProfileState.id}`,
+//       //     },
+//       //     async (payload: any) => {
+//       //       console.log("リアルタイム profiles UPDATEイベント発火", payload);
+//       //       // 新たにユーザーのsubscribed_accountsのデータが追加されたタイミングで
+//       //       // profiles, subscriptions, companies, subscribed_accountsの4つのテーブルを外部結合したデータをrpc()メソッドを使って、ストアドプロシージャのget_user_data関数を実行してユーザー情報を取得
+//       //       try {
+//       //         const { data: userProfileCompanySubscriptionData, error } = await supabase
+//       //           .rpc("get_user_data", { _user_id: userProfileState.id })
+//       //           .single();
+
+//       //         if (error) throw error;
+
+//       //         // ZustandのStateを更新
+//       //         setUserProfileState(userProfileCompanySubscriptionData as UserProfileCompanySubscription);
+
+//       //         // 初回サブスクリプション契約が完了したら、subscribed_accountsテーブルの監視を停止する
+//       //         stopSubscription();
+//       //       } catch (error: any) {
+//       //         alert(
+//       //           `リアルタイム subscribed_accountsテーブル INSERTイベント リアルタイム get_user_data関数実行エラー: ${error.message}`
+//       //         );
+//       //         console.error("リアルタイム get_user_data関数実行エラー", error.message);
+//       //       }
+//       //     }
+//       //   )
+//       //   .subscribe();
+//       // subscriber_idがnullの場合はsubscribed_accountsテーブルの監視を開始
+
+//       console.log(
+//         "🌟リアルタイム subscribed_accounts INSERTイベント監視を開始 useSubscribeSubscription",
+//         userProfile,
+//         userProfileState
+//       );
+
+//       const userId = userProfileState?.id ? userProfileState?.id : userProfile.id;
+
+//       channel = supabase
+//         .channel("table-db-changes:subscribed_accounts")
+//         .on(
+//           "postgres_changes",
+//           {
+//             event: "INSERT",
+//             schema: "public",
+//             table: "subscribed_accounts",
+//             // filter: `user_id=eq.${userProfileState.id}`,
+//             filter: `user_id=eq.${userId}`,
+//           },
+//           async (payload: any) => {
+//             console.log("🌟🔥リアルタイム subscribed_accounts INSERTイベント発火🔥", payload);
+//             // 新たにユーザーのsubscribed_accountsのデータが追加されたタイミングで
+//             // profiles, subscriptions, companies, subscribed_accountsの4つのテーブルを外部結合したデータをrpc()メソッドを使って、ストアドプロシージャのget_user_data関数を実行してユーザー情報を取得
+//             try {
+//               const { data: userProfileCompanySubscriptionData, error } = await supabase
+//                 // .rpc("get_user_data", { _user_id: userProfileState.id })
+//                 .rpc("get_user_data", { _user_id: userProfile.id })
+//                 .single();
+
+//               // if (error) throw error;
+//               if (error) throw new Error(error.message);
+
+//               // ZustandのStateを更新
+//               setUserProfileState(userProfileCompanySubscriptionData as UserProfileCompanySubscription);
+
+//               // 初回サブスクリプション契約が完了したら、subscribed_accountsテーブルの監視を停止する
+//               stopSubscription();
+//             } catch (error: any) {
+//               alert(
+//                 `リアルタイム subscribed_accountsテーブル INSERTイベント リアルタイム get_user_data関数実行エラー: ${error.message}`
+//               );
+//               console.error("リアルタイム get_user_data関数実行エラー", error.message);
+//             }
+//           }
+//         )
+//         .subscribe();
+
+//       subscriptionRef.current = channel;
+//     }
+
+//     return () => {
+//       // supabase.removeChannel(channel);
+//       console.log(
+//         `リアルタイム  クリーンアップ useSubscribeSubscriptionの subscriptionRef.current`,
+//         subscriptionRef.current
+//       );
+//       stopSubscription(); // useEffectがアンマウントされたときに購読を解除
+//     };
+//     // }, [supabase, userProfileState, setUserProfileState]);
+//   }, [supabase, userProfile, setUserProfileState, userProfileState]);
+// };
+
+// ----------------------------------- 元のコード -----------------------------------ここまで

@@ -89,13 +89,29 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // 認証済みSupabaseクライアントの作成 Create authenticated Supabase Client
   const supabase = createServerSupabaseClient(ctx);
   //  セッションがあるかどうかを確認する Check if we have a session
+  // const {
+  //   data: { session },
+  // } = await supabase.auth.getSession();
+
+  // // セッションが存在するなら/homeにリダイレクト
+  // if (session) {
+  //   console.log("/ルートサーバーサイド セッションが存在するなら/homeにリダイレクト");
+  //   return {
+  //     redirect: {
+  //       destination: "/home",
+  //       permanent: false,
+  //     },
+  //     props: {},
+  //   };
+  // }
+
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // セッションが存在するなら/homeにリダイレクト
-  if (session) {
-    console.log("/ルートサーバーサイド セッションが存在するなら/homeにリダイレクト");
+  if (user) {
+    console.log("/ルートサーバーサイド セッションが存在するため/homeにリダイレクト");
     return {
       redirect: {
         destination: "/home",
@@ -105,6 +121,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     };
   }
 
+  console.log("/ルートサーバーサイド セッションが存在しないため、そのままリターン");
   // ユーザーのブラウザの優先言語を取得
   const defaultLang = "ja";
   let initialLang = defaultLang;
@@ -130,7 +147,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // const { data: userProfile, error } = await supabase.from("profile").select("*").eq("id", session.user.id);
 
   // ユーザーが存在するならそのままdashboardコンポーネントをマウント
-  console.log("/ルートサーバーサイド セッションが存在しないため、そのままリターン");
   return {
     props: { initialLang },
   };

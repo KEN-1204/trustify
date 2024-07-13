@@ -57,8 +57,6 @@ export const DropDownMenuFilter = ({
           <h2 className="flex items-center space-x-[12px] text-[16px] font-bold text-[var(--color-text-title)]">
             <span>フィルター設定</span>
             <span>
-              {/* <img width="24" height="24" src="https://img.icons8.com/3d-fluency/24/job.png" alt="job" /> */}
-              {/* <NextImage width={24} height={24} src={`https://img.icons8.com/3d-fluency/24/job.png`} alt="setting" /> */}
               <NextImage width={24} height={24} src={`/assets/images/icons/icons8-job-94.png`} alt="setting" />
             </span>
           </h2>

@@ -3,11 +3,20 @@ import { Notification } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 
-export const useQueryNotifications = (user_id: string, isReady: boolean) => {
+export const useQueryNotifications = (user_id: string | undefined, isReady: boolean) => {
   const supabase = useSupabaseClient();
+
+  // if (!user_id) {
+  //   console.log("useQueryNotificationsフック user_idなしのためリターン");
+  //   return;
+  // }
   // console.log("useQueryNotificationsカスタムフック実行 user_id", user_id, "isReady", isReady);
 
   const getMyNotifications = async () => {
+    if (!user_id) {
+      console.log("useQueryNotificationsフック user_idなし 空の配列をリターン", user_id);
+      return [];
+    }
     // console.log("useQueryNotificationsカスタムフック実行🔥 user_id", userProfileState?.id, "isReady", isReady);
     // const { data: memberAccountsData, error: a } = await supabase
     //   .rpc("get_member_accounts_data", {
@@ -67,7 +76,7 @@ export const useQueryNotifications = (user_id: string, isReady: boolean) => {
   };
 
   return useQuery({
-    queryKey: ["my_notifications"],
+    queryKey: ["my_notifications", isReady],
     queryFn: getMyNotifications,
     staleTime: Infinity,
     onError: (error: any) => {

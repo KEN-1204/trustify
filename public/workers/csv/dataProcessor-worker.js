@@ -37,10 +37,13 @@ self.onmessage = function (e) {
         Array.from(columnMap.entries()).forEach(([csvHeader, dbField]) => {
           // 住所カラム
           if (dbField === "address") {
+            if (!row[csvHeader]) throw new Error(`Worker: ${dbField}カラム アドレスが空文字のためスルー`);
             // addressの場合は、address以外に町域リストを取り出す
-            const responseAddress = transformData(row[csvHeader], dbField);
+            // 住所の前処理: 文字の正規化、例えば全角を半角に変換
+            const responseAddress = normalizeAddress(row[csvHeader], groupedTownsByRegionCity);
+            // const responseAddress = transformData(row[csvHeader], dbField);
 
-            if (responseAddress === null) throw new Error("無効な住所のためこの行をスルー");
+            if (responseAddress === null) throw new Error(`${dbField}カラム 無効な住所のためこの行をスルー`);
 
             const {
               address,
@@ -62,19 +65,20 @@ self.onmessage = function (e) {
 
             processedRow[dbField] = address;
           }
+
           // 通常のカラム
           processedRow[dbField] = transformData(row[csvHeader], dbField);
         });
 
         // ----------------------------------- town_idの取得 -----------------------------------
         // 郵便番号と正規化した町域名の2つで抽出するが、同じ組み合わせがある場合は後で手動で修正する
-        if (0 < townsByCities.length && !!normalized_town_name) {
+        if (0 < townsByCities.length && !!normalizedTownName) {
           // dbFieldにzipcodeカラムとaddressカラムが存在する場合は、town_idを取得する
           const dbFieldsArray = Array.from(columnMap.values());
           if (dbFieldsArray.includes("address") && dbFieldsArray.includes("zipcode")) {
             // 町域データから取得した郵便番号とnormalized_nameと一致する行を取得
             const gotTown = townsByCities.find(
-              (obj) => obj.postal_code === processedRow["zipcode"] && obj.normalized_name === normalized_town_name
+              (obj) => obj.postal_code === processedRow["zipcode"] && obj.normalized_name === normalizedTownName
             );
             if (!!gotTown) {
               townId = gotTown.town_id;
@@ -111,17 +115,22 @@ function transformData(csvValue, dbField) {
   // ここで型変換やデータクリーニングを行う
   // 例: 日付の変換、数値の変換、文字列のトリム等
 
-  let processedValue = csvValue.trim(); // 基本的なトリミング
+  let processedValue = csvValue === "" ? null : csvValue.trim(); // 基本的なトリミング;
 
   switch (dbField) {
-    case "name":
+    case "name": // 会社名
+      if (!processedValue) throw new Error("会社名が空文字のためこの行はスルー");
       // 会社名の前処理: 特定の不適切な文字を削除する例
       processedValue = normalizeCompanyName(processedValue);
       break;
 
-    case "address":
+    case "address": // 住所は別ルートで処理
       // 住所の前処理: 文字の正規化、例えば全角を半角に変換
-      processedValue = normalizeAddress(processedValue);
+      // processedValue = normalizeAddress(processedValue);
+      break;
+
+    case "department_name": // 部署名
+      processedValue = transformToDate(processedValue);
       break;
 
     case "established_in":
@@ -143,6 +152,123 @@ function transformData(csvValue, dbField) {
   return processedValue; // 変換後の値を返す
 }
 
+// -----------------------------------🔸主なデータ前処理🔸-----------------------------------
+/*
+🔴
+supabase.jsライブラリのrpcメソッドを使用する場合、基本的にはSupabaseが自動的にSQLインジェクション防止のためのパラメータバインディングを行います。これにより、直接的なSQLインジェクション攻撃から保護されます。しかし、データ前処理を行う際には、以下のような操作が引き続き有効です：
+
+🔹1. データのトリミングと標準化：
+
+・文字列の前後から不要な空白を削除する。
+・必要に応じて、全角文字を半角文字に変換するなど、一貫したデータフォーマットを保証する。
+
+🔹2. 文字列の安全なクリーニング：
+
+・不適切な文字や特殊記号の除去（例：制御文字や非表示文字）。
+・不必要な特殊文字が入力された場合のサニタイズ処理を行う。
+
+🔹3. 文字数の制限：
+
+・データベースのフィールドサイズに基づいて、適切な文字数制限を設定する。
+・これにより、データの整合性を保ちながら、過度に長い文字列による問題を防ぐことができます。
+
+🔹4. エスケープ処理の回避：
+
+・rpcメソッドを使用する場合、サーバーサイドで適切にパラメータがバインドされるため、クライアントサイドでのSQLキーワードのエスケープ処理（シングルクォートを二重にするなど）は必要ありません。
+・ただし、サーバーサイドのセキュリティが確実であると信じている場合でも、アプリケーションレベルでの最低限のサニタイズは推奨されます。
+
+🔹5. 入力バリデーション：
+
+・ユーザーからの入力が予期したフォーマットやデータ型であるかを確認する。
+・例えば、数値が期待されるフィールドに文字列が入力されていないか等をチェックします。
+
+これらの前処理は、主にデータの整合性を保ち、予期せぬエラーやデータの不整合を防ぐために重要です。Supabaseが多くの安全対策を提供しているとはいえ、アプリケーションレベルで適切なデータ処理を行うことが最良です。
+
+
+🔴
+🔹2. 文字列の安全なクリーニングの実装例
+・不適切な文字や特殊記号の除去
+特にWebアプリケーションにおいては、制御文字や非表示文字が混入することは珍しくありません。これらは表示上は見えないものの、データベースやアプリケーションの挙動に悪影響を及ぼすことがあります。JavaScriptでの実装例は以下の通りです：
+
+function sanitizeString(input) {
+  // 制御文字と非表示文字の除去
+  const sanitized = input.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
+  return sanitized;
+}
+
+・不必要な特殊文字の除去
+SQLインジェクションやXSS（クロスサイトスクリプティング）を防ぐために、特定の記号を削除することも考えられます。
+例として、
+;, --, /* ... */
+/*
+を削除する方法を示しますが、これらは通常SQLインジェクション攻撃に使われる記号です。
+
+function cleanUpSymbols(input) {
+  // SQLインジェクション攻撃に使われる記号の除去
+  const cleanInput = input.replace(/;|--|\/\*|\*\//g, "");
+  return cleanInput;
+}
+
+・SQL危険な文字のエスケープ シングルクォートとダブルクォート
+Web Workerで事前にいくつかのエスケープ処理を行う場合は、例えばシングルクォートをエスケープする基本的な方法
+
+processedValue = processedValue.replace(/'/g, "''"); // シングルクォートを二重にする
+
+シングルクォートを二重にする意味
+SQLにおいてシングルクォート（'）は、文字列リテラルの開始と終了を示すために使用されます。もしユーザー入力の文字列がシングルクォートを含んでいる場合、そのままSQL文に挿入されるとクエリが意図しない方法で終了してしまい、SQLインジェクションの原因となる可能性があります。例えば、ユーザーが 'Robert'; DROP TABLE students; -- といった入力を行った場合、これが処理されないと危険です。
+
+シングルクォートを二重にする（''）ことにより、SQLインタープリタはこれを文字列内のシングルクォートとして解釈し、文字列の一部として適切に扱います。これにより、SQLインジェクションのリスクを軽減します。
+
+ダブルクォート
+PostgreSQLでは、ダブルクォート(")は主に識別子（テーブル名、カラム名など）を囲むのに使用されます。特に、識別子がPostgreSQLのキーワードや、大文字・小文字を区別する必要がある場合、またはスペースなどの特殊文字を含む場合にダブルクォートが必要になります。
+
+ダブルクォートのエスケープ処理
+SQLインジェクションを防ぐためにユーザー入力から来る識別子やSQLの一部としてダブルクォートをエスケープする必要がある場合、ダブルクォートは通常、それ自体を重ねることでエスケープされます。つまり、ダブルクォート内でダブルクォートを使用するには、それを二重にします。
+
+let input = 'some "risky" string';
+input = input.replace(/"/g, '""'); // ダブルクォートを二重にする
+
+
+
+🔹3. 文字数の制限の実装例
+データベースの各カラムに設定されている最大文字数に基づいて、入力されるデータの文字数を制限することが重要です。これはデータベースへの挿入前に行うべき処理で、例えば以下のように実装することができます：
+この関数を使用して、ユーザー入力をデータベースのカラムサイズに合わせて制限します。例えば、部署名が最大50文字の場合は以下のように呼び出します：
+これにより、データの整合性を保ちながら、データベースエラーの発生を防ぐことができます。また、セキュリティの観点からも、過度に長い入力を制限することで、潜在的な攻撃のリスクを軽減することができます。
+
+function limitStringLength(input, maxLength) {
+  return input.substring(0, maxLength);
+}
+const departmentName = limitStringLength(userInput, 50);
+
+🔹4. エスケープ処理の回避の実装例
+アプリケーションレベルでのサニタイズは、セキュリティを向上させるための重要な手段です。以下は、アプリケーションレベルで行うべきサニタイズのベストプラクティスです：
+
+1. ユーザー入力の検証
+入力検証（Validation）：データが期待される形式であることを確認します。例えば、電話番号や郵便番号は数字のみで構成されるべきですし、Eメールアドレスには特定の形式が求められます。
+型検証：入力されたデータが適切なデータ型であるかを検証します（例：文字列、数値、日付）。
+
+2. 文字列の正規化とクリーニング
+トリミング：余分な空白を削除します。
+エンコーディングの正規化：文字列を適切なエンコーディング形式（例：UTF-8）に正規化します。
+制御文字の削除：非表示文字や制御文字を削除することで、SQLインジェクションやXSS攻撃のリスクを低減します。
+
+3. SQLインジェクションの防止
+パラメータ化クエリの使用：ユーザー入力を直接SQL文に組み込むのではなく、パラメータとして渡すことでSQLインジェクション攻撃を防ぎます。
+エスケープ処理の回避：可能な限りエスケープ処理に頼らず、パラメータ化クエリを使用します。
+
+4. XSS攻撃（クロスサイトスクリプティング）の防止
+HTMLエスケープ：ユーザーからの入力をHTMLとしてレンダリングする前に、HTML特殊文字（例：<, >, &）をエスケープします。
+コンテンツセキュリティポリシー（CSP）の設定：ブラウザに対し、どのスクリプトが実行されるべきかを指示するポリシーを設定します。
+
+5. APIレベルでのセキュリティ
+APIリクエストのレート制限：DDoS攻撃やブルートフォース攻撃を防ぐため、APIエンドポイントに対するリクエスト数を制限します。
+APIキーの使用：APIキーを使用して、APIの利用を認証し、未承認アクセスを防ぎます。
+
+これらの手法を適切に組み合わせて使用することで、アプリケーションのセキュリティを向上させることができます。各アプリケーションの具体的なニーズに応じて、これらのプラクティスをカスタマイズすることが重要です。
+
+*/
+// -----------------------------------🔸主なデータ前処理🔸-----------------------------------ここまで
+
 // 🔸会社名の正規化・標準化 -----------------------------------
 
 // 【正規表現の構成要素】
@@ -158,6 +284,12 @@ function transformData(csvValue, dbField) {
 // ・\u005F: アンダースコア（_） - 特に技術関連の企業や製品名に使われることがあります
 
 function normalizeCompanyName(name) {
+  name = name.trim(); // 基本的なトリミング
+  return name.replace(/[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u002D\u002E\u0027\u005F]+/g, "");
+}
+
+// 🔸部署名の正規化・標準化 -----------------------------------
+function normalizeDepartmentName(name) {
   name = name.trim(); // 基本的なトリミング
   return name.replace(/[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u002D\u002E\u0027\u005F]+/g, "");
 }
@@ -182,7 +314,7 @@ function normalizeCompanyName(name) {
 */
 
 // -----------------------------------🔸address🔸-----------------------------------
-function normalizeAddress(address) {
+function normalizeAddress(address, groupedTownsByRegionCity) {
   address = address.trim(); // 基本的なトリミング
   // 🔹1. 正規化
   // 全角英数字と全角記号の両方を半角に変換

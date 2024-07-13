@@ -1049,7 +1049,9 @@ const ImportModalMemo = () => {
   }, [modalContainerRef.current]);
 
   console.log(
-    "ImportModalレンダリング"
+    "ImportModalレンダリング",
+    "uploadedData",
+    uploadedData
     // "uploadedDisplayRowList",
     // uploadedDisplayRowList,
     // "uploadedColumnFields",

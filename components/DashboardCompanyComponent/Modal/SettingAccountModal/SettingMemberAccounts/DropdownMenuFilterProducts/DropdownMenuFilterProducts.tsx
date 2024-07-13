@@ -220,8 +220,6 @@ Props) => {
           <h2 className="flex items-center space-x-[12px] text-[16px] font-bold text-[var(--color-text-title)]">
             <span>商品リスト編集</span>
             <span>
-              {/* <img width="24" height="24" src="https://img.icons8.com/3d-fluency/24/job.png" alt="job" /> */}
-              {/* <NextImage width={24} height={24} src={`https://img.icons8.com/3d-fluency/24/job.png`} alt="setting" /> */}
               <NextImage
                 width={24}
                 height={24}

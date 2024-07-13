@@ -151,9 +151,10 @@ export const DashboardSidebarMemo: FC = () => {
                 ? `${styles.mini} transition-w01-bg05`
                 : `${styles.mini} transition-w01-bg01 ${activeMenuTab === "SDB" ? `${styles.display_in_out}` : ``}`
             }`
-      }`}
+      } fade08_forward`}
       style={{
         ...(activeMenuTab === "SDB" && !isOpenSidebar && { left: "-100%" }),
+        ...(activeMenuTab === "SDB" && { backdropFilter: `blur(9px)`, "--tw-backdrop-blur": "blur(9px)" }),
       }}
       // className={`${styles.app_sidebar} ${isOpenSidebar ? `transition-base02` : `${styles.mini} transition-base01`}`}
     >

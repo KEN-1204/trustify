@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import React, { useEffect } from "react";
 import { toast } from "react-toastify";
 
-export const useSubscribeNotifications = (user_id: string) => {
+export const useSubscribeNotifications = (user_id: string | undefined) => {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
   const userProfileState = useDashboardStore((state) => state.userProfileState);
@@ -13,7 +13,8 @@ export const useSubscribeNotifications = (user_id: string) => {
   const setIncompleteNotifications = useDashboardStore((state) => state.setIncompleteNotifications);
 
   useEffect(() => {
-    if (!user_id) return console.log("リアルタイムnotifications ユーザー情報無し user_id", user_id);
+    if (!user_id)
+      return console.log("useSubscribeNotificationsフック リアルタイムnotifications ユーザー情報無し user_id", user_id);
 
     console.log("🌟リアルタイムnotifications 自分宛てのお知らせをサブスクライブ useEffect実行", user_id);
 
@@ -72,5 +73,5 @@ export const useSubscribeNotifications = (user_id: string) => {
       console.log("リアルタイムnotifications クリーンアップ channel", channel);
       supabase.removeChannel(channel);
     };
-  }, [userProfileState, supabase, queryClient]);
+  }, [user_id, userProfileState, supabase, queryClient]);
 };

@@ -1935,9 +1935,10 @@ export const getMeetingParticipationRequest = (value: string, language: string =
 // 🌠物件・案件
 
 // 現ステータス
-// export const optionsCurrentStatus = ["A Lead", "B Deal Development", "C Application", "D Order Received"];
-export type CurrentStatusType = "A lead" | "B deal_development" | "C application" | "D order_received";
-export const optionsCurrentStatus = ["A lead", "B deal_development", "C application", "D order_received"];
+// export type CurrentStatusType = "A lead" | "B deal_development" | "C application" | "D order_received";
+// export const optionsCurrentStatus = ["A lead", "B deal_development", "C application", "D order_received"];
+export type CurrentStatusType = "A Lead" | "B Deal Development" | "C Application" | "D Order Received";
+export const optionsCurrentStatus = ["A Lead", "B Deal Development", "C Application", "D Order Received"];
 export const mappingCurrentStatus:
   | {
       [K in CurrentStatusType]: { [key: string]: string };
@@ -1945,25 +1946,41 @@ export const mappingCurrentStatus:
   | {
       [key: string]: { [key: string]: string };
     } = {
-  "A lead": { ja: `リード`, en: `Lead` },
-  "B deal_development": { ja: `展開 (案件化・商談化)`, en: `Deal Development` },
-  "C application": { ja: `申請 (予算申請案件)`, en: `Application` },
-  "D order_received": { ja: `受注`, en: `Order Received` },
+  "A Lead": { ja: `リード`, en: `Lead` },
+  "B Deal Development": { ja: `展開 (案件化・商談化)`, en: `Deal Development` },
+  "C Application": { ja: `申請 (予算申請案件)`, en: `Application` },
+  "D Order Received": { ja: `受注`, en: `Order Received` },
+  // "A lead": { ja: `リード`, en: `Lead` },
+  // "B deal_development": { ja: `展開 (案件化・商談化)`, en: `Deal Development` },
+  // "C application": { ja: `申請 (予算申請案件)`, en: `Application` },
+  // "D order_received": { ja: `受注`, en: `Order Received` },
 };
 export const getCurrentStatus = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A lead":
+    case "A Lead":
       return language === "ja" ? `リード` : `Lead`;
       break;
-    case "B deal_development":
+    case "B Deal Development":
       return language === "ja" ? `展開 (案件化・商談化)` : `Deal Development`;
       break;
-    case "C application":
+    case "C Application":
       return language === "ja" ? `申請 (予算申請案件)` : `Application`;
       break;
-    case "D order_received":
+    case "D Order Received":
       return language === "ja" ? `受注` : `Order Received`;
       break;
+    // case "A lead":
+    //   return language === "ja" ? `リード` : `Lead`;
+    //   break;
+    // case "B deal_development":
+    //   return language === "ja" ? `展開 (案件化・商談化)` : `Deal Development`;
+    //   break;
+    // case "C application":
+    //   return language === "ja" ? `申請 (予算申請案件)` : `Application`;
+    //   break;
+    // case "D order_received":
+    //   return language === "ja" ? `受注` : `Order Received`;
+    //   break;
 
     default:
       return value;

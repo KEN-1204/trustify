@@ -706,7 +706,7 @@ export const DashboardHeaderMemo: FC = () => {
     <header
       className={`${styles.app_header} ${
         activeMenuTab !== "HOME" && activeMenuTab !== "SDB" ? `transition-bg01` : `transition-bg05`
-      } ${activeMenuTab === "SDB" ? `${styles.sdb}` : ``}`}
+      } ${activeMenuTab === "SDB" ? `${styles.sdb}` : ``} fade08_forward`}
     >
       {/* 左コンテンツ */}
       <div className="relative flex h-full  items-center justify-start ">
