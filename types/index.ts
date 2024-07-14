@@ -604,7 +604,9 @@ export type Client_company = {
   created_by_section_of_user?: string | null;
   created_by_unit_of_user?: string | null;
   created_by_office_of_user?: string | null;
-  name: string;
+  name: string; // 「株式会社キーエンス 東京営業所」
+  corporate_name?: string | null; // 「株式会社キーエンス」✅追加
+  branch_name?: string | null; // 「東京営業所」✅追加
   department_name?: string | null;
   main_fax?: string | null;
   zipcode?: string | null;
@@ -715,7 +717,9 @@ export type Client_company_row_data = {
   manager?: string | null;
   managing_director?: string | null;
   member?: string | null;
-  name?: string;
+  name?: string; // 「株式会社キーエンス 東京営業所」
+  corporate_name?: string; // 「株式会社キーエンス」✅追加
+  branch_name?: string; // 「東京営業所」✅追加
   number_of_employees_class?: string | null;
   // number_of_employees?: string | null;
   number_of_employees?: number | null;

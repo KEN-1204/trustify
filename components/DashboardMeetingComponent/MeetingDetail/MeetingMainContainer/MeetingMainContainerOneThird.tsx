@@ -2716,6 +2716,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   // ================== 🌟シングルクリック、ダブルクリックイベント🌟 ==================
   // ダブルクリックで各フィールドごとに個別で編集
   const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // コンポーネントのクリーンアップで既存のタイマーがあればクリアする
+  useEffect(() => {
+    return () => {
+      if (setTimeoutRef.current !== null) {
+        clearTimeout(setTimeoutRef.current);
+      }
+    };
+  }, []);
   // 選択行データが自社専用の会社データかどうか
   const isMatchDepartment =
     !!userProfileState?.assigned_department_id &&
@@ -3733,7 +3741,10 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
   return (
     <>
-      <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
+      <form
+        className={`${styles.main_container} w-full ${!!isEditModeField ? `${styles.is_edit_mode}` : ``}`}
+        onSubmit={handleSearchSubmit}
+      >
         {/* ------------------------- スクロールコンテナ ------------------------- */}
         {/* <div className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] `}> */}
         <div

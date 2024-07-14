@@ -1992,6 +1992,14 @@ const ActivityMainContainerOneThirdMemo = () => {
   // ================== 🌟シングルクリック、ダブルクリックイベント🌟 ==================
   // ダブルクリックで各フィールドごとに個別で編集
   const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // コンポーネントのクリーンアップで既存のタイマーがあればクリアする
+  useEffect(() => {
+    return () => {
+      if (setTimeoutRef.current !== null) {
+        clearTimeout(setTimeoutRef.current);
+      }
+    };
+  }, []);
   // 選択行データが自社専用の会社データかどうか
   const isOurActivity =
     !!userProfileState?.company_id &&
@@ -2753,7 +2761,9 @@ const ActivityMainContainerOneThirdMemo = () => {
 
   return (
     <form
-      className={`${styles.main_container} w-full ${isEditModeField ? styles.field_edit_mode : ``}`}
+      className={`${styles.main_container} w-full ${!!isEditModeField ? `${styles.is_edit_mode}` : ``} ${
+        isEditModeField ? styles.field_edit_mode : ``
+      }`}
       onSubmit={handleSearchSubmit}
     >
       {/* ------------------------- スクロールコンテナ ------------------------- */}

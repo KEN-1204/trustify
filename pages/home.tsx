@@ -9,7 +9,7 @@ import { useSubscribeSubscription } from "@/hooks/useSubscribeSubscription";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import {  UserProfileCompanySubscription } from "@/types";
+import { UserProfileCompanySubscription } from "@/types";
 import { mappingTitle } from "@/utils/mappings";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -212,7 +212,8 @@ const DashboardHome = () => {
           userProfile
         );
 
-        await new Promise((resolve, reject) => setTimeout(resolve, 2000));
+        await new Promise((resolve, reject) => setTimeout(resolve, 3000));
+        // await new Promise((resolve, reject) => setTimeout(resolve, 2000));
 
         // stateに保存
         setUserProfileState(userProfile[0]);

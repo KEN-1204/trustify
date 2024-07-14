@@ -1,32 +1,69 @@
 // 名前や会社名に不適切な文字が含まれていないかチェックする正規表現
-export const validateName = (input: string) => {
-  // const regex = /[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF]+/;
-  const regex = /[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u002D\u002E\u0027\u005F]+/;
+export const validateCompanyName = (input: string) => {
+  // 1. 文字クラス [...] を使用して、許可されるすべての文字を一つの集合として定義しました。
+  // 2. パターンの開始（^）と終了（$）を指定することで、入力された文字列全体がこのパターンに一致することを要求しています。
+  // 3. エスケープが必要な文字（例えばハイフンやドット）は適切にエスケープされています。
+  const regex =
+    /^[a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･]+$/;
+
+  return regex.test(input);
 };
 
 // 会社名データの標準化のための正規表現
 export const normalizeCompanyName = (input: string) => {
   // 【下記の指定した文字のみ会社名として許可 それ以外は空文字にリプレイス [^...]】
+
   // ・a-zA-Z0-9: 半角英数字
   // ・ａ-ｚＡ-Ｚ０-９: 全角英数字
   // ・ （半角スペース）
   // ・\u3000-\u303F：全角の記号と句読点(\u3000：全角スペース)
-  // ・\u3040-\u309F: ひらがな
-  // ・\u30A0-\u30FF: カタカナ
+  // ・\u3040-\u309F: ひらがな   (\p{Hiragana})
+  // ・\u30A0-\u30FF: 全角カタカナ  (\p{Katakana})
+  // ・\uFF65-\uFF9F: 半角ｶﾀｶﾅ
+  // ・\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF: 漢字  (\p{Han})
   // ・\u30FC: 全角の長音符(カタカナの長音符)
   // ・\u002D: 半角ハイフン（-）
   // ・\u002E: 半角ピリオド（.）
   // ・\u0027: 半角アポストロフィ（'） - 企業名における所有格や略語でよく使用されます（例: O'Reilly, Ben's）
   // ・\u005F: アンダースコア（_） - 特に技術関連の企業や製品名に使われることがあります
+  // ・\uFF08: （ 全角括弧
+  // ・\uFF09: ） 全角括弧
+  // ・「(」（左半角括弧）: \u0028
+  // ・「)」（右半角括弧）: \u0029
+  // ・「・」（全角中点）: \u30FB
+  // ・「･」（半角中点）: 通常、この文字は特定のUnicode値を持たず、一般的なJISやシフトJISの文字セットに存在するため、そのままセット
+
+  // ひらがなカタカナ漢字はUnicodeプロパティを使用(Unicodeが変更された場合も自動対応できるため)
 
   // 全角英数字と全角スペースを半角に変換
   let hankaku = input
     .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
-    .replace(/　/g, " ");
+    .replace(/　/g, " ")
+    .trim();
 
-  return hankaku.replace(/[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u002D\u002E\u0027\u005F]+/gu, ""); // *10
+  // 指定"以外"の文字を除去
+  // return hankaku.replace(/[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u002D\u002E\u0027\u005F]+/gu, ""); // *10
+  return hankaku.replace(
+    /[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･]+/gu,
+    ""
+  ); // *10
+  // return hankaku.replace(
+  //   /[^a-zA-Z0-9 \u3000-\u303F\p{Hiragana}\p{Katakana}\uFF65-\uFF9F\p{Han}\u30FC\u002D\u002E\u0027\u005F]+/gu,
+  //   ""
+  // ); // *10
   // return input.replace(/[^a-zA-Z0-9 \u3000\u30FC\u3000-\u303F\u3040-\u309F\u30A0-\u30FF]+/g, "");
 };
+
+/*
+*11
+漢字を含む範囲を追加するためには、漢字が含まれるUnicodeの範囲を正規表現に追加する必要があります。通常、漢字は「一般的な漢字」を含むU+4E00からU+9FFF、さらに「追加漢字エリアA」のU+3400からU+4DBF、そして「追加漢字エリアB」のU+20000からU+2A6DFまでの範囲にわたります。
+.replace(/[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u002D\u002E\u0027\u005F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF]+/gu, "")
+
+\u4E00-\u9FFF：一般的なCJK統合漢字
+\u3400-\u4DBF：追加漢字エリアA
+\u20000-\u2A6DF：追加漢字エリアB
+これにより、英数字、スペース、カタカナ、ひらがな、CJKの句読点、ダッシュ、ドット、アポストロフィー、アンダースコア、そして漢字が許容されます。Unicodeの使用にはuフラグをつけることが必要ですので、正規表現の末尾にuフラグが付けられている点も確認してください。
+*/
 
 /*
 *10 uフラグ

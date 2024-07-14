@@ -1745,6 +1745,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       if (hideTimeoutIdRef.current !== null) {
         clearTimeout(hideTimeoutIdRef.current);
       }
+      if (setTimeoutRef.current !== null) {
+        clearTimeout(setTimeoutRef.current);
+      }
     };
   }, []);
   // -------------------------- ✅ポップアップメッセージ✅ --------------------------
@@ -3179,7 +3182,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       >
         <span>文字数制限を超えています</span>
       </div> */}
-      <form className={`${styles.main_container} w-full`} onSubmit={handleSearchSubmit}>
+      <form
+        className={`${styles.main_container} w-full ${!!isEditModeField ? `${styles.is_edit_mode}` : ``}`}
+        onSubmit={handleSearchSubmit}
+      >
         <div className={`flex h-full flex-col`}>
           {/* 🌟新規作成 保存ボタンエリア🌟 */}
           {(isInsertModeQuotation || isUpdateModeQuotation) && (

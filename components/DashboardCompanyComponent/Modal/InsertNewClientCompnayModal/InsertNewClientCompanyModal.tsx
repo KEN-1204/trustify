@@ -7,22 +7,7 @@ import { toast } from "react-toastify";
 import useThemeStore from "@/store/useThemeStore";
 import { isNaN } from "lodash";
 import { useMutateClientCompany } from "@/hooks/useMutateClientCompany";
-import productCategoriesM, {
-  mappingAnalysisCategoryM,
-  mappingBusinessSupportCategoryM,
-  mappingControlEquipmentCategoryM,
-  mappingDesignCategoryM,
-  mappingITCategoryM,
-  mappingImageProcessingCategoryM,
-  mappingMachinePartsCategoryM,
-  mappingMaterialCategoryM,
-  mappingModuleCategoryM,
-  mappingOfficeCategoryM,
-  mappingOthersCategoryM,
-  mappingProcessingMachineryCategoryM,
-  mappingScienceCategoryM,
-  mappingSkillUpCategoryM,
-  mappingToolCategoryM,
+import {
   productCategoryLargeToMappingMediumMap,
   productCategoryLargeToOptionsMediumMap,
   productCategoryLargeToOptionsMediumObjMap,
@@ -69,23 +54,12 @@ import {
   productCategoryMediumToMappingSmallMap,
   productCategoryMediumToOptionsSmallMap_All,
   productCategoryMediumToOptionsSmallMap_All_obj,
-  productCategoryMediumToOptionsSmallMap_business_support_services,
-  productCategoryMediumToOptionsSmallMap_control_electrical_equipment,
-  productCategoryMediumToOptionsSmallMap_design_production_support,
-  productCategoryMediumToOptionsSmallMap_electronic_components_modules,
-  productCategoryMediumToOptionsSmallMap_image_processing,
-  productCategoryMediumToOptionsSmallMap_it_network,
-  productCategoryMediumToOptionsSmallMap_manufacturing_processing_machines,
-  productCategoryMediumToOptionsSmallMap_materials,
-  productCategoryMediumToOptionsSmallMap_measurement_analysis,
-  productCategoryMediumToOptionsSmallMap_mechanical_parts,
-  productCategoryMediumToOptionsSmallMap_office,
-  productCategoryMediumToOptionsSmallMap_others,
-  productCategoryMediumToOptionsSmallMap_scientific_chemical_equipment,
-  productCategoryMediumToOptionsSmallMap_seminars_skill_up,
-  productCategoryMediumToOptionsSmallMap_tools_consumables_supplies,
 } from "@/utils/productCategoryS";
 import { formatAddress } from "@/utils/Helpers/formatStringHelpers/formatAddress";
+import { toHalfWidthAndRemoveSpace } from "@/utils/Helpers/toHalfWidthAndRemoveSpace";
+import { normalizeCompanyName, validateCompanyName } from "@/utils/Helpers/NameHelpers/NameHelpers";
+import { validateAndFormatPostalCode } from "@/utils/Helpers/validateAndFormatPostalCode";
+import { validateAndFormatPhoneNumber } from "@/utils/Helpers/validateAndFormatPhoneNumber";
 
 export const InsertNewClientCompanyModal = () => {
   const language = useStore((state) => state.language);
@@ -102,7 +76,9 @@ export const InsertNewClientCompanyModal = () => {
   const isDuplicateCompany = useDashboardStore((state) => state.isDuplicateCompany);
   const setIsDuplicateCompany = useDashboardStore((state) => state.setIsDuplicateCompany);
 
-  const [name, setName] = useState("");
+  const [name, setName] = useState(""); // 会社名(法人名 + 拠点名)
+  const [corporateName, setCorporateName] = useState(""); // 法人名
+  const [branchName, setBranchName] = useState(""); // 拠点名
   const [departmentName, setDepartmentName] = useState("");
   const [mainFax, setMainFax] = useState("");
   const [zipcode, setZipcode] = useState("");
@@ -351,6 +327,8 @@ export const InsertNewClientCompanyModal = () => {
     if (!selectedRowDataCompany) return;
     if (!isDuplicateCompany) return;
     let _name = selectedRowDataCompany.name ? selectedRowDataCompany.name : "";
+    let _corporate_name = selectedRowDataCompany.corporate_name ? selectedRowDataCompany.corporate_name : "";
+    let _branch_name = selectedRowDataCompany.branch_name ? selectedRowDataCompany.branch_name : "";
     let _department_name = selectedRowDataCompany.department_name ? selectedRowDataCompany.department_name : "";
     let _main_fax = selectedRowDataCompany.main_fax ? selectedRowDataCompany.main_fax : "";
     let _zipcode = selectedRowDataCompany.zipcode ? selectedRowDataCompany.zipcode : "";
@@ -389,7 +367,7 @@ export const InsertNewClientCompanyModal = () => {
       ? selectedRowDataCompany.number_of_employees_class
       : "";
     let _fiscal_end_month = selectedRowDataCompany.fiscal_end_month ? selectedRowDataCompany.fiscal_end_month : "";
-    let _capital = selectedRowDataCompany.capital ? selectedRowDataCompany.capital.toString() : "";
+    let _capital = isValidNumber(selectedRowDataCompany.capital) ? selectedRowDataCompany.capital!.toString() : "";
     let _budget_request_month1 = selectedRowDataCompany.budget_request_month1
       ? selectedRowDataCompany.budget_request_month1
       : "";
@@ -428,6 +406,8 @@ export const InsertNewClientCompanyModal = () => {
       ? String(selectedRowDataCompany.number_of_employees)
       : "";
     setName(_name);
+    setCorporateName(_corporate_name);
+    setBranchName(_branch_name);
     setDepartmentName(_department_name);
     setMainFax(_main_fax);
     setZipcode(_zipcode);
@@ -570,24 +550,46 @@ export const InsertNewClientCompanyModal = () => {
     if (isDuplicateCompany) setIsDuplicateCompany(false);
   };
   const handleSaveAndClose = async () => {
-    if (!name) return alert("会社名を入力してください");
+    // if (!name) return alert("会社名を入力してください");
+    if (!corporateName) return alert("法人名を入力してください");
     if (!mainPhoneNumber) return alert("代表TELを入力してください");
+    if (!/^[\d\-\+\(\)]+$/.test(mainPhoneNumber)) return alert("無効な代表TELです。有効な電話番号を入力してください。");
+    // if (!zipcode) return alert("郵便番号を入力してください");
+    // 郵便番号が入力されている場合は日本の郵便番号でバリデーション
+    if (zipcode !== "") {
+      if (!/^[0-9]{7}$/.test(zipcode)) return alert("無効な郵便番号です。有効な郵便番号を入力してください。");
+    }
     if (!departmentName) return alert("部署名を入力してください");
     // if (!address) return alert("住所を入力してください");
     if (!countryName) return alert("国名を入力してください");
     if (!regionName) return alert("都道府県を入力してください");
     if (!cityName) return alert("市区町村を入力してください");
 
-    setLoadingGlobalState(true);
+    const isValidCorporateName = validateCompanyName(corporateName);
+    if (!isValidCorporateName) return alert("無効な法人名です。エラー：INCCM001");
+    // 拠点が入力されている場合はバリデーションチェック
+    if (branchName !== "") {
+      const isValidBranchName = validateCompanyName(branchName);
+      if (!isValidBranchName) return alert("無効な拠点名です。エラー：INCCM002");
+    }
 
-    // 🔸住所の前処理
+    // 🔸会社名の前処理 法人名と拠点名の間に半角スペースを入れて結合
+    const _fullName = (normalizeCompanyName(corporateName) + " " + normalizeCompanyName(branchName)).trim();
+
+    if (!_fullName) return alert("無効な会社名です。エラー：INCCM01");
+
+    // 🔸住所の前処理 「丁目・番地・号」のーを半角ハイフンに置換する
     const _address = (
       formatAddress(regionName) +
       formatAddress(cityName) +
-      (formatAddress(streetAddress) ?? "") +
+      (formatAddress(streetAddress, true) ?? "") +
       " " +
-      (formatAddress(buildingName, true) ?? "")
+      (formatAddress(buildingName) ?? "")
     ).trim();
+
+    if (!_address) return alert("無効な住所です。エラー：INCCM02");
+
+    setLoadingGlobalState(true);
 
     // --------------------- 🔸製品分類関連の前処理 ---------------------
     // 製品分類をnameからidに変換して配列にまとめる
@@ -678,7 +680,10 @@ export const InsertNewClientCompanyModal = () => {
       created_by_section_of_user: userProfileState?.assigned_section_id ? userProfileState.assigned_section_id : null,
       created_by_unit_of_user: userProfileState?.assigned_unit_id ? userProfileState.assigned_unit_id : null,
       created_by_office_of_user: userProfileState?.assigned_office_id ? userProfileState.assigned_office_id : null,
-      name: name,
+      // name: name,
+      name: _fullName, // 「法人名 拠点名」
+      corporate_name: corporateName || null,
+      branch_name: branchName || null,
       department_name: departmentName ? departmentName : null,
       main_fax: mainFax ? mainFax : null,
       zipcode: zipcode ? zipcode : null,
@@ -790,7 +795,7 @@ export const InsertNewClientCompanyModal = () => {
   // ================================ ツールチップ ================================
   type TooltipParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
-    display: string;
+    display?: string;
     content: string;
     content2?: string | undefined | null;
     content3?: string | undefined | null;
@@ -804,7 +809,7 @@ export const InsertNewClientCompanyModal = () => {
   // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
   const handleOpenTooltip = ({
     e,
-    display,
+    display = "top",
     content,
     content2,
     content3,
@@ -1086,6 +1091,79 @@ export const InsertNewClientCompanyModal = () => {
     return { x, y, width, height };
   }, [modalContainerRef.current]);
 
+  // -------------------------- 🌟ポップアップメッセージ🌟 --------------------------
+  const alertPopupRef = useRef<HTMLDivElement | null>(null);
+  const hideTimeoutIdRef = useRef<number | null>(null);
+
+  // 文字数制限を超えた際にポップアップアラートメッセージを表示する
+  const showAlertPopup = (type: "length" | "lines" | "both" | "postal_code" | "phone_number" | "fax") => {
+    const alertPopup = alertPopupRef.current;
+    if (!alertPopup) return;
+
+    // 表示するメッセージを格納する変数
+    let message = "";
+    switch (type) {
+      case "length":
+        message = "文字数制限を超えています";
+        break;
+      case "lines":
+        message = "行数制限を超えています";
+        break;
+      case "both":
+        message = "文字数・行数制限を超えています";
+        break;
+      case "postal_code":
+        message = "郵便番号は数字7桁のみ入力してください";
+        break;
+      case "phone_number":
+        message = "電話番号は「数字、半角ハイフン、プラス記号、括弧」のみ入力してください";
+        break;
+      case "fax":
+        message = "FAX番号は「数字、半角ハイフン、プラス記号、括弧」のみ入力してください";
+        break;
+      default:
+        message = "制限を超えています"; // デフォルトのメッセージ
+        break;
+    }
+
+    // 既存のタイマーをクリアする
+    if (hideTimeoutIdRef.current !== null) {
+      clearTimeout(hideTimeoutIdRef.current); // 既存の非表示タイマーをキャンセル
+      hideTimeoutIdRef.current = null;
+    }
+
+    // ポップアップの内容を更新
+    alertPopup.innerHTML = `<span>${message}</span>`; // innerHTMLを使用してメッセージを設定
+
+    // ポップアップを即時表示するためのスタイルを設定
+    alertPopup.style.display = "flex"; // ポップアップを表示
+    alertPopup.style.animation = "popupShow 0.1s ease forwards"; // 表示アニメーション
+
+    // 3秒後に非表示アニメーションを適用
+    // 新たに非表示にするためのタイマーを設定(windowオブジェクトのsetTimeoutの結果はnumber型 clearTimeoutで使用)
+    hideTimeoutIdRef.current = window.setTimeout(() => {
+      alertPopup.style.animation = "popupHide 0.2s ease forwards"; // 非表示アニメーション
+
+      // アニメーションが完了した後に要素を非表示にする
+      setTimeout(() => {
+        alertPopup.style.display = "none";
+      }, 200); // 非表示アニメーションの時間に合わせる
+
+      // タイマーIDをリセット
+      hideTimeoutIdRef.current = null;
+    }, 3000); // 表示される時間
+  };
+
+  // コンポーネントのクリーンアップで既存のタイマーがあればクリアする
+  useEffect(() => {
+    return () => {
+      if (hideTimeoutIdRef.current !== null) {
+        clearTimeout(hideTimeoutIdRef.current);
+      }
+    };
+  }, []);
+  // -------------------------- ✅ポップアップメッセージ✅ --------------------------
+
   console.log(
     "InsertNewClientCompanyModalレンダリング",
     "productCategoryLargeArray",
@@ -1093,33 +1171,41 @@ export const InsertNewClientCompanyModal = () => {
     "selectedProductCategoryLargeSet",
     selectedProductCategoryLargeSet
   );
-  console.log("========================================================================");
-  console.log(
-    "productCategoryMediumArray",
-    productCategoryMediumArray,
-    "optionsProductCategoryMediumAll",
-    optionsProductCategoryMediumAll,
-    "mappingProductCategoryMediumAll",
-    mappingProductCategoryMediumAll
-  );
-  console.log("========================================================================");
-  console.log(
-    "productCategorySmallArray",
-    productCategorySmallArray,
-    "selectedProductCategorySmallSet",
-    selectedProductCategorySmallSet,
-    "optionsProductCategorySmallAll",
-    optionsProductCategorySmallAll,
-    "mappingProductCategorySmallAll",
-    mappingProductCategorySmallAll
-  );
+  // console.log("========================================================================");
+  // console.log(
+  //   "productCategoryMediumArray",
+  //   productCategoryMediumArray,
+  //   "optionsProductCategoryMediumAll",
+  //   optionsProductCategoryMediumAll,
+  //   "mappingProductCategoryMediumAll",
+  //   mappingProductCategoryMediumAll
+  // );
+  // console.log("========================================================================");
+  // console.log(
+  //   "productCategorySmallArray",
+  //   productCategorySmallArray,
+  //   "selectedProductCategorySmallSet",
+  //   selectedProductCategorySmallSet,
+  //   "optionsProductCategorySmallAll",
+  //   optionsProductCategorySmallAll,
+  //   "mappingProductCategorySmallAll",
+  //   mappingProductCategorySmallAll
+  // );
   // console.log("countryName", countryName, "countryId", countryId, "国リスト候補", suggestedCountryIdNameArray);
   // console.log("regionName", regionName, "regionId", regionId, "都道府県リスト候補", suggestedRegionIdNameArray);
   // console.log("cityName", cityName, "cityId", cityId, "市区町村リスト候補", suggestedCityIdNameArray);
 
   return (
     <>
+      {/* オーバーレイ */}
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
+
+      {/* アラートポップアップ */}
+      <div
+        ref={alertPopupRef}
+        className={`flex-center alert_popup min-h-[50px] min-w-[300px] max-w-[500px] whitespace-pre-wrap bg-[var(--color-alert-popup-bg)] px-[15px] py-[9px] text-[var(--color-alert-popup-text)]`}
+      ></div>
+
       <div className={`${styles.container} fade03`} ref={modalContainerRef}>
         {/* ツールチップ */}
         {hoveredItemPosModal && <TooltipModal />}
@@ -1159,15 +1245,11 @@ export const InsertNewClientCompanyModal = () => {
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           {/* --------- 横幅全部ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* 会社名 */}
+          {/* <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title} ${styles.required_title}`}>●会社名</span>
-                  {/* <span className={`${styles.value} ${styles.value_highlight}`}>
-                    {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
-                  </span> */}
                   <input
                     type="text"
                     placeholder="※入力必須　例：株式会社○○　　個人事業主・フリーランスの場合は電話番号を入力してください"
@@ -1177,21 +1259,140 @@ export const InsertNewClientCompanyModal = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     onBlur={() => setName(toHalfWidth(name.trim()))}
-                    // onBlur={() => setName(name.trim())}
                   />
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title} ${styles.required_title}`}>●部署名</span>
+                  <input
+                    type="text"
+                    placeholder="※入力必須　例：代表取締役、営業部など　　部署名が不明の場合は.(ピリオド)を入力してください"
+                    required
+                    className={`${styles.input_box}`}
+                    value={departmentName}
+                    onChange={(e) => setDepartmentName(e.target.value)}
+                    onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                  />
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+          </div> */}
+          {/*  */}
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* ●法人名 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} ${styles.required_title}`}>●法人名</span>
+                    <input
+                      type="text"
+                      // placeholder="※入力必須　例：株式会社○○　　個人事業主・フリーランスの場合は電話番号を入力してください"
+                      placeholder="※入力必須　例：株式会社○○　　拠点名を除く法人名を入力してください"
+                      required
+                      autoFocus
+                      className={`${styles.input_box}`}
+                      value={corporateName}
+                      onChange={(e) => setCorporateName(e.target.value)}
+                      // onBlur={() => setCorporateName(toHalfWidthAndSpace(corporateName.trim()))}
+                      onBlur={() => {
+                        const formattedName = normalizeCompanyName(corporateName.trim());
+                        setCorporateName(formattedName);
+                      }}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: corporateName,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
 
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 拠点名 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>拠点名</span>
+                    <input
+                      type="text"
+                      placeholder="※任意　例：本社、〜営業所、〜工場、〜支店など"
+                      required
+                      className={`${styles.input_box}`}
+                      value={branchName}
+                      onChange={(e) => setBranchName(e.target.value)}
+                      // onBlur={() => setBranchName(toHalfWidthAndSpace(branchName.trim()))}
+                      onBlur={() => {
+                        const formattedName = normalizeCompanyName(branchName.trim());
+                        setBranchName(formattedName);
+                      }}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: branchName,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全部ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+            {/* ●会社名 */}
+            <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-end`} style={{ minHeight: "28px" }}>
+                  <span className={`${styles.title} ${styles.required_title}`}>●会社名</span>
+                  <p className={`text-[14px] text-[var(--color-text-under-input)]`}>
+                    {(corporateName ?? "") + " " + (branchName ?? "")}
+                  </p>
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全部ラッパーここまで --------- */}
+
+          {/* --------- 横幅全部ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
             {/* 部署名 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title} ${styles.required_title}`}>●部署名</span>
-                  {/* <span className={`${styles.value}`}>
-                    {selectedRowDataCompany?.department_name ? selectedRowDataCompany?.department_name : ""}
-                  </span> */}
                   <input
                     type="text"
                     placeholder="※入力必須　例：代表取締役、営業部など　　部署名が不明の場合は.(ピリオド)を入力してください"
@@ -1207,6 +1408,8 @@ export const InsertNewClientCompanyModal = () => {
               </div>
             </div>
           </div>
+          {/*  */}
+
           {/* --------- 横幅全体ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
@@ -1216,9 +1419,6 @@ export const InsertNewClientCompanyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} ${styles.required_title}`}>●代表TEL</span>
-                    {/* <span className={`${styles.value} ${styles.value_highlight}`}>
-                      {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
-                    </span> */}
                     <input
                       type="text"
                       placeholder="※入力必須　例：03-1234-5678、06-1234-5678など"
@@ -1226,7 +1426,17 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={mainPhoneNumber}
                       onChange={(e) => setMainPhoneNumber(e.target.value)}
-                      onBlur={() => setMainPhoneNumber(toHalfWidth(mainPhoneNumber.trim()))}
+                      // onBlur={() => setMainPhoneNumber(toHalfWidth(mainPhoneNumber.trim()))}
+                      onBlur={() => {
+                        const { isValid, formattedNumber } = validateAndFormatPhoneNumber(mainPhoneNumber.trim());
+                        if (isValid) {
+                          setMainPhoneNumber(formattedNumber);
+                        } else {
+                          if (mainPhoneNumber === "") return;
+                          showAlertPopup("phone_number");
+                          setMainPhoneNumber("");
+                        }
+                      }}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1240,11 +1450,21 @@ export const InsertNewClientCompanyModal = () => {
                     <span className={`${styles.title}`}>郵便番号</span>
                     <input
                       type="text"
-                      placeholder=""
+                      placeholder="数字7桁を入力 例: 1000002"
                       className={`${styles.input_box}`}
                       value={zipcode}
                       onChange={(e) => setZipcode(e.target.value)}
-                      onBlur={() => setZipcode(toHalfWidth(zipcode.trim()))}
+                      // onBlur={() => setZipcode(toHalfWidth(zipcode.trim()))}
+                      onBlur={() => {
+                        const { isValid, formattedPostalCode } = validateAndFormatPostalCode(zipcode.trim(), true);
+                        if (isValid) {
+                          setZipcode(formattedPostalCode);
+                        } else {
+                          if (zipcode === "") return;
+                          showAlertPopup("postal_code");
+                          setZipcode("");
+                        }
+                      }}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1266,7 +1486,17 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={mainFax}
                       onChange={(e) => setMainFax(e.target.value)}
-                      onBlur={() => setMainFax(toHalfWidth(mainFax.trim()))}
+                      // onBlur={() => setMainFax(toHalfWidth(mainFax.trim()))}
+                      onBlur={() => {
+                        const { isValid, formattedNumber } = validateAndFormatPhoneNumber(mainFax.trim());
+                        if (isValid) {
+                          setMainFax(formattedNumber);
+                        } else {
+                          if (mainFax === "") return;
+                          showAlertPopup("fax");
+                          setMainFax("");
+                        }
+                      }}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1290,27 +1520,7 @@ export const InsertNewClientCompanyModal = () => {
                           {option}月
                         </option>
                       ))}
-                      {/* <option value="1月">1月</option>
-                      <option value="2月">2月</option>
-                      <option value="3月">3月</option>
-                      <option value="4月">4月</option>
-                      <option value="5月">5月</option>
-                      <option value="6月">6月</option>
-                      <option value="7月">7月</option>
-                      <option value="8月">8月</option>
-                      <option value="9月">9月</option>
-                      <option value="10月">10月</option>
-                      <option value="11月">11月</option>
-                      <option value="12月">12月</option> */}
                     </select>
-                    {/* <input
-                      type="text"
-                      placeholder="例："
-                      className={`${styles.input_box}`}
-                      value={fiscalEndMonth}
-                      onChange={(e) => setFiscalEndMonth(e.target.value)}
-                      onBlur={() => setFiscalEndMonth(toHalfWidth(fiscalEndMonth.trim()))}
-                    /> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1821,13 +2031,6 @@ export const InsertNewClientCompanyModal = () => {
                           {getNumberOfEmployeesClass(option)}
                         </option>
                       ))}
-                      {/* <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500〜999名">B 500〜999名</option>
-                      <option value="C 300〜499名">C 300〜499名</option>
-                      <option value="D 200〜299名">D 200〜299名</option>
-                      <option value="E 100〜199名">E 100〜199名</option>
-                      <option value="F 50〜99名">F 50〜99名</option>
-                      <option value="G 1〜49名">G 1〜49名</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1850,7 +2053,16 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={numberOfEmployees}
                       onChange={(e) => setNumberOfEmployees(e.target.value)}
-                      onBlur={() => setNumberOfEmployees(toHalfWidth(numberOfEmployees.trim()))}
+                      onBlur={() => {
+                        const formatHalfInput = toHalfWidthAndRemoveSpace(numberOfEmployees).trim();
+                        const newEmployeesCount = parseInt(formatHalfInput, 10);
+                        if (newEmployeesCount !== null && !isNaN(newEmployeesCount)) {
+                          setNumberOfEmployees(String(newEmployeesCount));
+                        } else {
+                          setNumberOfEmployees("");
+                        }
+                      }}
+                      // onBlur={() => setNumberOfEmployees(toHalfWidth(numberOfEmployees.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1875,15 +2087,29 @@ export const InsertNewClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
-                      value={!!capital ? capital : ""}
+                      // value={!!capital ? capital : ""}
+                      // onBlur={() =>
+                      //   setCapital(
+                      //     !!capital && capital !== "" ? (convertToMillions(capital.trim()) as number).toString() : ""
+                      //   )
+                      // }
+                      value={capital}
                       onChange={(e) => setCapital(e.target.value)}
-                      // onBlur={() => setCapital(toHalfWidth(capital.trim()))}
-                      // onBlur={() => setCapital(convertToNumber(capital.trim()).toString())}
-                      onBlur={() =>
-                        setCapital(
-                          !!capital && capital !== "" ? (convertToMillions(capital.trim()) as number).toString() : ""
-                        )
-                      }
+                      onBlur={() => {
+                        const formatHalfInput = toHalfWidthAndRemoveSpace(capital);
+                        const convertedPrice = convertToMillions(formatHalfInput.trim());
+                        if (convertedPrice !== null && !isNaN(convertedPrice)) {
+                          setCapital(convertedPrice.toLocaleString());
+                        } else {
+                          setCapital("");
+                        }
+                      }}
+                      onFocus={() => !!capital && setCapital(capital.replace(/[^\d.]/g, ""))}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.offsetWidth < el.scrollWidth) handleOpenTooltip({ e, content: capital });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>

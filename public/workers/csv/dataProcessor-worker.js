@@ -448,7 +448,7 @@ function normalizeAddress(address, groupedTownsByRegionCity) {
 
 function validateAndNormalizePostalCode(postalCode) {
   postalCode = postalCode.trim(); // 基本的なトリミング
-  let formattedPostalCodeCode;
+  let formattedPostalCode;
 
   // フォーマット
   const halfWidth = postalCode
@@ -460,13 +460,13 @@ function validateAndNormalizePostalCode(postalCode) {
     .replace(/−/g, "-"); // 全角ハイフンを半角に変換 // カタカナの長音記号も半角ハイフンに変換
 
   // 郵便番号は7桁でハイフンなしにフォーマット (郵便局の町域データの郵便番号もハイフンなしのため)
-  formattedPostalCodeCode = halfWidth.replace("-", "");
+  formattedPostalCode = halfWidth.replace("-", "");
 
   // 数字、英字、ハイフン、スペースを許容
   const regex = /^[0-9A-Za-z\s\-]+$/;
-  const isValid = regex.test(formattedPostalCodeCode);
+  const isValid = regex.test(formattedPostalCode);
 
-  return isValid ? formattedPostalCodeCode : null;
+  return isValid ? formattedPostalCode : null;
 }
 
 // 🔸設立年(設立年月・年月日)の正規化・標準化 -----------------------------------

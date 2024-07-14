@@ -296,8 +296,6 @@
 }
 
 .title {
-  color: var(--color-text-brand-f);
-  color: var(--color-text-under-title);
   color: var(--color-text-title);
   white-space: nowrap;
   /* 右側に20px余白 */
@@ -306,6 +304,9 @@
   /* min-width: 90px; */
   font-weight: 600;
   user-select: none;
+}
+.main_container.is_edit_mode .title_box.active .title {
+  color: var(--main-color-f);
 }
 .title_min {
   color: var(--color-text-brand-f);
@@ -405,6 +406,7 @@
   /* transition: transform 0.3s ease; */
   transition: transform 0.22s ease;
 }
+
 .title_box.active ~ .underline::after {
   transform: scaleX(1);
 }
@@ -537,6 +539,9 @@
 .field_edit_mode_input_box_with_close {
   padding-right: 65px;
   z-index: 2000;
+}
+.field_edit_mode_input_box_with_close.company_name:not(:focus) {
+  color: var(--color-text-brand);
 }
 .field_edit_mode_select_box {
   box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);

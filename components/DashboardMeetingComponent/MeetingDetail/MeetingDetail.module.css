@@ -301,10 +301,7 @@
 }
 
 .title {
-  color: var(--color-text-under-title);
   color: var(--color-text-title);
-  /* color: var(--color-bg-brand-fd0); */
-  /* color: var(--color-main-table-title); */
   white-space: nowrap;
   /* 右側に20px余白 */
   /* padding-right: 20px; */
@@ -319,6 +316,9 @@
   /* font-family: system-ui; */
   /* font-family: "Noto Serif Japanese"; */
   /* color: #ca2f49aa; */
+}
+.main_container.is_edit_mode .title_box.active .title {
+  color: var(--main-color-f);
 }
 .title.min {
   min-width: 90px;

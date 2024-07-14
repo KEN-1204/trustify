@@ -17,7 +17,7 @@ export const useMutateClientCompany = () => {
     (state) => state.setIsUpdateRequiredForLatestSelectedRowDataCompany
   );
   // 選択中の行データと更新関数
-  // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+  const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const setSelectedRowDataCompany = useDashboardStore((state) => state.setSelectedRowDataCompany);
 
   const supabase = useSupabaseClient();
@@ -48,6 +48,8 @@ export const useMutateClientCompany = () => {
         _created_by_unit_of_user: newClientCompany.created_by_unit_of_user,
         _created_by_office_of_user: newClientCompany.created_by_office_of_user,
         _name: newClientCompany.name,
+        _corporate_name: newClientCompany.corporate_name,
+        _branch_name: newClientCompany.branch_name,
         _department_name: newClientCompany.department_name,
         _email: newClientCompany.email,
         _main_phone_number: newClientCompany.main_phone_number,
@@ -156,6 +158,8 @@ export const useMutateClientCompany = () => {
         _created_by_unit_of_user: newClientCompany.created_by_unit_of_user,
         _created_by_office_of_user: newClientCompany.created_by_office_of_user,
         _name: newClientCompany.name,
+        _corporate_name: newClientCompany.corporate_name,
+        _branch_name: newClientCompany.branch_name,
         _department_name: newClientCompany.department_name,
         _email: newClientCompany.email,
         _main_phone_number: newClientCompany.main_phone_number,
@@ -427,7 +431,7 @@ export const useMutateClientCompany = () => {
           data[0]
         );
         // キャッシュ更新より先にZustandのSelectedRowDataCompanyをupdateで取得したデータで更新する
-        setSelectedRowDataCompany(data[0]);
+        setSelectedRowDataCompany({ ...selectedRowDataCompany, ...data[0] });
 
         // companiesに関わるキャッシュのデータを再取得 => これをしないと既に取得済みのキャッシュは古い状態で表示されてしまう
         await queryClient.invalidateQueries({ queryKey: ["companies"] });
@@ -474,7 +478,7 @@ export const useMutateClientCompany = () => {
           data[0]
         );
         // キャッシュ更新より先にZustandのSelectedRowDataCompanyをupdateで取得したデータで更新する
-        setSelectedRowDataCompany(data[0]);
+        setSelectedRowDataCompany({ ...selectedRowDataCompany, ...data[0] });
 
         // companiesに関わるキャッシュのデータを再取得 => これをしないと既に取得済みのキャッシュは古い状態で表示されてしまう
         await queryClient.invalidateQueries({ queryKey: ["companies"] });

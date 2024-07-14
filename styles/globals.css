@@ -4615,6 +4615,7 @@ textarea {
 /* 初回表示ロゴアニメーション */
 
 .first_mount_logo_anime {
+  /* animation: first_pulse 1s cubic-bezier(0.2, 0, 0.4, 1) alternate-reverse infinite, rotate360 2s ease infinite; */
   animation: first_pulse 1s cubic-bezier(0.2, 0, 0.4, 1) alternate-reverse infinite;
   /* animation: first_pulse 1s cubic-bezier(0.2, 0, 0.3, 1) alternate-reverse infinite; */
 }
@@ -4624,5 +4625,13 @@ textarea {
   }
   100% {
     opacity: 1;
+  }
+}
+@keyframes rotate360 {
+  80% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 }

@@ -1,6 +1,6 @@
 // 言語によってバリデーションチェックを変更する
 
-export function validateAndFormatPhoneNumber(phoneNumber: string) {
+export function validateAndFormatPhoneNumber(phoneNumber: string): { isValid: boolean; formattedNumber: string } {
   // 全角数字、ハイフン、プラス、括弧を半角に変換
   const halfWidth = phoneNumber
     .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))

@@ -299,8 +299,6 @@
 }
 
 .title {
-  color: var(--color-text-brand);
-  color: var(--color-text-under-title);
   color: var(--color-text-title);
   /* color: var(--color-bg-brand-fd0); */
   /* color: var(--color-main-table-title); */
@@ -317,6 +315,9 @@
   font-weight: 600;
   line-height: 17px;
   user-select: none;
+}
+.main_container.is_edit_mode .title_box.active .title {
+  color: var(--main-color-f);
 }
 .title.min {
   min-width: 90px;

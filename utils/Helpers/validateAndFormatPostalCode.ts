@@ -2,35 +2,54 @@
 
 // 数字、英字、ハイフン、スペースを許容
 export const validateAndFormatPostalCode = (
-  postalCode: string
-): { isValid: boolean; formattedPostalCodeCode: string } => {
-  let formattedPostalCodeCode;
+  postalCode: string,
+  useJapanPostalFormat: boolean = false // 日本の郵便番号フォーマットを使用するかどうか
+): { isValid: boolean; formattedPostalCode: string } => {
+  let formattedPostalCode;
 
-  // フォーマット
-  const halfWidth = postalCode
-    .replace(/[Ａ-Ｚａ-ｚ]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0)) //
-    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
-    .replace(/　/g, " ") // 全角スペースを半角スペースに変換
-    .replace(/－/g, "-") // 全角ハイフンを半角に変換
-    .replace(/ー/g, "-")
-    .replace(/−/g, "-"); // 全角ハイフンを半角に変換 // カタカナの長音記号も半角ハイフンに変換
+  // falseの場合は海外拠点でも対応できるように数字以外も許可
+  if (!useJapanPostalFormat) {
+    // フォーマット
+    const halfWidth = postalCode
+      .replace(/[Ａ-Ｚａ-ｚ]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0)) //
+      .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+      .replace(/　/g, " ") // 全角スペースを半角スペースに変換
+      .replace(/－/g, "-") // 全角ハイフンを半角に変換
+      .replace(/ー/g, "-")
+      .replace(/−/g, "-"); // 全角ハイフンを半角に変換 // カタカナの長音記号も半角ハイフンに変換
 
-  formattedPostalCodeCode = halfWidth;
+    formattedPostalCode = halfWidth;
 
-  // 数字、英字、ハイフン、スペースを許容
-  const regex = /^[0-9A-Za-z\s\-]+$/;
-  const isValid = regex.test(formattedPostalCodeCode);
+    // 数字、英字、ハイフン、スペースを許容
+    const regex = /^[0-9A-Za-z\s\-]+$/;
+    const isValid = regex.test(formattedPostalCode);
 
-  return { isValid, formattedPostalCodeCode };
+    return { isValid, formattedPostalCode };
+  }
+  // 数字7桁のみ許可 日本の郵便番号
+  else {
+    // フォーマット
+    const halfWidth = postalCode
+      .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0)) // 全角数字を半角に変換
+      .replace(/[^0-9]/g, ""); // 半角数字のみ除去
+
+    formattedPostalCode = halfWidth;
+
+    // 半角数字7桁を許容
+    const regex = /^[0-9]{7}$/; // 半角数字7桁のみかチェック
+    const isValid = regex.test(formattedPostalCode);
+
+    return { isValid, formattedPostalCode };
+  }
 };
 
 //   // まずハイフンを除去
 //   const digits = postalCode.replace(/-/g, "");
 // 3桁と4桁に分けてハイフンを挿入
 //   if (digits.length === 7) {
-//     responseFormattedPostalCodeCode = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+//     responseFormattedPostalCode = `${digits.slice(0, 3)}-${digits.slice(3)}`;
 //   } else {
-//     responseFormattedPostalCodeCode = postalCode;
+//     responseFormattedPostalCode = postalCode;
 //   }
 
 // 日本の郵便番号の形式: 123-4567 または 1234567

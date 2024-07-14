@@ -1,12 +1,16 @@
-export function formatAddress(input: string, isBuildingName = false) {
+export function formatAddress(input: string, requireConvertLongSignToHyphen = false) {
   let result = input
     .replace(/[\s　]+/g, "") // 全角・半角スペースを除去
     .replace(/[０-９]/g, (match) => String.fromCharCode(match.charCodeAt(0) - 0xfee0)) // 全角数字を半角に
+    .replace(/[ａ-ｚＡ-Ｚ]/g, (match) => String.fromCharCode(match.charCodeAt(0) - 0xfee0)) // 全角英語を半角に
     .replace(/[！-～]/g, (match) => String.fromCharCode(match.charCodeAt(0) - 0xfee0)); // その他の全角文字を半角に（数字を除く）
+  // 「！-〜」は「\uFF01-\uFF5E」で全角ASCIIバリアント：全角記号・英数字
+  // 「！」が\uFF01で始まり、「〜」が\uFF5Eの範囲の場合、長音符は「\uFF70」のためカタカナの「ー」はそのまま
 
-  // falseでデフォルトは長音も半角ハイフンに置換し、建物名のみ長音を許可
-  if (!isBuildingName) {
-    result = result.replace(/ー/g, "-"); // 長音をハイフンに置換（建物名以外）
+  // trueで長音も半角ハイフンに置換、建物名のみ長音を許可
+  if (requireConvertLongSignToHyphen) {
+    // カタカナの長音符をハイフンに置換（建物名以外）主に「丁目・番地(番)・号」のハイフンで長音符が使用されているケースを半角ハイフンに変換
+    result = result.replace(/ー/g, "-");
   }
 
   return result;

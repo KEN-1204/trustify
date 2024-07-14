@@ -286,8 +286,6 @@
 }
 
 .title {
-  color: var(--color-text-brand-f);
-  color: var(--color-text-under-title);
   color: var(--color-text-title);
   white-space: nowrap;
   /* 右側に20px余白 */
@@ -297,6 +295,9 @@
   /* min-width: 95px; */
   font-weight: 600;
   user-select: none;
+}
+.main_container.is_edit_mode .title_box.active .title {
+  color: var(--main-color-f);
 }
 .title_min {
   color: var(--color-text-brand-f);
@@ -388,6 +389,7 @@
   /* transition: transform 0.25s ease; */
   transition: transform 0.22s ease;
 }
+
 .title_box.active ~ .underline::after {
   transform: scaleX(1);
 }

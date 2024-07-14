@@ -107,6 +107,7 @@ import {
 } from "@/utils/Helpers/MainContainer/commonHelper";
 import { LuCopyPlus } from "react-icons/lu";
 import { ProgressCircleIncrement } from "@/components/Parts/Charts/ProgressCircle/ProgressCircleIncrement";
+import { normalizeCompanyName, validateCompanyName } from "@/utils/Helpers/NameHelpers/NameHelpers";
 // 名前付きエクスポートの場合のダイナミックインポート
 // const UnderRightActivityLog = dynamic(
 //   () => import("./UnderRightActivityLog/UnderRightActivityLog").then((mod) => mod.UnderRightActivityLog),
@@ -221,7 +222,9 @@ const CompanyMainContainerMemo: FC = () => {
   // ・TIME型
 
   // 🌟サブミット
-  const [inputName, setInputName] = useState("");
+  const [inputName, setInputName] = useState(""); // 「法人名 拠点名」
+  const [inputCorporateName, setInputCorporateName] = useState(""); // 法人名
+  const [inputBranchName, setInputBranchName] = useState(""); // 拠点名
   const [inputDepartment, setInputDepartment] = useState("");
   const [inputTel, setInputTel] = useState("");
   const [inputFax, setInputFax] = useState("");
@@ -1323,6 +1326,14 @@ const CompanyMainContainerMemo: FC = () => {
   // ================== 🌟シングルクリック、ダブルクリックイベント ==================
   // ダブルクリックで各フィールドごとに個別で編集
   const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // コンポーネントのクリーンアップで既存のタイマーがあればクリアする
+  useEffect(() => {
+    return () => {
+      if (setTimeoutRef.current !== null) {
+        clearTimeout(setTimeoutRef.current);
+      }
+    };
+  }, []);
   // 選択行データが自社専用の会社データかどうか
   const isOwnCompany =
     !!userProfileState?.company_id &&
@@ -1348,15 +1359,23 @@ const CompanyMainContainerMemo: FC = () => {
 
   // const originalOptionRef = useRef(""); // 同じ選択肢選択時にエディットモード終了用
   // ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
+  type EditCompanyNamesType = {
+    _name: string;
+    _corporate_name: string;
+    _branch_name: string;
+    _setCorporateName: Dispatch<SetStateAction<string>>;
+    _setBranchName: Dispatch<SetStateAction<string>>;
+  };
   type DoubleClickProps = {
     e: React.MouseEvent<HTMLSpanElement>;
     field: string;
     dispatch: React.Dispatch<React.SetStateAction<any>>;
     // isSelectChangeEvent?: boolean;
     selectedRowDataValue?: any;
+    companyNameValues?: EditCompanyNamesType;
   };
   const handleDoubleClickField = useCallback(
-    ({ e, field, dispatch, selectedRowDataValue }: DoubleClickProps) => {
+    ({ e, field, dispatch, selectedRowDataValue, companyNameValues }: DoubleClickProps) => {
       console.log(
         "ダブルクリック",
         "field",
@@ -1375,6 +1394,25 @@ const CompanyMainContainerMemo: FC = () => {
 
         // 自社で作成した会社でない場合はそのままリターン
         if (!isOwnCompany) return;
+
+        // 🔸会社名・法人名・拠点名ルート
+        if (field === "name") {
+          if (!companyNameValues) {
+            return alert("予期せぬエラーが発生しました。CMC001");
+          }
+          const { _name, _corporate_name, _branch_name, _setCorporateName, _setBranchName } = companyNameValues;
+
+          if (!!_corporate_name) {
+            _setCorporateName(_corporate_name);
+            _setBranchName(_branch_name);
+          } else {
+            _setCorporateName(_name);
+            _setBranchName("");
+          }
+          setIsEditModeField("name"); // クリックされたフィールドの編集モードを開く
+
+          return;
+        }
 
         // クリックした要素のテキストを格納
         // const text = e.currentTarget.innerText;
@@ -1476,15 +1514,104 @@ const CompanyMainContainerMemo: FC = () => {
         setIsEditModeField(null); // エディットモードを終了
         return;
       }
+
+      // -----------------------------------🔸会社名・法人名・拠点名ルート🔸
+      if (fieldName === "name") {
+        // 法人名のバリデーション 拠点名は入力されていれば
+        // KeyDownの場合はonBlurが実行される前に発火するので、ここで法人名と拠点名をフォーマットする
+
+        try {
+          const formattedName = normalizeCompanyName(inputCorporateName.trim());
+          const isValidCorporateName = validateCompanyName(formattedName);
+          if (!isValidCorporateName) throw new Error("無効な法人名です。エラー：CMC001");
+          // 拠点が入力されている場合はバリデーションチェック
+          let formattedBranchName = inputBranchName;
+          if (formattedBranchName !== "") {
+            formattedBranchName = normalizeCompanyName(formattedBranchName.trim());
+            const isValidBranchName = validateCompanyName(formattedBranchName);
+            if (!isValidBranchName) throw new Error("無効な拠点名です。エラー：CMC002");
+          }
+
+          // 🔸会社名の前処理 法人名と拠点名の間に半角スペースを入れて結合
+          const _fullName = (formattedName + " " + formattedBranchName).trim();
+
+          if (!_fullName) throw new Error("無効な会社名です。エラー：CMC01");
+
+          type UpdateObject = { [key: string]: any };
+          const updateObject: UpdateObject = {
+            name: _fullName,
+            corporate_name: formattedName || null,
+            branch_name: formattedBranchName || null,
+          };
+
+          const updatePayload = {
+            updateObject: updateObject,
+            id: id,
+          };
+
+          console.log("onKeyDownイベント 会社名・法人名・拠点名を更新 updatePayload: ", updatePayload);
+          await updateMultipleClientCompanyFields.mutateAsync(updatePayload);
+        } catch (error: any) {
+          console.log("onKeyDownイベント 会社名・法人名・拠点名の更新エラー", error);
+          alert(error.message);
+        }
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
+      // -----------------------------------🔸会社名・法人名・拠点名ルート🔸 ここまで
+
+      // -----------------------------------🔸int4, int8ルート🔸
       // 資本金などのint4(integer), int8(BIGINT)などは数値型に変換して入力値と現在のvalueを比較する
-      if (["capital"].includes(fieldName)) {
-        if (selectedRowDataCompany[fieldName] === Number(value)) {
-          console.log("数値型に変換 同じためリターン", fieldName, "Number(value)", Number(value));
+      if (["capital", "number_of_employees"].includes(fieldName)) {
+        let formattedValue = value.trim() || null; // 空文字はnullをセット
+        if (fieldName === "capital") {
+          const formatHalfInput = toHalfWidthAndRemoveSpace(formattedValue);
+          formattedValue = convertToMillions(formatHalfInput.trim());
+          // nullは許容するため、isNaNチェックは入力されている場合にチェックする
+          if (formattedValue !== null && isNaN(formattedValue)) {
+            toast.error("資本金は万円単位の数値のみ入力してください。");
+            setInputCapital(
+              selectedRowDataCompany && isValidNumber(selectedRowDataCompany.capital)
+                ? selectedRowDataCompany.capital!.toString()
+                : ""
+            );
+            return;
+          }
+        }
+        if (fieldName === "number_of_employees") {
+          formattedValue = parseInt(toHalfWidthAndSpace(inputNumberOfEmployees.trim()), 10);
+          if (formattedValue !== null && isNaN(formattedValue)) {
+            toast.error("資本金は万円単位の数値のみ入力してください。");
+            setInputCapital(
+              selectedRowDataCompany && isValidNumber(selectedRowDataCompany.capital)
+                ? selectedRowDataCompany.capital!.toString()
+                : ""
+            );
+            return;
+          }
+        }
+
+        if (selectedRowDataCompany[fieldName] === formattedValue) {
+          console.log("数値型に変換 同じためリターン", fieldName, "formattedValue", formattedValue);
           setIsEditModeField(null); // エディットモードを終了
           return;
         }
-      }
 
+        const updatePayload = {
+          fieldName: fieldName,
+          value: formattedValue,
+          id: id,
+        };
+        // 入力変換確定状態でエンターキーが押された場合の処理
+        console.log("onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行 updatePayload", updatePayload);
+        await updateClientCompanyFieldMutation.mutateAsync(updatePayload);
+        setIsEditModeField(null); // エディットモードを終了
+
+        return;
+      }
+      // -----------------------------------🔸int4, int8ルート🔸 ここまで
+
+      // -----------------------------------🔸通常ルート🔸
       const updatePayload = {
         fieldName: fieldName,
         value: value,
@@ -1589,6 +1716,50 @@ const CompanyMainContainerMemo: FC = () => {
         "value",
         value
       );
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    }
+
+    // 🔸会社名・法人名・拠点名ルート
+    if (fieldName === "name") {
+      // 法人名のバリデーション 拠点名は入力されていれば
+      // KeyDownの場合はonBlurが実行される前に発火するので、ここで法人名と拠点名をフォーマットする
+
+      try {
+        const formattedName = normalizeCompanyName(inputCorporateName.trim());
+        const isValidCorporateName = validateCompanyName(formattedName);
+        if (!isValidCorporateName) throw new Error("無効な法人名です。エラー：CMC001");
+        // 拠点が入力されている場合はバリデーションチェック
+        let formattedBranchName = inputBranchName;
+        if (formattedBranchName !== "") {
+          formattedBranchName = normalizeCompanyName(formattedBranchName.trim());
+          const isValidBranchName = validateCompanyName(formattedBranchName);
+          if (!isValidBranchName) throw new Error("無効な拠点名です。エラー：CMC002");
+        }
+
+        // 🔸会社名の前処理 法人名と拠点名の間に半角スペースを入れて結合
+        const _fullName = (formattedName + " " + formattedBranchName).trim();
+
+        if (!_fullName) throw new Error("無効な会社名です。エラー：CMC01");
+
+        type UpdateObject = { [key: string]: any };
+        const updateObject: UpdateObject = {
+          name: _fullName,
+          corporate_name: formattedName || null,
+          branch_name: formattedBranchName || null,
+        };
+
+        const updatePayload = {
+          updateObject: updateObject,
+          id: id,
+        };
+
+        console.log("onKeyDownイベント 会社名・法人名・拠点名を更新 updatePayload: ", updatePayload);
+        await updateMultipleClientCompanyFields.mutateAsync(updatePayload);
+      } catch (error: any) {
+        console.log("onKeyDownイベント 会社名・法人名・拠点名の更新エラー", error);
+        alert(error.message);
+      }
       setIsEditModeField(null); // エディットモードを終了
       return;
     }
@@ -2091,7 +2262,10 @@ const CompanyMainContainerMemo: FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   return (
-    <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
+    <form
+      className={`${styles.main_container} w-full ${!!isEditModeField ? `${styles.is_edit_mode}` : ``}`}
+      onSubmit={handleSearchSubmit}
+    >
       <div className={`absolute left-0 top-[62px] z-10 h-0 w-full`}></div>
       {/* フィールドエディットモードの時のオーバーレイ */}
       {/* {!searchMode && isEditModeField !== null && (
@@ -2156,7 +2330,20 @@ const CompanyMainContainerMemo: FC = () => {
                           isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
                         }`}
                         onClick={handleSingleClickField}
-                        onDoubleClick={(e) => handleDoubleClickField({ e, field: "name", dispatch: setInputName })}
+                        onDoubleClick={(e) =>
+                          handleDoubleClickField({
+                            e,
+                            field: "name",
+                            dispatch: setInputName,
+                            companyNameValues: {
+                              _name: selectedRowDataCompany?.name ?? "",
+                              _corporate_name: selectedRowDataCompany?.corporate_name ?? "",
+                              _branch_name: selectedRowDataCompany?.branch_name ?? "",
+                              _setCorporateName: setInputCorporateName,
+                              _setBranchName: setInputBranchName,
+                            },
+                          })
+                        }
                         onMouseEnter={(e) => {
                           // 会社名は自社専用チェックがあるため一つ親要素が他より多い
                           e.currentTarget.parentElement?.parentElement?.classList.add(`${styles.active}`);
@@ -2220,6 +2407,35 @@ const CompanyMainContainerMemo: FC = () => {
                     <>
                       <input
                         type="text"
+                        placeholder="※入力必須　例：株式会社○○　　拠点名を除く法人名を入力してください"
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box_with_close} ${styles.company_name}`}
+                        value={inputCorporateName}
+                        onChange={(e) => setInputCorporateName(e.target.value)}
+                        onBlur={() => {
+                          const formattedName = normalizeCompanyName(inputCorporateName.trim());
+                          setInputCorporateName(formattedName);
+                        }}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={async (e) => {
+                          // 🔸会社名の前処理 法人名と拠点名の間に半角スペースを入れて結合
+                          const _fullName = (
+                            normalizeCompanyName(inputCorporateName) +
+                            " " +
+                            normalizeCompanyName(inputBranchName)
+                          ).trim();
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "name",
+                            value: _fullName,
+                            id: selectedRowDataCompany?.id,
+                            required: true,
+                          });
+                        }}
+                      />
+                      {/* <input
+                        type="text"
                         placeholder="株式会社○○"
                         autoFocus
                         className={`${styles.input_box} ${styles.field_edit_mode_input_box_with_close}`}
@@ -2266,27 +2482,53 @@ const CompanyMainContainerMemo: FC = () => {
                         //     setIsEditModeField(null); // エディットモードを終了
                         //   }
                         // }}
-                      />
+                      /> */}
                       {/* 送信ボタンとクローズボタン */}
-                      {!updateClientCompanyFieldMutation.isLoading && (
+                      {/* {!updateClientCompanyFieldMutation.isLoading && ( */}
+                      {!updateMultipleClientCompanyFields.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputCorporateName}
+                          setInputState={setInputCorporateName}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            // 🔸会社名の前処理 法人名と拠点名の間に半角スペースを入れて結合
+                            const _fullName = (
+                              normalizeCompanyName(inputCorporateName) +
+                              " " +
+                              normalizeCompanyName(inputBranchName)
+                            ).trim();
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "name",
+                              value: _fullName,
+                              id: selectedRowDataCompany?.id,
+                              required: true,
+                            });
+                          }}
+                          required={true}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* {!updateClientCompanyFieldMutation.isLoading && (
                         <InputSendAndCloseBtn
                           inputState={inputName}
                           setInputState={setInputName}
                           onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
-                            handleClickSendUpdateField({
-                              e,
-                              fieldName: "name",
-                              // value: inputName,
-                              value: toHalfWidthAndSpace(inputName.trim()),
-                              id: selectedRowDataCompany?.id,
-                              required: true,
-                            })
+                            {
+                              handleClickSendUpdateField({
+                                e,
+                                fieldName: "name",
+                                value: toHalfWidthAndSpace(inputName.trim()),
+                                id: selectedRowDataCompany?.id,
+                                required: true,
+                              });
+                            }
                           }
                           required={true}
                         />
-                      )}
+                      )} */}
                       {/* エディットフィールド送信中ローディングスピナー */}
-                      {updateClientCompanyFieldMutation.isLoading && (
+                      {/* {updateClientCompanyFieldMutation.isLoading && ( */}
+                      {updateMultipleClientCompanyFields.isLoading && (
                         <div
                           // className={`"flex-center translate-y-[-50%]" absolute right-[10px] top-[calc(50%-2.5px)] z-[2100] min-h-[26px] min-w-[26px]`}
                           className={`${styles.field_edit_mode_loading_area}`}
@@ -2314,6 +2556,33 @@ const CompanyMainContainerMemo: FC = () => {
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
+
+            {/* 会社名のフィールドエディット時は法人名と拠点名を２行で表示 */}
+            {!searchMode && isEditModeField === "name" && (
+              <>
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-full flex-col pr-[20px]">
+                    <div className={`${styles.title_box} ${styles.active} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>拠点名</span>
+                      <input
+                        type="text"
+                        placeholder="※任意　例：本社、〜営業所、〜工場、〜支店など"
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box_with_close} ${styles.company_name}`}
+                        value={inputBranchName}
+                        onChange={(e) => setInputBranchName(e.target.value)}
+                        onBlur={() => {
+                          const formattedName = normalizeCompanyName(inputBranchName.trim());
+                          setInputBranchName(formattedName);
+                        }}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                      />
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* 部署名 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
@@ -2472,11 +2741,8 @@ const CompanyMainContainerMemo: FC = () => {
                           if (e.key === "Enter" && !isComposing) {
                             const { isValid, formattedNumber } = validateAndFormatPhoneNumber(inputTel.trim());
                             if (!isValid) {
-                              setInputTel(formattedNumber);
-                              toast.error(
-                                `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
-                                { autoClose: false }
-                              );
+                              setInputTel(selectedRowDataCompany?.main_phone_number ?? "");
+                              toast.error(`有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`);
                               return;
                             }
 
@@ -2499,11 +2765,8 @@ const CompanyMainContainerMemo: FC = () => {
                           onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
                             const { isValid, formattedNumber } = validateAndFormatPhoneNumber(inputTel.trim());
                             if (!isValid) {
-                              setInputTel(formattedNumber);
-                              toast.error(
-                                `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
-                                { autoClose: false }
-                              );
+                              setInputTel(selectedRowDataCompany?.main_phone_number ?? "");
+                              toast.error(`有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`);
                               return;
                             }
 
@@ -2603,7 +2866,7 @@ const CompanyMainContainerMemo: FC = () => {
                               inputFax.trim()
                             );
                             if (!isValid) {
-                              setInputFax(formattedFax);
+                              setInputFax(selectedRowDataCompany?.main_fax ?? "");
                               toast.error(`有効なFax番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
                                 autoClose: false,
                               });
@@ -2629,7 +2892,7 @@ const CompanyMainContainerMemo: FC = () => {
                               inputFax.trim()
                             );
                             if (!isValid) {
-                              setInputFax(formattedFax);
+                              setInputFax(selectedRowDataCompany?.main_fax ?? "");
                               toast.error(`有効なFax番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
                                 autoClose: false,
                               });
@@ -2799,7 +3062,7 @@ const CompanyMainContainerMemo: FC = () => {
                     <>
                       <input
                         type="text"
-                        placeholder=""
+                        placeholder="数字7桁を入力 例: 1000002"
                         autoFocus
                         className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
                         value={inputZipcode}
@@ -2810,21 +3073,19 @@ const CompanyMainContainerMemo: FC = () => {
                         onKeyDown={(e) => {
                           // 郵便番号用バリデーションチェック
                           if (e.key === "Enter" && !isComposing) {
-                            const { isValid, formattedPostalCodeCode } = validateAndFormatPostalCode(
-                              inputZipcode.trim()
+                            const { isValid, formattedPostalCode } = validateAndFormatPostalCode(
+                              inputZipcode.trim(),
+                              true
                             );
                             if (!isValid) {
-                              setInputZipcode(formattedPostalCodeCode);
-                              toast.error(
-                                `有効な郵便番号を入力してください。「数字、英字、ハイフン、スペース」のみ有効です。`,
-                                { position: "bottom-center", autoClose: false, transition: Zoom }
-                              );
+                              setInputZipcode(selectedRowDataCompany?.zipcode ?? "");
+                              toast.error(`郵便番号は数字7桁のみ入力してください`);
                               return;
                             }
                             handleKeyDownUpdateField({
                               e,
                               fieldName: "zipcode",
-                              value: formattedPostalCodeCode,
+                              value: formattedPostalCode,
                               id: selectedRowDataCompany?.id,
                               required: true,
                             });
@@ -2837,21 +3098,19 @@ const CompanyMainContainerMemo: FC = () => {
                           inputState={inputZipcode}
                           setInputState={setInputZipcode}
                           onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-                            const { isValid, formattedPostalCodeCode } = validateAndFormatPostalCode(
-                              inputZipcode.trim()
+                            const { isValid, formattedPostalCode } = validateAndFormatPostalCode(
+                              inputZipcode.trim(),
+                              true
                             );
                             if (!isValid) {
-                              setInputZipcode(formattedPostalCodeCode);
-                              toast.error(
-                                `有効な郵便番号を入力してください。「数字、英字、ハイフン、スペース」のみ有効です。`,
-                                { position: "bottom-center", autoClose: false, transition: Zoom }
-                              );
+                              setInputZipcode(selectedRowDataCompany?.zipcode ?? "");
+                              toast.error(`郵便番号は数字7桁のみ入力してください`);
                               return;
                             }
                             handleClickSendUpdateField({
                               e,
                               fieldName: "zipcode",
-                              value: formattedPostalCodeCode,
+                              value: formattedPostalCode,
                               id: selectedRowDataCompany?.id,
                               required: true,
                             });
@@ -3195,6 +3454,10 @@ const CompanyMainContainerMemo: FC = () => {
                           e,
                           field: "capital",
                           dispatch: setInputCapital,
+                          selectedRowDataValue:
+                            selectedRowDataCompany && isValidNumber(selectedRowDataCompany.capital)
+                              ? selectedRowDataCompany.capital!.toString()
+                              : "",
                         });
                       }}
                       onMouseEnter={(e) => {
@@ -3320,38 +3583,30 @@ const CompanyMainContainerMemo: FC = () => {
                         // }}
                         onCompositionStart={() => setIsComposing(true)}
                         onCompositionEnd={() => setIsComposing(false)}
-                        onKeyDown={(e) =>
+                        onKeyDown={(e) => {
                           handleKeyDownUpdateField({
                             e,
                             fieldName: "capital",
-                            // value: inputCapital,
-                            value:
-                              !!inputCapital && inputCapital !== ""
-                                ? (convertToMillions(inputCapital.trim()) as number).toString()
-                                : "",
+                            value: inputCapital,
                             id: selectedRowDataCompany?.id,
                             required: false,
-                          })
-                        }
+                          });
+                        }}
                       />
                       {/* 送信ボタンとクローズボタン */}
                       {!updateClientCompanyFieldMutation.isLoading && (
                         <InputSendAndCloseBtn
                           inputState={inputCapital}
                           setInputState={setInputCapital}
-                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
                             handleClickSendUpdateField({
                               e,
                               fieldName: "capital",
-                              // value: inputCapital,
-                              value:
-                                !!inputCapital && inputCapital !== ""
-                                  ? (convertToMillions(inputCapital.trim()) as number).toString()
-                                  : "",
+                              value: inputCapital,
                               id: selectedRowDataCompany?.id,
                               required: false,
-                            })
-                          }
+                            });
+                          }}
                           required={true}
                           isDisplayClose={false}
                         />
@@ -4662,6 +4917,10 @@ const CompanyMainContainerMemo: FC = () => {
                           e,
                           field: "number_of_employees",
                           dispatch: setInputNumberOfEmployees,
+                          selectedRowDataValue:
+                            selectedRowDataCompany && isValidNumber(selectedRowDataCompany.number_of_employees)
+                              ? selectedRowDataCompany?.number_of_employees
+                              : "",
                         });
                       }}
                       onMouseEnter={(e) => {
@@ -4763,31 +5022,31 @@ const CompanyMainContainerMemo: FC = () => {
                         onChange={(e) => setInputNumberOfEmployees(e.target.value)}
                         onCompositionStart={() => setIsComposing(true)}
                         onCompositionEnd={() => setIsComposing(false)}
-                        onKeyDown={(e) =>
+                        onKeyDown={(e) => {
                           handleKeyDownUpdateField({
                             e,
                             fieldName: "number_of_employees",
-                            value: toHalfWidthAndSpace(inputNumberOfEmployees.trim()),
+                            value: inputNumberOfEmployees,
                             id: selectedRowDataCompany?.id,
-                            required: true,
-                          })
-                        }
+                            required: false,
+                          });
+                        }}
                       />
                       {/* 送信ボタンとクローズボタン */}
                       {!updateClientCompanyFieldMutation.isLoading && (
                         <InputSendAndCloseBtn
                           inputState={inputNumberOfEmployees}
                           setInputState={setInputNumberOfEmployees}
-                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
                             handleClickSendUpdateField({
                               e,
                               fieldName: "number_of_employees",
-                              value: toHalfWidthAndSpace(inputNumberOfEmployees.trim()),
+                              value: inputNumberOfEmployees,
                               id: selectedRowDataCompany?.id,
-                              required: true,
-                            })
-                          }
-                          required={true}
+                              required: false,
+                            });
+                          }}
+                          required={false}
                           isDisplayClose={false}
                         />
                       )}
