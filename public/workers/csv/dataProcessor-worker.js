@@ -1,3 +1,106 @@
+// ----------------------------------- Web Workerスクリプト内で使用するヘルパー関数 -----------------------------------
+// ----------------------------------- 🔸半角カタカナ => 半角カタカナ🔸 -----------------------------------
+export function convertKanaHalfWidthToFullWidth(kanaText) {
+  const kanaMap = {
+    ｶﾞ: "ガ",
+    ｷﾞ: "ギ",
+    ｸﾞ: "グ",
+    ｹﾞ: "ゲ",
+    ｺﾞ: "ゴ",
+    ｻﾞ: "ザ",
+    ｼﾞ: "ジ",
+    ｽﾞ: "ズ",
+    ｾﾞ: "ゼ",
+    ｿﾞ: "ゾ",
+    ﾀﾞ: "ダ",
+    ﾁﾞ: "ヂ",
+    ﾂﾞ: "ヅ",
+    ﾃﾞ: "デ",
+    ﾄﾞ: "ド",
+    ﾊﾞ: "バ",
+    ﾋﾞ: "ビ",
+    ﾌﾞ: "ブ",
+    ﾍﾞ: "ベ",
+    ﾎﾞ: "ボ",
+    ﾊﾟ: "パ",
+    ﾋﾟ: "ピ",
+    ﾌﾟ: "プ",
+    ﾍﾟ: "ペ",
+    ﾎﾟ: "ポ",
+    ｳﾞ: "ヴ",
+    ﾜﾞ: "ヷ",
+    ｦﾞ: "ヺ",
+    ｱ: "ア",
+    ｲ: "イ",
+    ｳ: "ウ",
+    ｴ: "エ",
+    ｵ: "オ",
+    ｶ: "カ",
+    ｷ: "キ",
+    ｸ: "ク",
+    ｹ: "ケ",
+    ｺ: "コ",
+    ｻ: "サ",
+    ｼ: "シ",
+    ｽ: "ス",
+    ｾ: "セ",
+    ｿ: "ソ",
+    ﾀ: "タ",
+    ﾁ: "チ",
+    ﾂ: "ツ",
+    ﾃ: "テ",
+    ﾄ: "ト",
+    ﾅ: "ナ",
+    ﾆ: "ニ",
+    ﾇ: "ヌ",
+    ﾈ: "ネ",
+    ﾉ: "ノ",
+    ﾊ: "ハ",
+    ﾋ: "ヒ",
+    ﾌ: "フ",
+    ﾍ: "ヘ",
+    ﾎ: "ホ",
+    ﾏ: "マ",
+    ﾐ: "ミ",
+    ﾑ: "ム",
+    ﾒ: "メ",
+    ﾓ: "モ",
+    ﾔ: "ヤ",
+    ﾕ: "ユ",
+    ﾖ: "ヨ",
+    ﾗ: "ラ",
+    ﾘ: "リ",
+    ﾙ: "ル",
+    ﾚ: "レ",
+    ﾛ: "ロ",
+    ﾜ: "ワ",
+    ｦ: "ヲ",
+    ﾝ: "ン",
+    ｧ: "ァ",
+    ｨ: "ィ",
+    ｩ: "ゥ",
+    ｪ: "ェ",
+    ｫ: "ォ",
+    ｯ: "ッ",
+    ｬ: "ャ",
+    ｭ: "ュ",
+    ｮ: "ョ",
+    "｡": "。",
+    "､": "、",
+    ｰ: "ー",
+    "｢": "「",
+    "｣": "」",
+    "･": "・",
+  };
+
+  return kanaText
+    .split("")
+    .map((char) => (Object.hasOwn(kanaMap, char) ? kanaMap[char] : char))
+    .join("");
+}
+
+// ----------------------------------- Web Workerスクリプト内で使用するヘルパー関数 -----------------------------------ここまで
+
 // Next.jsのコンポーネントのビジネスロジックから
 // new Worker('/workers/worker.js')
 // new Worker()に「'/workers/worker.js'」のエンドポイントを渡すことで専用ワーカーのインスタンスを作成できる
@@ -11,223 +114,7 @@
 // Next.js プロジェクトでのWeb Workerファイルの置き場所:
 // Next.js プロジェクトでは、静的ファイルは通常 public ディレクトリに置かれます。Web Workerのスクリプトも public ディレクトリに配置することが推奨されます。そうすることで、new Worker('/worker.js') のようにパスを指定して簡単にアクセスできます。
 
-self.onmessage = function (e) {
-  console.log("Worker: Message received from main thread");
-
-  // postMessage が呼び出されたときにメッセージを送ったウィンドウのオリジンが正しいことをチェック
-  if (e.origin !== process.env.CLIENT_URL) return console.log("❌オリジンチェックに失敗 リターン");
-
-  const { parsedData, columnMap, groupedTownsByRegionCity } = e.data;
-
-  // 1行ずつ取り出して必要なカラムのみ前処理してインサート用配列データを生成
-  const processedData = parsedData
-    .map((row) => {
-      // 行の前処理
-      const processedRow = {}; // 最終的にインサートする処理後の行
-
-      try {
-        let townsByCities = [];
-        let countryId = null;
-        let regionId = null;
-        let cityId = null;
-        let townId = null; // 郵便番号とaddress処理で得た町域リストを組み合わせてtown_idを取得
-        let normalizedTownName = null;
-        let streetAddress = null;
-        let postalCode = null;
-
-        // ----------------------------------- カラムごとの前処理 -----------------------------------
-        // columnMap: CSVカラムヘッダー名 to DBフィールド名
-        Array.from(columnMap.entries()).forEach(([csvHeader, dbField]) => {
-          // 住所カラム
-          if (dbField === "address") {
-            if (!row[csvHeader]) throw new Error(`Worker: ${dbField}カラム アドレスが空文字のためスルー`);
-            // addressの場合は、address以外に町域リストを取り出す
-            // 住所の前処理: 文字の正規化、例えば全角を半角に変換
-            const responseAddress = normalizeAddress(row[csvHeader], groupedTownsByRegionCity);
-            // const responseAddress = transformData(row[csvHeader], dbField);
-
-            if (responseAddress === null) throw new Error(`${dbField}カラム 無効な住所のためこの行をスルー`);
-
-            const {
-              address,
-              prefecture,
-              city,
-              street_address,
-              country_id,
-              region_id,
-              city_id,
-              normalized_town_name,
-              grouped_towns_by_cities,
-            } = responseAddress;
-            townsByCities = grouped_towns_by_cities ?? [];
-            countryId = country_id;
-            regionId = region_id;
-            cityId = city_id;
-            normalizedTownName = normalized_town_name;
-            streetAddress = street_address;
-
-            processedRow["address"] = address;
-          }
-
-          // 通常のカラム
-          processedRow[dbField] = transformData(row[csvHeader], dbField);
-        });
-        // ----------------------------------- カラムごとの前処理 -----------------------------------ここまで
-
-        // ----------------------------------- town_idの取得 -----------------------------------
-        // 郵便番号と正規化した町域名の2つで抽出するが、同じ組み合わせがある場合は後で手動で修正する
-        if (0 < townsByCities.length && !!normalizedTownName) {
-          // dbFieldにzipcodeカラムとaddressカラムが存在する場合は、town_idを取得する
-          const dbFieldsArray = Array.from(columnMap.values());
-          if (
-            dbFieldsArray.includes("address") &&
-            dbFieldsArray.includes("zipcode") &&
-            Object.hasOwn(processedRow, "zipcode") &&
-            !!processedRow["zipcode"]
-          ) {
-            // 町域データから取得した郵便番号とnormalized_nameと一致する行を取得
-            const gotTown = townsByCities.find(
-              (obj) => obj.postal_code === processedRow["zipcode"] && obj.normalized_name === normalizedTownName
-            );
-            if (!!gotTown) {
-              townId = gotTown.town_id;
-            }
-          }
-        }
-        // ----------------------------------- town_idの取得 -----------------------------------ここまで
-
-        // ----------------------------------- 🔸処理後の行に不足分のカラムを追加🔸 -----------------------------------
-        // ○必須カラム：
-        // ・会社名(name) => 選択・前処理済みの法人名と拠点名を結合
-        // ・住所 => 選択済み
-        // ・部署名(department_name) => 選択されていない場合はピリオドをセット
-        // ・代表TEL(main_phone_number) => なくてもOK(メールやSNSのみでの営業にも対応するため)
-
-        // columnMap: CSVカラムヘッダー名 to DBフィールド名
-        const selectedDBFieldNamesArray = Array.from(columnMap.values());
-
-        // 【会社名(name)】
-        if (!Object.hasOwn(processedRow, "corporate_name")) throw new Error(`無効な法人名: `);
-        const _branch_name =
-          selectedDBFieldNamesArray.includes("branch_name") && Object.hasOwn(processedRow, "branch_name")
-            ? processedRow["branch_name"]
-            : "";
-        const name = (processedRow["corporate_name"] + " " + _branch_name).trim();
-
-        let addColumns = {
-          name: name, // 会社名(法人名 拠点名)
-          country_id: countryId ?? null, // 国コード
-          region_id: regionId ?? null, // 都道府県コード
-          city_id: cityId ?? null, // 市区町村コード
-          town_id: townId ?? null, // 町域コード
-          street_address: streetAddress || null, // 町域名+丁目+番地(番)+号+建物名
-        };
-
-        // 【部署名(department_name)】
-        // カラムマップのvalue側のDBフィールド名の配列の中にdepartment_nameが存在しない場合はピリオドをセット
-        if (!selectedDBFieldNamesArray.includes("department_name")) {
-          addColumns = { ...addColumns, department_name: "." };
-        }
-
-        // 【規模(ランク)(number_of_employees_class)】
-        // number_of_employeesカラムが存在し、数字なら範囲でランク分け
-        if (
-          selectedDBFieldNamesArray.includes("number_of_employees") &&
-          Object.hasOwn(processedRow, "number_of_employees")
-        ) {
-          const EmployeesNum = processedRow["number_of_employees"];
-          if (EmployeesNum !== null && EmployeesNum !== undefined && typeof EmployeesNum === "number") {
-            let numberOfEmployeeClass = null;
-            if (0 < EmployeesNum && EmployeesNum < 50) numberOfEmployeeClass = "G";
-            if (50 <= EmployeesNum && EmployeesNum < 100) numberOfEmployeeClass = "F";
-            if (100 <= EmployeesNum && EmployeesNum < 200) numberOfEmployeeClass = "E";
-            if (200 <= EmployeesNum && EmployeesNum < 300) numberOfEmployeeClass = "D";
-            if (300 <= EmployeesNum && EmployeesNum < 500) numberOfEmployeeClass = "C";
-            if (500 <= EmployeesNum && EmployeesNum < 1000) numberOfEmployeeClass = "B";
-            if (1000 <= EmployeesNum) numberOfEmployeeClass = "A";
-            addColumns = { ...addColumns, number_of_employees_class: numberOfEmployeeClass };
-          }
-        }
-
-        const responseRow = { ...processedRow, ...addColumns };
-        // ----------------------------------- 🔸処理後の行に不足分のカラムを追加🔸 -----------------------------------ここまで
-
-        // 🔸mapイテレーションの結果として前処理完了後の行をリターン
-        return responseRow;
-      } catch (error) {
-        // エラーが発生した場合は、その行は無効としてnullを返し最終的にfilter()で無効な行は取り除きインサート対象から除外する
-        console.log("Worker: transformData関数エラー 無効な行のためスルー", error);
-
-        // 🔸mapイテレーションの結果として無効な行はnullをリターン
-        return null;
-      }
-    })
-    .filter((row) => row !== null); // 無効な行として扱われたnullの行を削除
-
-  // 🔸アップロードされたCSVデータの全ての行の前処理完了 => クライアントサイドに処理済みデータを返すとともに完了を通知
-  return self.postMessage({ processedData });
-};
-
-// -------------------- 🔸client_companiesテーブルのフィールドに応じた各カラムのデータ前処理を実行🔸 --------------------
-function transformData(csvValue, dbField) {
-  // ここで型変換やデータクリーニングを行う
-  // 例: 日付の変換、数値の変換、文字列のトリム等
-
-  let processedValue = csvValue === "" ? null : csvValue.trim(); // 基本的なトリミング;
-
-  switch (dbField) {
-    case "corporate_name": // 法人名
-      if (!processedValue) throw new Error("会社名が空文字のためこの行はスルー");
-      // 法人名の前処理: 特定の不適切な文字を削除する例
-      processedValue = normalizeCompanyName(processedValue);
-      break;
-
-    case "branch_name": // 拠点名
-      processedValue = normalizeBranchName(processedValue);
-      break;
-
-    case "department_name": // 部署名
-      processedValue = normalizeDepartmentName(processedValue);
-      break;
-
-    case "main_phone_number": // 代表TEL
-      processedValue = normalizePhoneNumber(processedValue);
-      break;
-
-    case "main_fax": // 代表FAX
-      processedValue = normalizeFax(processedValue);
-      break;
-
-    case "zipcode": // 郵便番号
-      processedValue = normalizePostalCode(processedValue);
-      break;
-
-    case "address": // 住所は別ルートで処理
-      // 住所の前処理: 文字の正規化、例えば全角を半角に変換
-      // processedValue = normalizeAddress(processedValue);
-      break;
-
-    case "established_in":
-      // 設立日の前処理: 日付形式の検証と変換
-      processedValue = transformToDate(processedValue);
-      break;
-
-    case "capital":
-      // 資本金の前処理: 数値変換
-      processedValue = parseInt(processedValue.replace(/,/g, ""), 10);
-      if (isNaN(processedValue)) processedValue = 0;
-      break;
-
-    default:
-      // その他のカラムに対してのデフォルトの処理
-      break;
-  }
-
-  return processedValue; // 変換後の値を返す
-}
-// -------------------- 🔸client_companiesテーブルのフィールドに応じた各カラムのデータ前処理を実行🔸 --------------------
-
-// -----------------------------------🔸主なデータ前処理🔸-----------------------------------
+// -----------------------------------🔸主なデータ前処理ステップ🔸-----------------------------------
 /*
 🔴
 supabase.jsライブラリのrpcメソッドを使用する場合、基本的にはSupabaseが自動的にSQLインジェクション防止のためのパラメータバインディングを行います。これにより、直接的なSQLインジェクション攻撃から保護されます。しかし、データ前処理を行う際には、以下のような操作が引き続き有効です：
@@ -342,7 +229,7 @@ APIキーの使用：APIキーを使用して、APIの利用を認証し、未�
 これらの手法を適切に組み合わせて使用することで、アプリケーションのセキュリティを向上させることができます。各アプリケーションの具体的なニーズに応じて、これらのプラクティスをカスタマイズすることが重要です。
 
 */
-// -----------------------------------🔸主なデータ前処理🔸-----------------------------------ここまで
+// -----------------------------------🔸主なデータ前処理ステップ🔸-----------------------------------ここまで
 
 // -----------------------------------🔸カラムごとの前処理関数🔸-----------------------------------
 // 🔸法人名(corporate_name)の正規化・標準化 -----------------------------------
@@ -400,7 +287,7 @@ function normalizeDepartmentName(department) {
   return department ? normalizeCompanyName(department) : ".";
 }
 
-// 🔸代表TEL(main_phone_number)の正規化・標準化 -----------------------------------
+// 🔸代表TEL・電話番号(main_phone_number)の正規化・標準化 -----------------------------------
 function normalizePhoneNumber(phoneNum) {
   // 全角数字、ハイフン、プラス、括弧を半角に変換
   const halfWidthTel = phoneNum
@@ -428,7 +315,7 @@ function normalizeFax(fax) {
 }
 
 // 🔸郵便番号(zipcode)の正規化・標準化 -----------------------------------
-function normalizePostalCode(postalCode) {
+function normalizePostalCode(postalCode, useJapanPostalFormat = true) {
   /*
 日本の郵便番号の形式: 123-4567 または 1234567
 
@@ -448,23 +335,41 @@ function normalizePostalCode(postalCode) {
 */
   let formattedPostalCode = postalCode.trim(); // 基本的なトリミング;
 
-  // フォーマット
-  const halfWidth = formattedPostalCode
-    .replace(/[Ａ-Ｚａ-ｚ]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0)) //
-    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
-    .replace(/　/g, " ") // 全角スペースを半角スペースに変換
-    .replace(/ー/g, "-") // 「ソニー」の「ー」長音符を半角ハイフンに変換
-    .replace(/－/g, "-") // 全角ハイフンを半角に変換
-    .replace(/−/g, "-"); // 全角ハイフンを半角に変換 // カタカナの長音記号も半角ハイフンに変換
+  // 日本の郵便番号フォーマット 7桁の数字のみ許可
+  if (useJapanPostalFormat) {
+    // フォーマット
+    const halfWidth = postalCode
+      .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0)) // 全角数字を半角に変換
+      .replace(/[^0-9]/g, ""); // 半角数字のみ除去
 
-  // 郵便番号は7桁でハイフンなしにフォーマット (郵便局の町域データの郵便番号もハイフンなしのため)
-  formattedPostalCode = halfWidth.replace("-", "");
+    formattedPostalCode = halfWidth;
 
-  // 数字、英字、ハイフン、スペースを許容
-  const regex = /^[0-9A-Za-z\s\-]+$/;
-  const isValid = regex.test(formattedPostalCode);
+    // 半角数字7桁を許容
+    const regex = /^[0-9]{7}$/; // 半角数字7桁のみかチェック
+    const isValid = regex.test(formattedPostalCode);
 
-  return isValid ? formattedPostalCode : null;
+    return isValid ? formattedPostalCode : null;
+    // return { isValid, formattedPostalCode };
+  }
+  // 国際郵便番号フォーマット 半角英数字 ハイフンスペース
+  else {
+    const halfWidth = formattedPostalCode
+      .replace(/[Ａ-Ｚａ-ｚ]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0)) //
+      .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+      .replace(/　/g, " ") // 全角スペースを半角スペースに変換
+      .replace(/ー/g, "-") // 「ソニー」の「ー」長音符を半角ハイフンに変換
+      .replace(/－/g, "-") // 全角ハイフンを半角に変換
+      .replace(/−/g, "-"); // 全角ハイフンを半角に変換 // カタカナの長音記号も半角ハイフンに変換
+
+    // 郵便番号は7桁でハイフンなしにフォーマット (郵便局の町域データの郵便番号もハイフンなしのため)
+    formattedPostalCode = halfWidth.replace("-", "");
+
+    // 数字、英字、ハイフン、スペースを許容
+    const regex = /^[0-9A-Za-z\s\-]+$/;
+    const isValid = regex.test(formattedPostalCode);
+
+    return isValid ? formattedPostalCode : null;
+  }
 }
 
 // 🔸住所の正規化・標準化 データクレンジング -----------------------------------
@@ -600,6 +505,132 @@ function normalizeAddress(address, groupedTownsByRegionCity) {
 }
 // -----------------------------------🔸address🔸-----------------------------------ここまで
 
+// 🔸代表者名(representative_name)の正規化・標準化 -----------------------------------
+// 会長(chairperson)・副社長(senior_vice_president)・専務取締役(senior_managing_director)・常務取締役(managing_director)・取締役(director)・役員(board_member)・監査役(auditor)・部長(manager)・担当者(member)でも使用
+// 【正規表現の構成要素】
+// 許容
+// ・a-zA-Z: 半角英字
+// ・0-9: 半角数字  (衛宮士郎(~部第2課)なども許容するため)
+// ・` `（半角スペース）
+// ・\u3040-\u309F: ひらがな   (\p{Hiragana})
+// ・\u30A0-\u30FF: 全角カタカナ  (\p{Katakana})
+// ・\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF: 漢字  (\p{Han})
+// ・\u30FC: 全角の長音符(カタカナの長音符)
+// ・\uFF08\uFF09\u0028\u0029: 全角半角括弧
+//    \uFF08: （ 全角括弧
+//    \uFF09: ） 全角括弧
+//    「(」（左半角括弧）: \u0028
+//    「)」（右半角括弧）: \u0029
+// ・\u002D: 半角ハイフン（-）
+// ・\u005F: アンダースコア（_） - 特に技術関連の企業や製品名に使われることがあります
+// ・「・」（全角中点）: \u30FB
+// ・「･」（半角中点）: 通常、この文字は特定のUnicode値を持たず、一般的なJISやシフトJISの文字セットに存在するため、そのままセット
+// ・\u002E: 半角ピリオド（.）
+// ・\u0027: 半角アポストロフィ（'） - 企業名における所有格や略語でよく使用されます（例: O'Reilly, Ben's）
+
+// 許容しない
+// ・０-９: 全角数字
+// ・ａ-ｚＡ-Ｚ: 全角英数字
+// ・\u3000-\u303F：全角の記号と句読点(\u3000：全角スペース)
+// ・\uFF65-\uFF9F: 半角ｶﾀｶﾅ
+
+function normalizeRepresentativeName(name) {
+  let halfName = name
+    .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0)) // 全角英字を半角に変換
+    .replace(/　/g, " ") // 全角スペースを半角に変換
+    .trim();
+
+  // 半角ｶﾀｶﾅを全角に変換
+  const formattedName = convertKanaHalfWidthToFullWidth(halfName);
+
+  // 【下記の指定した文字のみ許可 それ以外は空文字にリプレイス [^...]】 結果が空文字ならnullをセット
+  return (
+    formattedName.replace(
+      /[^a-zA-Z0-9 \u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u30FC\uFF08\uFF09\u0028\u0029\u002D\u005F\u30FB･\u002E\u0027]+/gu,
+      ""
+    ) || null
+  );
+}
+
+// 🔸ホームページURL・Webサイト URL(website_url)の正規化・標準化 -----------------------------------
+
+// 「https://www.example.com/dashboard」のURLの構成 => DBにはオリジン部分を保存する
+// protocol(scheme): https:
+// host: www.example.com
+// pathname: /dashboard
+// origin: https://www.example.com
+// href: https://www.example.com/dashboard
+
+function normalizeWebSiteURL(url) {
+  // トリミングとプロトコルの確認と追加
+  let normalizedUrl = url.trim();
+
+  if (!normalizedUrl.startsWith("http://") && !normalizedUrl.startsWith("https://")) {
+    normalizedUrl = "https://" + normalizedUrl;
+  }
+
+  // new URL() を使用して、URLが有効かどうかを確認し、さらに正規化することも可能です。不完全または相対URLが渡された場合、new URL() はエラーを投げるので、これをトライ・キャッチブロックで捕捉できます。
+
+  try {
+    // new URL() を使用して、URLが有効かどうかチェック 無効なURLの場合はエラーを投げるためcatchブロックで補足
+    const urlObj = new URL(normalizedUrl);
+
+    // ドメイン名のみ小文字に変換
+    urlObj.hostname = urlObj.hostname.toLowerCase();
+
+    // urlObj.origin プロパティはスキーマ(プロトコル)、ホスト名（小文字に変換された後のもの）、およびポート（存在する場合）を含む完全なオリジンを返します。これにより、ウェブサイトの基本アドレスのみを保存し、余分なパスやクエリパラメータは除外されます。
+    return urlObj.origin; // オリジン部分だけを返す(プロトコル、ドメイン名、必要に応じてポート番号)
+  } catch (error) {
+    // 無効なURLのためnullを返す
+    return null;
+  }
+}
+// 🔸Email(email)の正規化・標準化 -----------------------------------
+// RFC5322はInternet Message Format(IMF)となっており、電子メールの形式を定義
+/*
+🔹メールアドレスの構成
+
+  local@domain
+
+・local: 最大64文字まで
+・domain: 最大255文字
+・@ の直前(local部分)に . を置くことや連続して . を置くことは禁止
+・メールアドレスのlocal部分の文字列にはdot-atom形式とquoted-string形式が許可されていて
+・domain部分には、dot-atom形式の文字が許可されている
+
+🔹dot-atom形式
+・RFC 5322によると、atextで定義される一連の文字に基づく形式。
+atext には英数字（A-Z, a-z, 0-9）や特定の記号（!#$%&'*+-/=?^_`{|}~）が含まれる。
+この形式では、これらの文字の間に点（.）が入ることができますが、連続した点（..）や点で始まることは許されません。
+
+・dot-atom形式のlocal部分の使用例：「++*start_{}@domain.com」でもOK
+
+🔹quoted-string形式
+quoted-string: この形式では、ダブルクォート（"）で囲まれた任意のテキストが使用できます。この中では、ほぼすべてのASCII文字（バックスラッシュ \ とダブルクォートを除く）が使用可能で、バックスラッシュ \ はエスケープ文字として機能し、通常は禁止されている文字（例えば、改行やダブルクォート自体）を含めることができます。
+
+・quoted-string形式のlocal部分の使用例：「"start \s-"@domain.com」
+
+解釈の確認
+dot-atom形式: おっしゃる通り、アルファベット、数字、特定の記号から成り、ピリオドを含むことができますが、ピリオドの使用には制限があります。
+quoted-string形式: バックスラッシュでエスケープされた任意の文字やスペースを含むことができ、ダブルクォートで囲まれている必要があります。
+
+はい、おっしゃる通りです。メールアドレスのlocal部分で、quoted-string形式とdot-atom形式はそれぞれ異なる種類の使用を許可しています。
+
+Quoted-string形式
+quoted-string 形式では、ダブルクォートで囲まれた内部であれば、スペースやエスケープされた特殊文字を含めることが可能です。例えば、「"start \s-"@domain.com」のようなメールアドレスは、この形式で正当です。
+Dot-atom形式
+dot-atom 形式では、英数字や指定された記号を使用できます。記号間にスペースを入れることはできませんが、連続して使用することは可能です。したがって、「++*start_{}@domain.com」というメールアドレスも、local部分がdot-atom形式に適合していれば有効です。
+
+*/
+function normalizeEmail(email) {
+  //
+  // const regexEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  // 🌠正式にフロントエンドで使用するlocal部分とDomain部分の正規表現をdot-atom形式に対応したバリデーションチェック
+  // local部分とdomain部分を合わせた形でメールアドレス全体のバリデーションチェックをする際にdot-atom形式のみに対応した正規表現
+  // (quoted-string形式には対応せず、dot-atom形式のみに対応した正規表現)
+  const regexEmail = /^[a-zA-Z0-9_+%\-]+(\.[a-zA-Z0-9_+%\-]+)*@[a-zA-Z0-9\-]+(\.[a-zA-Z0-9\-]+)*\.[a-zA-Z]{2,}$/;
+}
+
 // 🔸設立年(設立年月・年月日)の正規化・標準化 -----------------------------------
 /* 形式統一 日本・英語圏両方に対応可能なフォーマットに変換
 1992年1月 => 1992/01 
@@ -616,27 +647,6 @@ function transformToDate(dateStr) {
   dateStr = dateStr.trim(); // 基本的なトリミング
   const date = new Date(dateStr);
   return !isNaN(date.getTime()) ? date.toISOString().substring(0, 10) : null;
-}
-
-// 🔸電話番号の正規化・標準化 -----------------------------------
-function validateAndNormalizePhoneNumber(phoneNumber) {
-  // 全角数字、ハイフン、プラス、括弧を半角に変換
-  const halfWidth = phoneNumber
-    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
-    .replace(/－/g, "-")
-    .replace(/ー/g, "-")
-    .replace(/−/g, "-")
-    .replace(/＋/g, "+")
-    .replace(/（/g, "(")
-    .replace(/）/g, ")");
-
-  // スペースを削除
-  const formattedNumber = halfWidth.replace(/\s/g, "");
-
-  // バリデーションチェック 数字、半角ハイフン、プラス記号、括弧を許容
-  const isValid = /^[\d\-\+\(\)]+$/.test(formattedNumber);
-
-  return isValid ? formattedNumber : null;
 }
 
 // 🔸決算月の正規化・標準化 -----------------------------------
@@ -796,3 +806,251 @@ stringなので、millionメソッドで万円単位に整形後にnumberに変�
 特になし 文字数300文字以内 切り捨て
 
    */
+
+// -------------------- 🔸client_companiesテーブルのフィールドに応じた各カラムのデータ前処理を実行🔸 --------------------
+function transformData(csvValue, dbField) {
+  // ここで型変換やデータクリーニングを行う
+  // 例: 日付の変換、数値の変換、文字列のトリム等
+
+  let processedValue = csvValue === "" ? null : csvValue.trim(); // 基本的なトリミング;
+
+  switch (dbField) {
+    case "corporate_name": // 法人名
+      if (!processedValue) throw new Error("会社名が空文字のためこの行はスルー");
+      // 法人名の前処理: 特定の不適切な文字を削除する例
+      processedValue = normalizeCompanyName(processedValue);
+      break;
+
+    case "branch_name": // 拠点名
+      processedValue = normalizeBranchName(processedValue);
+      break;
+
+    case "department_name": // 部署名
+      processedValue = normalizeDepartmentName(processedValue);
+      break;
+
+    case "main_phone_number": // 代表TEL
+      processedValue = normalizePhoneNumber(processedValue);
+      break;
+
+    case "main_fax": // 代表FAX
+      processedValue = normalizeFax(processedValue);
+      break;
+
+    case "zipcode": // 郵便番号
+      processedValue = normalizePostalCode(processedValue);
+      break;
+
+    case "address": // 住所
+      // 引数が別途必要のため別ルートで処理;
+      // processedValue = normalizeAddress(processedValue);
+      break;
+
+    case "representative_name": // 代表者名
+      processedValue = normalizeRepresentativeName(processedValue);
+      break;
+
+    case "website_url": // ホームページURL・WebサイトURL
+      processedValue = normalizeWebSiteURL(processedValue);
+      break;
+
+    case "email": // ホームページURL・WebサイトURL
+      processedValue = normalizeEmail(processedValue);
+      break;
+
+    case "chairperson": // 会長
+    case "senior_vice_president": // 副社長
+    case "senior_managing_director": // 専務取締役
+    case "managing_director": // 常務取締役
+    case "director": // 取締役
+    case "board_member": // 役員
+    case "auditor": // 監査役
+    case "manager": // 部長
+    case "member": // 担当者
+      // 織田信長（取締役会長）・伊達政宗(専務取締役・COO)、佐藤 健(CSO)など複数記述の可能性があるため余裕を持たせる
+      processedValue = normalizeRepresentativeName(processedValue);
+      break;
+
+    case "established_in":
+      // 設立日の前処理: 日付形式の検証と変換
+      processedValue = transformToDate(processedValue);
+      break;
+
+    case "capital":
+      // 資本金の前処理: 数値変換
+      processedValue = parseInt(processedValue.replace(/,/g, ""), 10);
+      if (isNaN(processedValue)) processedValue = 0;
+      break;
+
+    default:
+      // その他のカラムに対してのデフォルトの処理
+      break;
+  }
+
+  return processedValue; // 変換後の値を返す
+}
+// -------------------- 🔸client_companiesテーブルのフィールドに応じた各カラムのデータ前処理を実行🔸 --------------------
+
+// ----------------------------------- 🌠Web Worker Script🌠-----------------------------------
+self.onmessage = function (e) {
+  console.log("Worker: Message received from main thread");
+
+  // postMessage が呼び出されたときにメッセージを送ったウィンドウのオリジンが正しいことをチェック
+  // publicフォルダ内のスクリプトでは、環境変数を使用できないためオリジンをハードコーディング
+  const clientUrl = "http://localhost:3000";
+  // if (e.origin !== process.env.CLIENT_URL) return console.log("❌オリジンチェックに失敗 リターン");
+  if (e.data.origin !== clientUrl)
+    return console.log(`Worker: ❌オリジンチェックに失敗 リターン 受け取ったオリジン: ${e.data.origin}`);
+
+  const { parsedData, columnMap, groupedTownsByRegionCity } = e.data;
+
+  // 1行ずつ取り出して必要なカラムのみ前処理してインサート用配列データを生成
+  const processedData = parsedData
+    .map((row) => {
+      // 行の前処理
+      const processedRow = {}; // 最終的にインサートする処理後の行
+
+      try {
+        let townsByCities = [];
+        let countryId = null;
+        let regionId = null;
+        let cityId = null;
+        let townId = null; // 郵便番号とaddress処理で得た町域リストを組み合わせてtown_idを取得
+        let normalizedTownName = null;
+        let streetAddress = null;
+        let postalCode = null;
+
+        // ----------------------------------- カラムごとの前処理 -----------------------------------
+        // columnMap: CSVカラムヘッダー名 to DBフィールド名
+        Array.from(columnMap.entries()).forEach(([csvHeader, dbField]) => {
+          // 住所カラム
+          if (dbField === "address") {
+            if (!row[csvHeader]) throw new Error(`Worker: ${dbField}カラム アドレスが空文字のためスルー`);
+            // addressの場合は、address以外に町域リストを取り出す
+            // 住所の前処理: 文字の正規化、例えば全角を半角に変換
+            const responseAddress = normalizeAddress(row[csvHeader], groupedTownsByRegionCity);
+            // const responseAddress = transformData(row[csvHeader], dbField);
+
+            if (responseAddress === null) throw new Error(`${dbField}カラム 無効な住所のためこの行をスルー`);
+
+            const {
+              address,
+              prefecture,
+              city,
+              street_address,
+              country_id,
+              region_id,
+              city_id,
+              normalized_town_name,
+              grouped_towns_by_cities,
+            } = responseAddress;
+            townsByCities = grouped_towns_by_cities ?? [];
+            countryId = country_id;
+            regionId = region_id;
+            cityId = city_id;
+            normalizedTownName = normalized_town_name;
+            streetAddress = street_address;
+
+            processedRow["address"] = address;
+          }
+
+          // 通常のカラム
+          processedRow[dbField] = transformData(row[csvHeader], dbField);
+        });
+        // ----------------------------------- カラムごとの前処理 -----------------------------------ここまで
+
+        // ----------------------------------- town_idの取得 -----------------------------------
+        // 郵便番号と正規化した町域名の2つで抽出するが、同じ組み合わせがある場合は後で手動で修正する
+        if (0 < townsByCities.length && !!normalizedTownName) {
+          // dbFieldにzipcodeカラムとaddressカラムが存在する場合は、town_idを取得する
+          const dbFieldsArray = Array.from(columnMap.values());
+          if (
+            dbFieldsArray.includes("address") &&
+            dbFieldsArray.includes("zipcode") &&
+            Object.hasOwn(processedRow, "zipcode") &&
+            !!processedRow["zipcode"]
+          ) {
+            // 町域データから取得した郵便番号とnormalized_nameと一致する行を取得
+            const gotTown = townsByCities.find(
+              (obj) => obj.postal_code === processedRow["zipcode"] && obj.normalized_name === normalizedTownName
+            );
+            if (!!gotTown) {
+              townId = gotTown.town_id;
+            }
+          }
+        }
+        // ----------------------------------- town_idの取得 -----------------------------------ここまで
+
+        // ----------------------------------- 🔸処理後の行に不足分のカラムを追加🔸 -----------------------------------
+        // ○必須カラム：
+        // ・会社名(name) => 選択・前処理済みの法人名と拠点名を結合
+        // ・住所 => 選択済み
+        // ・部署名(department_name) => 選択されていない場合はピリオドをセット
+        // ・代表TEL(main_phone_number) => なくてもOK(メールやSNSのみでの営業にも対応するため)
+
+        // columnMap: CSVカラムヘッダー名 to DBフィールド名
+        const selectedDBFieldNamesArray = Array.from(columnMap.values());
+
+        // 【会社名(name)】
+        if (!Object.hasOwn(processedRow, "corporate_name")) throw new Error(`無効な法人名: `);
+        const _branch_name =
+          selectedDBFieldNamesArray.includes("branch_name") && Object.hasOwn(processedRow, "branch_name")
+            ? processedRow["branch_name"]
+            : "";
+        const name = (processedRow["corporate_name"] + " " + _branch_name).trim();
+
+        let addColumns = {
+          name: name, // 会社名(法人名 拠点名)
+          country_id: countryId ?? null, // 国コード
+          region_id: regionId ?? null, // 都道府県コード
+          city_id: cityId ?? null, // 市区町村コード
+          town_id: townId ?? null, // 町域コード
+          street_address: streetAddress || null, // 町域名+丁目+番地(番)+号+建物名
+        };
+
+        // 【部署名(department_name)】
+        // カラムマップのvalue側のDBフィールド名の配列の中にdepartment_nameが存在しない場合はピリオドをセット
+        if (!selectedDBFieldNamesArray.includes("department_name")) {
+          addColumns = { ...addColumns, department_name: "." };
+        }
+
+        // 【規模(ランク)(number_of_employees_class)】
+        // number_of_employeesカラムが存在し、数字なら範囲でランク分け
+        if (
+          selectedDBFieldNamesArray.includes("number_of_employees") &&
+          Object.hasOwn(processedRow, "number_of_employees")
+        ) {
+          const EmployeesNum = processedRow["number_of_employees"];
+          if (EmployeesNum !== null && EmployeesNum !== undefined && typeof EmployeesNum === "number") {
+            let numberOfEmployeeClass = null;
+            if (0 < EmployeesNum && EmployeesNum < 50) numberOfEmployeeClass = "G";
+            if (50 <= EmployeesNum && EmployeesNum < 100) numberOfEmployeeClass = "F";
+            if (100 <= EmployeesNum && EmployeesNum < 200) numberOfEmployeeClass = "E";
+            if (200 <= EmployeesNum && EmployeesNum < 300) numberOfEmployeeClass = "D";
+            if (300 <= EmployeesNum && EmployeesNum < 500) numberOfEmployeeClass = "C";
+            if (500 <= EmployeesNum && EmployeesNum < 1000) numberOfEmployeeClass = "B";
+            if (1000 <= EmployeesNum) numberOfEmployeeClass = "A";
+            addColumns = { ...addColumns, number_of_employees_class: numberOfEmployeeClass };
+          }
+        }
+
+        const responseRow = { ...processedRow, ...addColumns };
+        // ----------------------------------- 🔸処理後の行に不足分のカラムを追加🔸 -----------------------------------ここまで
+
+        // 🔸mapイテレーションの結果として前処理完了後の行をリターン
+        return responseRow;
+      } catch (error) {
+        // エラーが発生した場合は、その行は無効としてnullを返し最終的にfilter()で無効な行は取り除きインサート対象から除外する
+        console.log("Worker: transformData関数エラー 無効な行のためスルー", error);
+
+        // 🔸mapイテレーションの結果として無効な行はnullをリターン
+        return null;
+      }
+    })
+    .filter((row) => row !== null); // 無効な行として扱われたnullの行を削除
+
+  // 🔸アップロードされたCSVデータの全ての行の前処理完了 => クライアントサイドに処理済みデータを返すとともに完了を通知
+  return self.postMessage({ processedData });
+};
+
+// ----------------------------------- 🌠Web Worker Script🌠-----------------------------------ここまで

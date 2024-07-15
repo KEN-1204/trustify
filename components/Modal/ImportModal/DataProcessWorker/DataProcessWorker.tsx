@@ -44,6 +44,7 @@ export const DataProcessWorker = ({
     // Workerにメッセージを送信して、データ前処理を実行
     console.log("Message posted to worker");
     worker.postMessage({
+      origin: process.env.CLIENT_URL, // オリジンをWorkerに送信, オリジン: プロトコル、ホスト名、ポート *1
       parsedData: parsedData, // Papa Parseで解析されたデータ
       columnMap: columnMap, // csvカラムヘッダー名 to データベースのclient_companiesテーブルのカラム名
       groupedTownsByRegionCity: groupedTownsByRegionCity, // 会社リストで使用される都道府県・市区町村別の町域リスト
@@ -55,3 +56,4 @@ export const DataProcessWorker = ({
   // Worker側でデータ前処理を行うだけでUIは不要なためフラグメントのみセット
   return <></>;
 };
+// *1 Next.jsのプロジェクトで「https://www.example.com/dashboard」ページからWorkerにデータを送信する場合、オリジンとしては「https://www.example.com」の部分のみを送るのが適切
