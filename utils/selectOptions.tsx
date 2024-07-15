@@ -562,7 +562,7 @@ export const optionsClientCompaniesColumnFieldForInsertArray = [
   "industry_large", // 業界(大分類)
   "industry_small", // 業界(小分類)
   "number_of_employees", // 従業員数
-  "fiscal_end_month", //int4 決算月
+  "fiscal_end_month", //TEXT 決算月
   "capital", //int8 BIGINT 資本金
   "established_in", //text 設立
   "corporate_number", // 法人番号
@@ -575,8 +575,8 @@ export const optionsClientCompaniesColumnFieldForInsertArray = [
   // "product_category_medium", //
   // "product_category_small", //
   // "number_of_employees_class", //
-  "budget_request_month1", //int4 予算申請月1
-  "budget_request_month2", //int4 予算申請月2
+  "budget_request_month1", //TEXT 予算申請月1
+  "budget_request_month2", //TEXT 予算申請月2
   "clients", // 取引先(納入先)
   "supplier", // 仕入れ先
   "business_content", // 事業概要
@@ -922,8 +922,8 @@ export const mappingIndustryType: { [key: number]: { [key: string]: string } } =
   4: { ja: "機械要素・部品", en: "" },
   5: { ja: "製造・加工受託", en: "" },
   6: { ja: "鉄/非鉄金属", en: "" },
-  7: { ja: "産業用電気機器", en: "" },
-  8: { ja: "産業用機械", en: "" },
+  7: { ja: "産業用機械", en: "" },
+  8: { ja: "産業用電気機器", en: "" },
   9: { ja: "民生用電気機器", en: "" },
   10: { ja: "樹脂・プラスチック", en: "" },
   11: { ja: "ゴム製品", en: "" },
@@ -948,7 +948,7 @@ export const mappingIndustryType: { [key: number]: { [key: string]: string } } =
   30: { ja: "医療機器", en: "" },
   31: { ja: "その他製造", en: "" },
   32: { ja: "金融・証券・保険業", en: "" },
-  33: { ja: "商社・卸売り", en: "" },
+  33: { ja: "商社・卸売", en: "" },
   34: { ja: "広告・メディア", en: "" },
   35: { ja: "不動産", en: "" },
   36: { ja: "建設", en: "" },

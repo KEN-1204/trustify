@@ -99,6 +99,88 @@ export function convertKanaHalfWidthToFullWidth(kanaText) {
     .join("");
 }
 
+// 🔹文字数制限関数
+function limitStringLength(input, maxLength) {
+  if (input.length > maxLength) {
+    return input.substring(0, maxLength);
+  }
+  return input;
+}
+
+// 🔹「兆」「億」「万」「円」を万円単位の数字に変換する関数
+function convertToMillions(inputString, isDecimalPoint = false) {
+  // 小数点なし
+  if (!isDecimalPoint) {
+    // 入力文字列が空の場合にはnullを返す
+    if (inputString.trim() === "") return null;
+
+    // 全角数字を半角に変換
+    inputString = zenkakuToHankaku(inputString);
+
+    // 「兆」「億」「万」「円」が含まれていなければ変換をスキップ 1250 => 1250万円
+    if (
+      !inputString.includes("兆") &&
+      !inputString.includes("億") &&
+      !inputString.includes("万") &&
+      !inputString.includes("円") &&
+      !inputString.includes(",")
+    ) {
+      return parseInt(inputString, 10);
+    }
+
+    // 兆、億、万、円で分割して数値を計算
+    let total = 0;
+    const trillionMatch = inputString.match(/(\d+(,\d+)*)兆/); // 数字一つ以上とカンマ数字一つ以上か、カンマ無し数字
+    const billionMatch = inputString.match(/(\d+(,\d+)*)億/);
+    const millionMatch = inputString.match(/(\d+(,\d+)*)万/);
+
+    // 1,000や1,000,000のように単位無しで区切り文字のみ存在する場合は区切り文字を取り除いてそのまま返す
+    if (!trillionMatch && !billionMatch && !millionMatch && inputString.includes(","))
+      return parseInt(inputString.replace(/,/g, "").replace(/[^\d]/g, ""), 10);
+
+    // trillionMatch[1]はキャプチャグループによって抽出された値 => 今回は\dで任意の数値、+で\dが一回以上の連続した数字
+    if (trillionMatch) total += parseInt(trillionMatch[1].replace(/,/g, ""), 10) * 100000000; // 兆の計算
+    if (billionMatch) total += parseInt(billionMatch[1].replace(/,/g, ""), 10) * 10000; // 億の計算
+    if (millionMatch) total += parseInt(millionMatch[1].replace(/,/g, ""), 10); // 万の計算
+
+    return total;
+  } else {
+    // 入力文字列が空の場合にはnullを返す
+    if (inputString.trim() === "") return null;
+
+    // 全角数字を半角に変換
+    inputString = zenkakuToHankaku(inputString);
+
+    // 「兆」「億」「万」「円」が含まれていなければ変換をスキップ 1250 => 1250万円
+    if (
+      !inputString.includes("兆") &&
+      !inputString.includes("億") &&
+      !inputString.includes("万") &&
+      !inputString.includes("円") &&
+      !inputString.includes(",")
+    ) {
+      return parseFloat(inputString);
+    }
+
+    // 兆、億、万、円で分割して数値を計算
+    let total = 0;
+    const trillionMatch = inputString.match(/(\d+(,\d+)*)兆/); // 数字一つ以上とカンマ数字一つ以上か、カンマ無し数字
+    const billionMatch = inputString.match(/(\d+(,\d+)*)億/);
+    const millionMatch = inputString.match(/(\d+(,\d+)*)万/);
+
+    // 1,000や1,000,000のように単位無しで区切り文字のみ存在する場合は区切り文字を取り除いてそのまま返す
+    if (!trillionMatch && !billionMatch && !millionMatch && inputString.includes(","))
+      return parseFloat(inputString.replace(/,/g, "").replace(/[^\d]/g, ""));
+
+    // trillionMatch[1]はキャプチャグループによって抽出された値 => 今回は\dで任意の数値、+で\dが一回以上の連続した数字
+    if (trillionMatch) total += parseFloat(trillionMatch[1].replace(/,/g, "")) * 100000000; // 兆の計算
+    if (billionMatch) total += parseFloat(billionMatch[1].replace(/,/g, "")) * 10000; // 億の計算
+    if (millionMatch) total += parseFloat(millionMatch[1].replace(/,/g, "")); // 万の計算
+
+    return total;
+  }
+}
+
 // ----------------------------------- Web Workerスクリプト内で使用するヘルパー関数 -----------------------------------ここまで
 
 // Next.jsのコンポーネントのビジネスロジックから
@@ -263,10 +345,15 @@ function normalizeCompanyName(name) {
     .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
     .replace(/　/g, " ")
     .trim();
-  return halfName.replace(
+
+  // limitStringLength
+  let normalizedCompanyName = halfName.replace(
     /[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･]+/gu,
     ""
   );
+
+  // 60 文字以上の場合は文字数を 60 文字までに制限
+  return limitStringLength(normalizedCompanyName, 60);
 }
 
 // 🔸拠点名(branch_name)の正規化・標準化 -----------------------------------
@@ -304,8 +391,7 @@ function normalizePhoneNumber(phoneNum) {
   // バリデーションチェック
   const regexPhone = /^[\d\-\+\(\)]+$/;
   const isValid = regexPhone.test(formattedNumber);
-
-  return isValid ? formattedNumber : null;
+  return isValid ? limitStringLength(formattedNumber, 15) : null;
 }
 
 // 🔸代表Fax(main_fax)の正規化・標準化 -----------------------------------
@@ -541,15 +627,21 @@ function normalizeRepresentativeName(name) {
     .trim();
 
   // 半角ｶﾀｶﾅを全角に変換
-  const formattedName = convertKanaHalfWidthToFullWidth(halfName);
+  let formattedName = convertKanaHalfWidthToFullWidth(halfName);
 
   // 【下記の指定した文字のみ許可 それ以外は空文字にリプレイス [^...]】 結果が空文字ならnullをセット
-  return (
+  formattedName =
     formattedName.replace(
       /[^a-zA-Z0-9 \u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u30FC\uFF08\uFF09\u0028\u0029\u002D\u005F\u30FB･\u002E\u0027]+/gu,
       ""
-    ) || null
-  );
+    ) || null;
+
+  if (!!formattedName) {
+    // 50文字まで
+    return limitStringLength(formattedName, 50);
+  } else {
+    return null;
+  }
 }
 
 // 🔸ホームページURL・Webサイト URL(website_url)の正規化・標準化 -----------------------------------
@@ -623,23 +715,296 @@ dot-atom 形式では、英数字や指定された記号を使用できます�
 
 */
 function normalizeEmail(email) {
-  //
   // const regexEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
   // 🌠正式にフロントエンドで使用するlocal部分とDomain部分の正規表現をdot-atom形式に対応したバリデーションチェック
   // local部分とdomain部分を合わせた形でメールアドレス全体のバリデーションチェックをする際にdot-atom形式のみに対応した正規表現
   // (quoted-string形式には対応せず、dot-atom形式のみに対応した正規表現)
-  const regexEmail = /^[a-zA-Z0-9_+%\-]+(\.[a-zA-Z0-9_+%\-]+)*@[a-zA-Z0-9\-]+(\.[a-zA-Z0-9\-]+)*\.[a-zA-Z]{2,}$/;
+
+  // 【2段階のバリデーションチェック】
+
+  try {
+    // トリミングと小文字化
+    const normalizedEmail = email.trim().toLowerCase();
+    // 1. メールアドレスがdot-atom形式に対応しているか構文チェック atextと(.)ドットのみ許可 連続したdotは禁止,先頭末尾のdotも禁止
+    // atext: 英数字（A-Z, a-z, 0-9）や特定の記号（!#$%&'*+-/=?^_`{|}~）
+    const regexEmailDotAtom =
+      /^[a-zA-Z0-9_+%\-]+(\.[a-zA-Z0-9_+%\-]+)*@[a-zA-Z0-9\-]+(\.[a-zA-Z0-9\-]+)*\.[a-zA-Z]{2,}$/;
+    const isValidDotAtom = regexEmailDotAtom.test(normalizedEmail);
+
+    if (!isValidDotAtom) throw new Error("メールアドレスの形式が有効ではありません。");
+
+    // 2. 文字数チェック local部分: 最大64文字, domain部分: 最大255文字
+    const regexEmailLength = /^(?=.{1,64}@)(?=.{1,255}$)/;
+    const isValidLength = regexEmailLength.test(normalizedEmail);
+
+    if (!isValidLength) throw new Error("メールアドレスの長さが規定を超えています。");
+
+    return normalizedEmail;
+  } catch (error) {
+    console.log("Worker: email前処理エラー: ", error);
+    return null;
+  }
 }
 
-// 🔸設立年(設立年月・年月日)の正規化・標準化 -----------------------------------
-/* 形式統一 日本・英語圏両方に対応可能なフォーマットに変換
-1992年1月 => 1992/01 
-1992年1月1日 => 1992/01/01
-昭和45年12月 => 西暦に変換
+// 🔸業種(industry_type_id)の正規化・標準化 -----------------------------------
+// 業種別のキーワードセット
+const industryKeywords = {
+  1: ["自動車", "輸送", "モビリティ", "AUTOMOTIVE", "車"], // 自動車・輸送機器
+  2: ["電子", "半導体", "光学", "基板", "チップ", "FPC", "コイル", "フレキ", "ケーブル", "端子", "コネクタ", "電池"], // 電子部品・半導体
+  3: ["IT", "ソフト", "テクノロジー", "SaaS", "データベース", "DX", "情報", "通信", "ネットワーク"], // IT・情報通信・ソフトウェア
+  4: ["機械要素", "部品", "ねじ", "ボルト", "ベアリング", "ファスナー", "パーツ", "シャフト"], // 機械要素・部品
+  5: ["加工", "プレス", "切削", "旋盤", "マシニング", "フライス"], // 製造・加工受託
+  6: ["鉄", "非鉄"], // 鉄/非鉄金属
+  7: ["産業用機械", "空調用ヒーター", "熱交換器", "洗浄機"], // 産業用機械
+  8: ["産業用電気機器", "電機"], // 産業用電気機器
+  9: ["民生用電気機器"], // 民生用電気機器
+  10: ["樹脂", "プラスチック", "化成", "樹脂切削", "FRP", "GFRP", "CFRP"], // 樹脂・プラスチック
+  11: ["ゴム", "シリコーン", "シール", "パッキン", "Oリング"], // ゴム製品
+  12: ["化学", "ケミカル"], // 化学
+  13: ["セラミック", "石英", "ダイヤモンド", "ジルコニア", "アルミナ"], // セラミックス
+  14: ["繊維", , "フエルト", "フェルト", "糸", "ファイバー", "不繊布"], // 繊維
+  15: ["ガラス", "硝子"], // ガラス製品
+  16: ["CAD", "CAM", "CAE"], // CAD/CAM
+  17: ["航空", "宇宙", "エアロ", "スペース", "SPACE"], // 航空・宇宙
+  18: ["建材", "資材", "什器"], // 建材・資材・什器
+  19: ["造船", "重機", "船舶"], // 造船・重機
+  20: ["環境", "プラント", "水処理", "廃棄物"], // 環境
+  21: ["印刷", "銘板", "転写", "PRINT", "ラベル", "プリンタ"], // 印刷業
+  22: ["鉱業", "鉱物"], // 鉱業
+  23: ["紙", "包装", "パルプ", "段ボール", "ダンボール"], // 紙・包装資材・パルプ
+  24: ["ロボット", "ROBOT", ""], // ロボット
+  25: ["試験", "分析", "測定"], // 試験・分析・測定
+  26: ["エネルギー"], // エネルギー
+  28: ["食品機械"], // 食品機械
+  27: ["飲料", "食料", "食品"], // 飲食料品
+  29: ["光学機器"], // 光学機器
+  30: ["医療機器"], // 医療機器
+  31: ["その他製造"], // その他製造
+  32: ["金融", "証券", "保険"], // 金融・証券・保険業
+  33: ["商社", "卸売"], // 商社・卸売
+  34: ["広告", "メディア"], // 広告・メディア
+  35: ["不動産"], // 不動産
+  36: ["建設", "建築"], // 建設
+  37: ["物流", "運送", "倉庫"], // 物流・運送・倉庫関連
+  38: ["教育"], // 教育・研究機関
+  39: ["石油", "石炭"], // 石油・石炭関連
+  40: ["製薬", "医薬"], // 製薬・医薬品・バイオ
+  41: ["医療", "福祉"], // 医療・福祉
+  42: ["化粧品"], // 化粧品
+  43: ["小売"], // 小売
+  44: ["飲食", "レストラン", "居酒屋", "カフェ"], // 飲食店
+  45: ["宿泊", "ホテル", "民泊"], // 宿泊業
+  46: ["サービス"], // サービス業
+  47: ["水産", "農林"], // 水産・農林業
+  48: ["警察", "消防", "自衛隊"], // 警察・消防・自衛隊
+  49: ["公益", "独立行政法人", "NPO", "公共団体"], // 公益・特殊・独立行政法人
+  50: ["電力", "火力", "水力", "発電", "ガス", "水道", "エネルギー"], // 電気・ガス・水道業
+  51: ["官公庁"], // 官公庁
+  52: ["自営業", "個人", "フリーランス"], // 自営業・個人
+  53: ["その他"], // その他
+};
+
+function normalizeIndustryType(industryName) {
+  if (!industryName) return null;
+
+  // 全角英数字を半角に
+  let normalizedName = industryName
+    .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0)) // 全角英字を半角に変換
+    .replace(/[\s　]+/g, "") // スペースを除去
+    .trim();
+
+  // 半角ｶﾀｶﾅを全角に変換
+  normalizedName = convertKanaHalfWidthToFullWidth(halfName);
+
+  // それぞれの業種に関連するキーワードにマッチした業種idをリターン
+  function findIndustryId(industryName) {
+    for (const [industryId, keywords] of Object.entries(industryKeywords)) {
+      if (keywords.some((keyword) => industryName.includes(keyword))) {
+        return industryId; // マッチした業種IDを返す
+      }
+    }
+    return null; // マッチする業種がなかった場合はnullを返す
+  }
+
+  // 大文字に変換して大文字小文字関係なくキーワードマッチを実行
+  return findIndustryId(normalizedName.toUpperCase());
+}
+
+// 🔸業界大分類(industry_large)の正規化・標準化 -----------------------------------
+function normalizeIndustryLarge(industryName) {
+  if (!industryName) return null;
+  // 全角英数字を半角に
+  let normalizedName = industryName
+    .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0)) // 全角英字を半角に変換
+    .replace(/[\s　]+/g, "") // スペースを除去
+    .trim();
+
+  // 半角ｶﾀｶﾅを全角に変換
+  normalizedName = halfName.replace(
+    /[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･]+/gu,
+    ""
+  );
+
+  // 30 文字以上の場合は文字数を 30 文字までに制限
+  return limitStringLength(normalizedName, 30);
+}
+
+// 🔸業界小分類(industry_small)の正規化・標準化 -----------------------------------
+function normalizeIndustrySmall(industryName) {
+  // 業界大分類と同じ
+  return normalizeIndustryLarge(industryName);
+}
+
+// 🔸従業員数(number_of_employees)の正規化・標準化 -----------------------------------
+function normalizeNumberOfEmployees(num) {
+  // null, undefined, '', 0は全てnullを返す
+  if (!num) return null;
+
+  // 100名 => 100 に標準化 全角数字を半角に変換し、半角数字以外を削除
+  let normalizedNum = phoneNum
+    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+    .replace(/[^\d]/g, "");
+
+  // INTEGER型のためparseIntで整数値に変換し、7桁未満100万人未満であることをチェック
+  const employeeCount = parseInt(normalizedNum, 10);
+  if (!isNaN(employeeCount) && employeeCount.toString().length < 7) {
+    return employeeCount;
+  }
+  return null; // バリデーションに合格しない場合にはnullを返す
+}
+
+// 🔸決算月(fiscal_end_month)の正規化・標準化 -----------------------------------
+// 予算申請月1, 2も同じ関数を使用
+function normalizeMonth(month) {
+  if (!month) return null;
+  // 半角数字のみ残す
+  let formattedMonth = month
+    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+    .replace(/[^0-9]/, ""); // 数字以外の文字を削除
+
+  // 数字を検証してから、1~12の範囲にあるか確認
+  const monthNumber = parseInt(formattedMonth, 10);
+  if (1 <= monthNumber && monthNumber < 12) {
+    return monthNumber.toString(); // 月はtext型で管理しているため文字列に変換
+  } else {
+    return null; // 範囲外の場合はnullを返す
+  }
+
+  // 1~12までを許容 全角は半角へ、12月の月は除去するフォーマット
+  // // 「月」が含まれている場合は削除 $1は最初のキャプチャグループの(\d+) 1~12のみ残す(1~12月なら)
+  // formattedMonth = formattedMonth.replace(/(\d+)(月)($)/g, "$1");
+
+  // // 1~12までの値のどれかに一致しているかをチェック
+  // const isValid =
+  //   /^(1[0-2]|[1-9])$/.test(formattedMonth) && parseInt(formattedMonth, 10) >= 1 && parseInt(formattedMonth, 10) <= 12;
+
+  // // isValidとformattedMonthをリターン
+  // return isValid ? formattedMonth : null;
+}
+
+// 🔸資本金(capital)の正規化・標準化 -----------------------------------
+// ~万単位にフォーマット
+// 1000のみの場合は1000, (兆,億,万,円が付いていない場合はそのまま)
+// 12,500,000円 => 1250,
+// 100万 => 100,
+// 1億 => 10000
+function normalizeCapital(value) {
+  if (!value) return null;
+
+  let normalizedValue = value
+    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0)) // 全角数字を半角に変換
+    .replace(/[\s　]/g, ""); // スペースを削除
+
+  // 「半角数字と兆億万円」以外の文字を削除
+  const formattedValue = normalizedValue.replace(/[^0-9兆億万円]/g, "");
+
+  // 「兆」「億」「万」「円」を万円単位の数字に変換
+  const convertedMillions = convertToMillions(formattedValue);
+
+  if (convertedMillions !== null && !isNaN(convertedMillions)) {
+    return convertedMillions;
+  } else {
+    return null;
+  }
+}
+
+// 🔸設立年(設立年月・年月日)(established_in)の正規化・標準化 -----------------------------------
+/* 形式統一 日本・英語圏両方に対応可能なフォーマットに変換 (ISO 8601形式（YYYY-MM-DD))
+// postgreSQL: 1999-01-08	ISO 8601。すべてのモードで1月8日になります（推奨書式）。
+
+1992年1月 => 1992-01 
+1992年1月1日 => 1992-01-01
+昭和45年12月 => 1970-12
+平成4年 => 1992
+
 */
 
-function validateAndNormalizeEstablish(dateStr) {
-  dateStr = dateStr.trim(); // 基本的なトリミング
+function normalizeDate(inputDate) {
+  if (!inputDate) return null;
+  str = str.trim(); // 基本的なトリミング
+
+  // 元号を西暦に変換するマップ
+  const eraToYear = {
+    大正: 1911, // 大正元年は1912年
+    昭和: 1925, // 昭和元年は1926年ですが、計算のために1925を基準にする
+    平成: 1988, // 平成元年は1989年
+    令和: 2018, // 令和元年は2017年
+  };
+
+  // 日付の全角数字を半角に変換
+  let normalizedDate = inputDate.replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0));
+
+  // 元号があるか確認し、あれば西暦に変換
+  Object.keys(eraToYear).forEach((era) => {
+    if (normalizedDate.includes(era)) {
+      const yearOffset = eraToYear[era];
+      const yearRegex = new RegExp(`${era}([0-9]+)年`);
+      const yearMatch = normalizedDate.match(yearRegex);
+      if (yearMatch) {
+        const year = parseInt(yearMatch[1], 10) + yearOffset; // 平成4年なら1988から4年プラスにオフセットすると1992年
+        normalizedDate = normalizedDate.replace(yearRegex, `${year}年`); // 平成4年12月 => 1992年12月に変換
+      }
+    }
+  });
+
+  // 日付フォーマットを ISO 8601 に変換
+  normalizedDate = normalizedDate
+    .replace(/(\d{4})年(\d{1,2})月(\d{1,2})日?/, "$1-$2-$3") // yyyy-MM-ddの形式にフォーマット
+    .replace(/(\d{4})年(\d{1,2})月/, "$1-$2") // yyyy-MMの形式にフォーマット
+    .replace(/(\d{4})年/, "$1"); // yyyyの形式にフォーマット
+
+  // 日付が正しいフォーマットになっているか確認
+  const regexPatterns = [
+    /^(\d{4})-(\d{1,2})-(\d{1,2})$/, // yyyy-MM-dd
+    /^(\d{4})-(\d{1,2})$/, // yyyy-MM
+    /^(\d{4})$/, // yyyy
+  ];
+
+  // パターンに一致するか確認し、最初に合致したフォーマットに基づいて日付を返す
+  for (const pattern of regexPatterns) {
+    if (pattern.test(normalizedDate)) {
+      return normalizedDate;
+    }
+  }
+
+  return null; // フォーマットが正しくない場合は null を返す
+}
+
+// 🔸法人番号(corporate_number)の正規化・標準化 -----------------------------------
+// 13桁で保存されているためこのままチェック
+// 4120001051530: 株式会社キーエンス
+function normalizeCorporateNumber(input) {
+  // 数字を半角に変換して、半角数字以外を除去
+  const normalizedNumber = input
+    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0)) // 全角数字を半角に変換
+    .replace(/[^0-9]/g, ""); // 半角数字のみ除去
+
+  // 半角数字7桁を許容
+  const regex = /^[0-9]{13}$/; // 半角数字13桁のみかチェック
+  const isValid = regex.test(normalizedNumber);
+
+  return isValid ? normalizedNumber : null;
 }
 
 // 🔸日付変換のヘルパー関数 -----------------------------------
@@ -647,24 +1012,6 @@ function transformToDate(dateStr) {
   dateStr = dateStr.trim(); // 基本的なトリミング
   const date = new Date(dateStr);
   return !isNaN(date.getTime()) ? date.toISOString().substring(0, 10) : null;
-}
-
-// 🔸決算月の正規化・標準化 -----------------------------------
-function validateAndNormalizeOnlyMonth(month) {
-  month = month.trim(); // 基本的なトリミング
-  // 1~12までを許容 全角は半角へ、12月の月は除去するフォーマット
-  let formattedMonth;
-  formattedMonth = month.replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0));
-
-  // 「月」が含まれている場合は削除 $1は最初のキャプチャグループの(\d+) 1~12のみ残す(1~12月なら)
-  formattedMonth = formattedMonth.replace(/(\d+)(月)($)/g, "$1");
-
-  // 1~12までの値のどれかに一致しているかをチェック
-  const isValid =
-    /^(1[0-2]|[1-9])$/.test(formattedMonth) && parseInt(formattedMonth, 10) >= 1 && parseInt(formattedMonth, 10) <= 12;
-
-  // isValidとformattedMonthをリターン
-  return isValid ? formattedMonth : null;
 }
 
 // -----------------------------------🔸カラムごとの前処理関数🔸-----------------------------------
@@ -854,8 +1201,42 @@ function transformData(csvValue, dbField) {
       processedValue = normalizeWebSiteURL(processedValue);
       break;
 
-    case "email": // ホームページURL・WebサイトURL
+    case "email": // Email
       processedValue = normalizeEmail(processedValue);
+      break;
+
+    case "industry_type_id": // 業種
+      processedValue = normalizeIndustryType(processedValue);
+      break;
+
+    case "industry_large": // 業界(大分類)
+      processedValue = normalizeIndustryLarge(processedValue);
+      break;
+
+    case "industry_small": // 業界(小分類)
+      processedValue = normalizeIndustrySmall(processedValue);
+      break;
+
+    case "number_of_employees": // 従業員数
+      processedValue = normalizeNumberOfEmployees(processedValue);
+      break;
+
+    case "fiscal_end_month": // 決算月
+    case "budget_request_month1": // 予算申請月
+    case "budget_request_month2": // 予算申請月
+      processedValue = normalizeMonth(processedValue);
+      break;
+
+    case "capital": // 資本金
+      processedValue = normalizeCapital(processedValue);
+      break;
+
+    case "established_in": // 設立
+      processedValue = normalizeDate(processedValue);
+      break;
+
+    case "corporate_number": // 法人番号
+      processedValue = normalizeCorporateNumber(processedValue);
       break;
 
     case "chairperson": // 会長
@@ -871,15 +1252,18 @@ function transformData(csvValue, dbField) {
       processedValue = normalizeRepresentativeName(processedValue);
       break;
 
-    case "established_in":
-      // 設立日の前処理: 日付形式の検証と変換
-      processedValue = transformToDate(processedValue);
+    case "clients": // 取引先(納入先)
+    case "supplier": // 仕入先
+    case "business_sites": // 事業拠点
+    case "overseas_bases": // 海外拠点
+    case "group_company": // グループ会社
+      processedValue = normalizeCompanies(processedValue);
       break;
 
-    case "capital":
-      // 資本金の前処理: 数値変換
-      processedValue = parseInt(processedValue.replace(/,/g, ""), 10);
-      if (isNaN(processedValue)) processedValue = 0;
+    case "business_content": // 事業概要
+    case "facility": // 設備
+    case "department_contacts": // 連絡先(部署別)
+      processedValue = normalizeCorporateNumber(processedValue);
       break;
 
     default:
