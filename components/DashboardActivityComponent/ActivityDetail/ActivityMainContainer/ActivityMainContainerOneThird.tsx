@@ -1802,7 +1802,7 @@ const ActivityMainContainerOneThirdMemo = () => {
       // Zustandに検索条件を格納
       setNewSearchActivity_Contact_CompanyParams(params);
 
-      // 選択中の列データをリセット
+      // 選択中の行データをリセット
       setSelectedRowDataActivity(null);
 
       console.log("✅ 条件 params", params);

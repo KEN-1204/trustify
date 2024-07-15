@@ -2,20 +2,21 @@
 
 export function validateAndFormatPhoneNumber(phoneNumber: string): { isValid: boolean; formattedNumber: string } {
   // 全角数字、ハイフン、プラス、括弧を半角に変換
-  const halfWidth = phoneNumber
+  const halfWidthTel = phoneNumber
     .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
-    .replace(/－/g, "-")
-    .replace(/ー/g, "-")
-    .replace(/−/g, "-")
+    .replace(/[\-−ー－]/g, "-") // ハイフンの種類を統一
     .replace(/＋/g, "+")
     .replace(/（/g, "(")
-    .replace(/）/g, ")");
+    .replace(/）/g, ")")
+    .replace(/[\s　]+/g, ""); // 全角・半角スペースを削除
 
-  // スペースを削除
-  const formattedNumber = halfWidth.replace(/\s/g, "");
+  // 不適切な文字の削除（数字、ハイフン、プラス、括弧以外を削除）
+  const formattedNumber = halfWidthTel.replace(/[^\d\-\+\(\)]/g, "");
 
   // バリデーションチェック 数字、半角ハイフン、プラス記号、括弧を許容
   const isValid = /^[\d\-\+\(\)]+$/.test(formattedNumber);
+  // バリデーションチェック（日本の電話番号フォーマットに適応）
+  // const regexPhone = /^\+?81\d{1,4}-\d{1,4}-\d{4}$/; // 日本の国際電話番号の例 +81-XX-XXXX-XXXX
 
   return { isValid, formattedNumber };
 }

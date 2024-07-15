@@ -534,7 +534,7 @@ export const getOccupationName = (Num: number, language: string = "ja") => {
 
 // ----------------------------------- CSVインポート関連 -----------------------------------
 // 🔸選択必須の選択肢
-export const requiredImportColumnOptionsSet = new Set(["name", "address"]);
+export const requiredImportColumnOptionsSet = new Set(["corporate_name", "address"]);
 
 // 🔸CSVデータインポート時に使用するclient_companiesテーブルのカラムリスト
 export const optionsClientCompaniesColumnFieldForInsertArray = [
@@ -547,7 +547,9 @@ export const optionsClientCompaniesColumnFieldForInsertArray = [
   // "created_by_section_of_user",
   // "created_by_unit_of_user",
   // "created_by_office_of_user",
-  "name", // 会社名
+  // "name", // 会社名
+  "corporate_name", // 法人名
+  "branch_name", // 拠点名
   "department_name", // 部署名
   "main_phone_number", // 代表TEL
   "main_fax", // 代表FAX
@@ -631,11 +633,13 @@ export const optionsClientCompaniesColumnFieldForInsertArray = [
 
 export const mappingClientCompaniesFiledToNameForInsert: { [key: string]: { [key: string]: string } } = {
   name: { ja: `会社名`, en: `` },
+  corporate_name: { ja: `法人名`, en: `` },
+  branch_name: { ja: `拠点名`, en: `` },
   department_name: { ja: `部署名`, en: `` },
   main_phone_number: { ja: `代表TEL(電話番号)`, en: `` },
   main_fax: { ja: `代表FAX`, en: `` },
   zipcode: { ja: `郵便番号`, en: `` },
-  address: { ja: `住所`, en: `` },
+  address: { ja: `住所(所在地)`, en: `` },
   department_contacts: { ja: `連絡先(部署別)`, en: `` },
   industry_large: { ja: `業界(大分類)`, en: `` }, // セールスフォース用
   industry_small: { ja: `業界(小分類)`, en: `` }, // セールスフォース用

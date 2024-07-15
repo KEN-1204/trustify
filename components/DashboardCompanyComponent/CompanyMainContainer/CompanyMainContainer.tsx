@@ -136,6 +136,7 @@ const CompanyMainContainerMemo: FC = () => {
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   // 上画面の選択中の列データ会社
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+  const setSelectedRowDataCompany = useDashboardStore((state) => state.setSelectedRowDataCompany);
   // 「条件に一致する全ての会社をフェッチするか」、「条件に一致する自社で作成した会社のみをフェッチするか」の抽出条件を保持
   const isFetchAllCompanies = useDashboardStore((state) => state.isFetchAllCompanies);
   const setIsFetchAllCompanies = useDashboardStore((state) => state.setIsFetchAllCompanies);
@@ -1236,7 +1237,11 @@ const CompanyMainContainerMemo: FC = () => {
       // Zustandに検索条件を格納
       setNewSearchCompanyParams(params);
 
+      // 選択中の行データをリセット
+      setSelectedRowDataCompany(null);
+
       console.log("✅ params", params);
+
       // const { data, error } = await supabase.rpc("search_companies", { params });
 
       // 会社IDがnull、つまりまだ有料アカウントを持っていないユーザー
@@ -1569,7 +1574,7 @@ const CompanyMainContainerMemo: FC = () => {
           formattedValue = convertToMillions(formatHalfInput.trim());
           // nullは許容するため、isNaNチェックは入力されている場合にチェックする
           if (formattedValue !== null && isNaN(formattedValue)) {
-            toast.error("資本金は万円単位の数値のみ入力してください。");
+            toast.error("資本金は万円単位の数値のみ入力してください");
             setInputCapital(
               selectedRowDataCompany && isValidNumber(selectedRowDataCompany.capital)
                 ? selectedRowDataCompany.capital!.toString()
@@ -1581,10 +1586,10 @@ const CompanyMainContainerMemo: FC = () => {
         if (fieldName === "number_of_employees") {
           formattedValue = parseInt(toHalfWidthAndSpace(inputNumberOfEmployees.trim()), 10);
           if (formattedValue !== null && isNaN(formattedValue)) {
-            toast.error("資本金は万円単位の数値のみ入力してください。");
-            setInputCapital(
-              selectedRowDataCompany && isValidNumber(selectedRowDataCompany.capital)
-                ? selectedRowDataCompany.capital!.toString()
+            toast.error("従業員数は数値のみ入力してください");
+            setInputNumberOfEmployees(
+              selectedRowDataCompany && isValidNumber(selectedRowDataCompany.number_of_employees)
+                ? selectedRowDataCompany.number_of_employees!.toString()
                 : ""
             );
             return;
@@ -1706,6 +1711,57 @@ const CompanyMainContainerMemo: FC = () => {
       "value",
       value
     );
+
+    // -----------------------------------🔸int4, int8ルート🔸
+    // 資本金などのint4(integer), int8(BIGINT)などは数値型に変換して入力値と現在のvalueを比較する
+    if (["capital", "number_of_employees"].includes(fieldName)) {
+      let formattedValue = value.trim() || null; // 空文字はnullをセット
+      if (fieldName === "capital") {
+        const formatHalfInput = toHalfWidthAndRemoveSpace(formattedValue);
+        formattedValue = convertToMillions(formatHalfInput.trim());
+        // nullは許容するため、isNaNチェックは入力されている場合にチェックする
+        if (formattedValue !== null && isNaN(formattedValue)) {
+          toast.error("資本金は万円単位の数値のみ入力してください");
+          setInputCapital(
+            selectedRowDataCompany && isValidNumber(selectedRowDataCompany.capital)
+              ? selectedRowDataCompany.capital!.toString()
+              : ""
+          );
+          return;
+        }
+      }
+      if (fieldName === "number_of_employees") {
+        formattedValue = parseInt(toHalfWidthAndSpace(inputNumberOfEmployees.trim()), 10);
+        if (formattedValue !== null && isNaN(formattedValue)) {
+          toast.error("従業員数は数値のみ入力してください");
+          setInputNumberOfEmployees(
+            selectedRowDataCompany && isValidNumber(selectedRowDataCompany.number_of_employees)
+              ? selectedRowDataCompany.number_of_employees!.toString()
+              : ""
+          );
+          return;
+        }
+      }
+
+      if (selectedRowDataCompany[fieldName] === formattedValue) {
+        console.log("数値型に変換 同じためリターン", fieldName, "formattedValue", formattedValue);
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
+
+      const updatePayload = {
+        fieldName: fieldName,
+        value: formattedValue,
+        id: id,
+      };
+      // 入力変換確定状態でエンターキーが押された場合の処理
+      console.log("onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行 updatePayload", updatePayload);
+      await updateClientCompanyFieldMutation.mutateAsync(updatePayload);
+      setIsEditModeField(null); // エディットモードを終了
+
+      return;
+    }
+    // -----------------------------------🔸int4, int8ルート🔸 ここまで
 
     // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
     if (selectedRowDataCompany[fieldName] === value) {
@@ -2068,7 +2124,9 @@ const CompanyMainContainerMemo: FC = () => {
 
   // 資本金の変換をメモ化
   const convertedCapital = useMemo(() => {
-    return selectedRowDataCompany?.capital ? convertToJapaneseCurrencyFormat(selectedRowDataCompany.capital) : "";
+    return selectedRowDataCompany && isValidNumber(selectedRowDataCompany?.capital)
+      ? convertToJapaneseCurrencyFormat(selectedRowDataCompany.capital!)
+      : "";
   }, [selectedRowDataCompany?.capital]);
 
   // フィールドエディットタイトル
@@ -8509,7 +8567,7 @@ const CompanyMainContainerMemo: FC = () => {
                   >
                     検索
                   </button>
-                  <button
+                  {/* <button
                     type="button"
                     className={`${styles.btn} transition-base02 ${
                       isOpenSidebar ? "min-h-[30px] text-[14px]" : `min-h-[38px] text-[15px]`
@@ -8543,8 +8601,8 @@ const CompanyMainContainerMemo: FC = () => {
                     }}
                   >
                     テスト
-                  </button>
-                  <button
+                  </button> */}
+                  {/* <button
                     type="button"
                     className={`${styles.btn} transition-base02 ${
                       isOpenSidebar ? "min-h-[30px] text-[14px]" : `min-h-[38px] text-[15px]`
@@ -8642,17 +8700,15 @@ const CompanyMainContainerMemo: FC = () => {
                             // const { error } = await supabase.from("tests").insert(chunkedTownsArray[0]);
                             // if (error) throw error;
 
-                            /* 🔺バルクインサート 行数・サイズ別インサート時間
-                            ※(SupabaseのSQLステートメント実行時間デフォルトタイムアウト値8秒)
+                            // 🔺バルクインサート 行数・サイズ別インサート時間
+                            // ※(SupabaseのSQLステートメント実行時間デフォルトタイムアウト値8秒)
                             
-                            ○5000行 リクエストボディサイズ 1.6MB  秒数: 1.6秒
-                            ○10000行 リクエストボディサイズ 3.2MB  秒数: 4秒
+                            // ○5000行 リクエストボディサイズ 1.6MB  秒数: 1.6秒
+                            // ○10000行 リクエストボディサイズ 3.2MB  秒数: 4秒
                             
-                            【12万行】
-                            ○5000行/チャンク サイズ:1.6MB/チャンク * 24 合計38.4MB  合計秒数43秒
-                            ○10000行/チャンク サイズ:3.2MB/チャンク * 12 合計38.4MB  合計秒数38秒
-
-                            */
+                            // 【12万行】
+                            // ○5000行/チャンク サイズ:1.6MB/チャンク * 24 合計38.4MB  合計秒数43秒
+                            // ○10000行/チャンク サイズ:3.2MB/チャンク * 12 合計38.4MB  合計秒数38秒
                             for (const iterator of chunkedTownsArray.entries()) {
                               const [index, array] = iterator;
                               const chunkCount = index + 1;
@@ -8706,8 +8762,8 @@ const CompanyMainContainerMemo: FC = () => {
                     }}
                   >
                     カスタム
-                  </button>
-                  <button
+                  </button> */}
+                  {/* <button
                     type="button"
                     className={`${styles.btn} transition-base02 ${
                       isOpenSidebar ? "min-h-[30px] text-[14px]" : `min-h-[38px] text-[15px]`
@@ -8724,7 +8780,7 @@ const CompanyMainContainerMemo: FC = () => {
                     }}
                   >
                     ロード
-                  </button>
+                  </button> */}
                   {/* {progressInserted !== 0 && (
                     <div className={`flex-col-center space-y-[10px]`}>
                       <SpinnerX />

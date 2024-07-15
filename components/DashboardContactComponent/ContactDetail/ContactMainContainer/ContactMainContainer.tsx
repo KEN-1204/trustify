@@ -1226,10 +1226,11 @@ const ContactMainContainerMemo: FC = () => {
       // Zustandに検索条件を格納
       setNewSearchContact_CompanyParams(params);
 
-      // 選択中の列データをリセット
+      // 選択中の行データをリセット
       setSelectedRowDataContact(null);
 
       console.log("✅ 条件 params", params);
+
       // const { data, error } = await supabase.rpc("search_companies", { params });
       // const { data, error } = await supabase.rpc("", { params });
 
@@ -1478,12 +1479,7 @@ const ContactMainContainerMemo: FC = () => {
         " ・新たな値:",
         newValue
       );
-      // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
-      if (originalValue === newValue) {
-        console.log("同じためリターン");
-        setIsEditModeField(null); // エディットモードを終了
-        return;
-      }
+      // -----------------------------------🔸int4, int8ルート🔸
       // 決裁金額などのint4(integer), int8(BIGINT)などは数値型に変換して入力値と現在のvalueを比較する
       // ダブルクリック時は〜万円になっているため、convertToMillions関数を通して検証する 決裁金額がnullならそのままnullでUPDATE
       if (["approval_amount"].includes(fieldName) && !!newValue) {
@@ -1493,25 +1489,49 @@ const ContactMainContainerMemo: FC = () => {
           "新たな値",
           newValue
         );
-        // 数字を含んでいるかチェック
-        if (/\d/.test(originalValue) && /\d/.test(newValue)) {
-          console.log(
-            "数字を含んでいるかチェック 含んでいるため同じかチェック",
-            "convertToMillions(originalValue)",
-            convertToMillions(originalValue),
-            "newValue",
-            newValue
-          );
-          if (convertToMillions(originalValue) === newValue) {
-            console.log("数値型に変換 同じためリターン");
-            setIsEditModeField(null); // エディットモードを終了
+        let formattedValue = newValue.trim() || null; // 空文字はnullをセット
+
+        if (fieldName === "approval_amount") {
+          const formatHalfInput = toHalfWidthAndRemoveSpace(formattedValue);
+          formattedValue = convertToMillions(formatHalfInput.trim());
+          // nullは許容するため、isNaNチェックは入力されている場合にチェックする
+          if (formattedValue !== null && isNaN(formattedValue)) {
+            toast.error("決裁金額は数値のみ入力してください");
+            setInputApprovalAmount(
+              selectedRowDataContact && isValidNumber(selectedRowDataContact.approval_amount)
+                ? selectedRowDataContact.approval_amount!.toString()
+                : ""
+            );
             return;
           }
-        } else {
-          // 決裁金額が数値を含まない文字列の場合はエラー
-          toast.error(`エラー：有効なデータではありません。`, { autoClose: 3000 });
-          return console.log("決裁金額が数値を含まないエラー リターン");
         }
+        if (selectedRowDataContact[fieldNameForSelectedRowData] === formattedValue) {
+          console.log("数値型に変換 同じためリターン", fieldName, "formattedValue", formattedValue);
+          setIsEditModeField(null); // エディットモードを終了
+          return;
+        }
+
+        const updatePayload = {
+          fieldName: fieldName,
+          fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+          newValue: formattedValue,
+          id: id,
+        };
+        // 入力変換確定状態でエンターキーが押された場合の処理
+        console.log("onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行 updatePayload", updatePayload);
+        await updateContactFieldMutation.mutateAsync(updatePayload);
+        originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+        setIsEditModeField(null); // エディットモードを終了
+
+        return;
+      }
+      // -----------------------------------🔸int4, int8ルート🔸ここまで
+
+      // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+      if (originalValue === newValue) {
+        console.log("同じためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
       }
 
       const updatePayload = {
@@ -1637,8 +1657,9 @@ const ContactMainContainerMemo: FC = () => {
       newValue
     );
 
+    // -----------------------------------🔸int4, int8ルート🔸
     // 決裁金額などのint4(integer), int8(BIGINT)などは数値型に変換して入力値と現在のvalueを比較する
-    // ダブルクリック時は〜万円になっているため、convertToMillions関数を通して検証する
+    // ダブルクリック時は〜万円になっているため、convertToMillions関数を通して検証する 決裁金額がnullならそのままnullでUPDATE
     if (["approval_amount"].includes(fieldName) && !!newValue) {
       console.log(
         "フィールドアップデート 決裁金額approval_amountチェック オリジナル",
@@ -1646,28 +1667,46 @@ const ContactMainContainerMemo: FC = () => {
         "新たな値",
         newValue
       );
-      // 数字を含んでいるかチェック
-      if (/\d/.test(originalValue) && /\d/.test(newValue)) {
-        console.log(
-          "数字を含んでいるかチェック 含んでいるため同じかチェック",
-          "convertToMillions(originalValue)",
-          convertToMillions(originalValue),
-          "newValue",
-          newValue
-        );
-        if (convertToMillions(originalValue) === newValue) {
-          console.log("数値型に変換 同じためリターン");
-          setIsEditModeField(null); // エディットモードを終了
+      let formattedValue = newValue.trim() || null; // 空文字はnullをセット
+
+      if (fieldName === "approval_amount") {
+        const formatHalfInput = toHalfWidthAndRemoveSpace(formattedValue);
+        formattedValue = convertToMillions(formatHalfInput.trim());
+        // nullは許容するため、isNaNチェックは入力されている場合にチェックする
+        if (formattedValue !== null && isNaN(formattedValue)) {
+          toast.error("決裁金額は数値のみ入力してください");
+          setInputApprovalAmount(
+            selectedRowDataContact && isValidNumber(selectedRowDataContact.approval_amount)
+              ? selectedRowDataContact.approval_amount!.toString()
+              : ""
+          );
           return;
         }
-      } else {
-        // 決裁金額が数値を含まない文字列の場合はエラー
-        toast.error(`エラー：有効なデータではありません。`, { autoClose: 3000 });
-        return console.log("決裁金額が数値を含まないエラー リターン");
       }
+      if (selectedRowDataContact[fieldNameForSelectedRowData] === formattedValue) {
+        console.log("数値型に変換 同じためリターン", fieldName, "formattedValue", formattedValue);
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
+
+      const updatePayload = {
+        fieldName: fieldName,
+        fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+        newValue: formattedValue,
+        id: id,
+      };
+      // sendアイコンクリック場合の処理
+      console.log("sendアイコンクリックでUPDATE実行 updatePayload", updatePayload);
+      await updateContactFieldMutation.mutateAsync(updatePayload);
+      originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+      setIsEditModeField(null); // エディットモードを終了
+
+      return;
     }
+    // -----------------------------------🔸int4, int8ルート🔸ここまで
+
     // 決裁金額以外で入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
-    else if (originalValue === newValue) {
+    if (originalValue === newValue) {
       console.log("同じためリターン", "originalValue", originalValue, "newValue", newValue);
       setIsEditModeField(null); // エディットモードを終了
       return;
@@ -1679,7 +1718,7 @@ const ContactMainContainerMemo: FC = () => {
       newValue: newValue,
       id: id,
     };
-    // 入力変換確定状態でエンターキーが押された場合の処理
+    // sendアイコンクリック場合の処理
     console.log("sendアイコンクリックでUPDATE実行 updatePayload", updatePayload);
     await updateContactFieldMutation.mutateAsync(updatePayload);
     originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
@@ -1742,6 +1781,20 @@ const ContactMainContainerMemo: FC = () => {
     setIsEditModeField(null); // エディットモードを終了
   };
   // ================== ✅セレクトボックスで個別フィールドをアップデート ==================
+
+  // 資本金の変換をメモ化
+  const convertedCapital = useMemo(() => {
+    return selectedRowDataContact && isValidNumber(selectedRowDataContact?.capital)
+      ? convertToJapaneseCurrencyFormat(selectedRowDataContact.capital!)
+      : "";
+  }, [selectedRowDataContact?.capital]);
+
+  // 決裁金額の変換をメモ化
+  const convertedApprovalAmount = useMemo(() => {
+    return selectedRowDataContact && isValidNumber(selectedRowDataContact?.approval_amount)
+      ? convertToJapaneseCurrencyFormat(selectedRowDataContact.approval_amount!)
+      : "";
+  }, [selectedRowDataContact?.approval_amount]);
 
   // フィールドエディットタイトル
   const fieldEditTitle = (title: string) => (isEditModeField === title ? `${styles.field_edit}` : ``);
@@ -3807,6 +3860,10 @@ const ContactMainContainerMemo: FC = () => {
                           e,
                           field: "approval_amount",
                           dispatch: setInputApprovalAmount,
+                          selectedRowDataValue:
+                            selectedRowDataContact && isValidNumber(selectedRowDataContact.approval_amount)
+                              ? selectedRowDataContact.approval_amount!.toString()
+                              : "",
                         });
                       }}
                       onMouseEnter={(e) => {
@@ -3816,9 +3873,7 @@ const ContactMainContainerMemo: FC = () => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                       }}
                     >
-                      {selectedRowDataContact?.approval_amount
-                        ? convertToJapaneseCurrencyFormat(selectedRowDataContact?.approval_amount)
-                        : ""}
+                      {convertedApprovalAmount}
                     </span>
                   )}
                   {searchMode && (
@@ -3953,16 +4008,9 @@ const ContactMainContainerMemo: FC = () => {
                             fieldName: "approval_amount",
                             fieldNameForSelectedRowData: "approval_amount",
                             originalValue: originalValueFieldEdit.current,
-                            newValue:
-                              !!inputApprovalAmount && inputApprovalAmount !== ""
-                                ? convertToMillions(inputApprovalAmount.trim())
-                                : "",
-                            // newValue:
-                            //   !!inputApprovalAmount && inputApprovalAmount !== ""
-                            //     ? (convertToMillions(inputApprovalAmount.trim()) as number).toString()
-                            //     : "",
+                            newValue: inputApprovalAmount,
                             id: selectedRowDataContact?.contact_id,
-                            required: true,
+                            required: false,
                           })
                         }
                       />
@@ -3977,19 +4025,12 @@ const ContactMainContainerMemo: FC = () => {
                               fieldName: "approval_amount",
                               fieldNameForSelectedRowData: "approval_amount",
                               originalValue: originalValueFieldEdit.current,
-                              newValue:
-                                !!inputApprovalAmount && inputApprovalAmount !== ""
-                                  ? convertToMillions(inputApprovalAmount.trim())
-                                  : "",
-                              // newValue:
-                              //   !!inputApprovalAmount && inputApprovalAmount !== ""
-                              //     ? (convertToMillions(inputApprovalAmount.trim()) as number).toString()
-                              //     : "",
+                              newValue: inputApprovalAmount,
                               id: selectedRowDataContact?.contact_id,
                               required: true,
                             })
                           }
-                          required={true}
+                          required={false}
                           isDisplayClose={false}
                         />
                       )}
@@ -4493,9 +4534,7 @@ const ContactMainContainerMemo: FC = () => {
                       }}
                     >
                       {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
-                      {selectedRowDataContact?.capital
-                        ? convertToJapaneseCurrencyFormat(selectedRowDataContact.capital)
-                        : ""}
+                      {convertedCapital}
                     </span>
                   )}
                   {searchMode && (

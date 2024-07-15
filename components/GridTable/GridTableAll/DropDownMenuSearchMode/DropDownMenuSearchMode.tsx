@@ -50,9 +50,15 @@ const mappingSearchType: { [key: string]: { [key: string]: string } } = {
 type Props = {
   setIsOpenDropdownMenuSearchMode: Dispatch<SetStateAction<boolean>>;
   isFetchCompanyType?: boolean;
+  setSelectedRowData: (payload: any | null) => void; // 自社のみ全ての切り替え時のリセット用
 };
 
-export const DropDownMenuSearchMode = ({ setIsOpenDropdownMenuSearchMode, isFetchCompanyType = true }: Props) => {
+// モード設定 会社画面は「自社専用 or 全ての企業」あり、オート検索・マニュアル検索切り替え
+export const DropDownMenuSearchMode = ({
+  setIsOpenDropdownMenuSearchMode,
+  isFetchCompanyType = true,
+  setSelectedRowData,
+}: Props) => {
   const language = useStore((state) => state.language);
   const isFetchAllCompanies = useDashboardStore((state) => state.isFetchAllCompanies);
   const setIsFetchAllCompanies = useDashboardStore((state) => state.setIsFetchAllCompanies);
@@ -255,6 +261,8 @@ export const DropDownMenuSearchMode = ({ setIsOpenDropdownMenuSearchMode, isFetc
                       setIsOpenDropdownMenuSearchMode(false);
                       // Allならtrue、Ownならfalseをクエリキーに渡す
                       setIsFetchAllCompanies(e.target.value === "All");
+                      // 選択行をリセット
+                      if (setSelectedRowData) setSelectedRowData(null);
                     }}
                   >
                     <option value="All">全ての会社</option>
@@ -302,6 +310,9 @@ export const DropDownMenuSearchMode = ({ setIsOpenDropdownMenuSearchMode, isFetc
                     // await queryClient.removeQueries({ queryKey: ["companies"] });
                     // 現在取得しているクエリのキャッシュを全て削除し、再取得
                     // await queryClient.resetQueries({ queryKey: ["companies"] });
+
+                    // 選択行をリセット
+                    if (setSelectedRowData) setSelectedRowData(null);
                   }}
                 >
                   {optionsSearchType.map((option) => (

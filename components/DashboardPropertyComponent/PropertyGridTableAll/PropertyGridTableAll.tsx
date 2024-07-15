@@ -3426,6 +3426,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                   <DropDownMenuSearchMode
                     setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuSearchMode}
                     isFetchCompanyType={false}
+                    setSelectedRowData={setSelectedRowDataProperty}
                   />
                 )}
               </button>
@@ -3473,7 +3474,10 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                   フィルター
                 </span>
                 {isOpenDropdownMenuFilter && (
-                  <DropDownMenuSearchModeDetail setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuFilter} />
+                  <DropDownMenuSearchModeDetail
+                    setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuFilter}
+                    setSelectedRowData={setSelectedRowDataProperty}
+                  />
                 )}
               </button>
               {/* <button

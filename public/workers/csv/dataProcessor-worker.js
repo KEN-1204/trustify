@@ -33,7 +33,10 @@ self.onmessage = function (e) {
         let townId = null; // 郵便番号とaddress処理で得た町域リストを組み合わせてtown_idを取得
         let normalizedTownName = null;
         let streetAddress = null;
-        // カラムごとの前処理
+        let postalCode = null;
+
+        // ----------------------------------- カラムごとの前処理 -----------------------------------
+        // columnMap: CSVカラムヘッダー名 to DBフィールド名
         Array.from(columnMap.entries()).forEach(([csvHeader, dbField]) => {
           // 住所カラム
           if (dbField === "address") {
@@ -63,19 +66,25 @@ self.onmessage = function (e) {
             normalizedTownName = normalized_town_name;
             streetAddress = street_address;
 
-            processedRow[dbField] = address;
+            processedRow["address"] = address;
           }
 
           // 通常のカラム
           processedRow[dbField] = transformData(row[csvHeader], dbField);
         });
+        // ----------------------------------- カラムごとの前処理 -----------------------------------ここまで
 
         // ----------------------------------- town_idの取得 -----------------------------------
         // 郵便番号と正規化した町域名の2つで抽出するが、同じ組み合わせがある場合は後で手動で修正する
         if (0 < townsByCities.length && !!normalizedTownName) {
           // dbFieldにzipcodeカラムとaddressカラムが存在する場合は、town_idを取得する
           const dbFieldsArray = Array.from(columnMap.values());
-          if (dbFieldsArray.includes("address") && dbFieldsArray.includes("zipcode")) {
+          if (
+            dbFieldsArray.includes("address") &&
+            dbFieldsArray.includes("zipcode") &&
+            Object.hasOwn(processedRow, "zipcode") &&
+            !!processedRow["zipcode"]
+          ) {
             // 町域データから取得した郵便番号とnormalized_nameと一致する行を取得
             const gotTown = townsByCities.find(
               (obj) => obj.postal_code === processedRow["zipcode"] && obj.normalized_name === normalizedTownName
@@ -85,32 +94,81 @@ self.onmessage = function (e) {
             }
           }
         }
-        // ----------------------------------- town_idの取得 -----------------------------------
+        // ----------------------------------- town_idの取得 -----------------------------------ここまで
 
-        // 🔸処理後の行にcounty_idやregion_id, city_id, town_id, street_addressなどを追加してリターン
-        const addColumns = {
-          country_id: countryId ?? null,
-          region_id: regionId ?? null,
-          city_id: cityId ?? null,
-          town_id: townId ?? null,
-          street_address: streetAddress || null,
+        // ----------------------------------- 🔸処理後の行に不足分のカラムを追加🔸 -----------------------------------
+        // ○必須カラム：
+        // ・会社名(name) => 選択・前処理済みの法人名と拠点名を結合
+        // ・住所 => 選択済み
+        // ・部署名(department_name) => 選択されていない場合はピリオドをセット
+        // ・代表TEL(main_phone_number) => なくてもOK(メールやSNSのみでの営業にも対応するため)
+
+        // columnMap: CSVカラムヘッダー名 to DBフィールド名
+        const selectedDBFieldNamesArray = Array.from(columnMap.values());
+
+        // 【会社名(name)】
+        if (!Object.hasOwn(processedRow, "corporate_name")) throw new Error(`無効な法人名: `);
+        const _branch_name =
+          selectedDBFieldNamesArray.includes("branch_name") && Object.hasOwn(processedRow, "branch_name")
+            ? processedRow["branch_name"]
+            : "";
+        const name = (processedRow["corporate_name"] + " " + _branch_name).trim();
+
+        let addColumns = {
+          name: name, // 会社名(法人名 拠点名)
+          country_id: countryId ?? null, // 国コード
+          region_id: regionId ?? null, // 都道府県コード
+          city_id: cityId ?? null, // 市区町村コード
+          town_id: townId ?? null, // 町域コード
+          street_address: streetAddress || null, // 町域名+丁目+番地(番)+号+建物名
         };
 
-        const responseRow = { ...processedRow, ...addColumns };
+        // 【部署名(department_name)】
+        // カラムマップのvalue側のDBフィールド名の配列の中にdepartment_nameが存在しない場合はピリオドをセット
+        if (!selectedDBFieldNamesArray.includes("department_name")) {
+          addColumns = { ...addColumns, department_name: "." };
+        }
 
+        // 【規模(ランク)(number_of_employees_class)】
+        // number_of_employeesカラムが存在し、数字なら範囲でランク分け
+        if (
+          selectedDBFieldNamesArray.includes("number_of_employees") &&
+          Object.hasOwn(processedRow, "number_of_employees")
+        ) {
+          const EmployeesNum = processedRow["number_of_employees"];
+          if (EmployeesNum !== null && EmployeesNum !== undefined && typeof EmployeesNum === "number") {
+            let numberOfEmployeeClass = null;
+            if (0 < EmployeesNum && EmployeesNum < 50) numberOfEmployeeClass = "G";
+            if (50 <= EmployeesNum && EmployeesNum < 100) numberOfEmployeeClass = "F";
+            if (100 <= EmployeesNum && EmployeesNum < 200) numberOfEmployeeClass = "E";
+            if (200 <= EmployeesNum && EmployeesNum < 300) numberOfEmployeeClass = "D";
+            if (300 <= EmployeesNum && EmployeesNum < 500) numberOfEmployeeClass = "C";
+            if (500 <= EmployeesNum && EmployeesNum < 1000) numberOfEmployeeClass = "B";
+            if (1000 <= EmployeesNum) numberOfEmployeeClass = "A";
+            addColumns = { ...addColumns, number_of_employees_class: numberOfEmployeeClass };
+          }
+        }
+
+        const responseRow = { ...processedRow, ...addColumns };
+        // ----------------------------------- 🔸処理後の行に不足分のカラムを追加🔸 -----------------------------------ここまで
+
+        // 🔸mapイテレーションの結果として前処理完了後の行をリターン
         return responseRow;
       } catch (error) {
         // エラーが発生した場合は、その行は無効としてnullを返し最終的にfilter()で無効な行は取り除きインサート対象から除外する
         console.log("Worker: transformData関数エラー 無効な行のためスルー", error);
+
+        // 🔸mapイテレーションの結果として無効な行はnullをリターン
         return null;
       }
     })
-    .filter((row) => row !== null);
+    .filter((row) => row !== null); // 無効な行として扱われたnullの行を削除
 
+  // 🔸アップロードされたCSVデータの全ての行の前処理完了 => クライアントサイドに処理済みデータを返すとともに完了を通知
   return self.postMessage({ processedData });
 };
 
-// 🔸client_companiesテーブルのフィールドに応じた各カラムのデータ前処理を実行
+// -------------------- 🔸client_companiesテーブルのフィールドに応じた各カラムのデータ前処理を実行🔸 --------------------
 function transformData(csvValue, dbField) {
   // ここで型変換やデータクリーニングを行う
   // 例: 日付の変換、数値の変換、文字列のトリム等
@@ -118,19 +176,35 @@ function transformData(csvValue, dbField) {
   let processedValue = csvValue === "" ? null : csvValue.trim(); // 基本的なトリミング;
 
   switch (dbField) {
-    case "name": // 会社名
+    case "corporate_name": // 法人名
       if (!processedValue) throw new Error("会社名が空文字のためこの行はスルー");
-      // 会社名の前処理: 特定の不適切な文字を削除する例
+      // 法人名の前処理: 特定の不適切な文字を削除する例
       processedValue = normalizeCompanyName(processedValue);
+      break;
+
+    case "branch_name": // 拠点名
+      processedValue = normalizeBranchName(processedValue);
+      break;
+
+    case "department_name": // 部署名
+      processedValue = normalizeDepartmentName(processedValue);
+      break;
+
+    case "main_phone_number": // 代表TEL
+      processedValue = normalizePhoneNumber(processedValue);
+      break;
+
+    case "main_fax": // 代表FAX
+      processedValue = normalizeFax(processedValue);
+      break;
+
+    case "zipcode": // 郵便番号
+      processedValue = normalizePostalCode(processedValue);
       break;
 
     case "address": // 住所は別ルートで処理
       // 住所の前処理: 文字の正規化、例えば全角を半角に変換
       // processedValue = normalizeAddress(processedValue);
-      break;
-
-    case "department_name": // 部署名
-      processedValue = transformToDate(processedValue);
       break;
 
     case "established_in":
@@ -151,6 +225,7 @@ function transformData(csvValue, dbField) {
 
   return processedValue; // 変換後の値を返す
 }
+// -------------------- 🔸client_companiesテーブルのフィールドに応じた各カラムのデータ前処理を実行🔸 --------------------
 
 // -----------------------------------🔸主なデータ前処理🔸-----------------------------------
 /*
@@ -269,29 +344,127 @@ APIキーの使用：APIキーを使用して、APIの利用を認証し、未�
 */
 // -----------------------------------🔸主なデータ前処理🔸-----------------------------------ここまで
 
-// 🔸会社名の正規化・標準化 -----------------------------------
-
+// -----------------------------------🔸カラムごとの前処理関数🔸-----------------------------------
+// 🔸法人名(corporate_name)の正規化・標準化 -----------------------------------
+// 会社名は「法人名 拠点名」で最終的に結合してセット
 // 【正規表現の構成要素】
-// ・a-zA-Z0-9: 英数字
+// 【下記の指定した文字のみ会社名として許可 それ以外は空文字にリプレイス [^...]】
+
+// ・a-zA-Z0-9: 半角英数字
+// ・ａ-ｚＡ-Ｚ０-９: 全角英数字
 // ・ （半角スペース）
 // ・\u3000-\u303F：全角の記号と句読点(\u3000：全角スペース)
-// ・\u3040-\u309F: ひらがな
-// ・\u30A0-\u30FF: カタカナ
+// ・\u3040-\u309F: ひらがな   (\p{Hiragana})
+// ・\u30A0-\u30FF: 全角カタカナ  (\p{Katakana})
+// ・\uFF65-\uFF9F: 半角ｶﾀｶﾅ
+// ・\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF: 漢字  (\p{Han})
 // ・\u30FC: 全角の長音符(カタカナの長音符)
 // ・\u002D: 半角ハイフン（-）
 // ・\u002E: 半角ピリオド（.）
 // ・\u0027: 半角アポストロフィ（'） - 企業名における所有格や略語でよく使用されます（例: O'Reilly, Ben's）
 // ・\u005F: アンダースコア（_） - 特に技術関連の企業や製品名に使われることがあります
+// ・\uFF08: （ 全角括弧
+// ・\uFF09: ） 全角括弧
+// ・「(」（左半角括弧）: \u0028
+// ・「)」（右半角括弧）: \u0029
+// ・「・」（全角中点）: \u30FB
+// ・「･」（半角中点）: 通常、この文字は特定のUnicode値を持たず、一般的なJISやシフトJISの文字セットに存在するため、そのままセット
 
 function normalizeCompanyName(name) {
-  name = name.trim(); // 基本的なトリミング
-  return name.replace(/[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u002D\u002E\u0027\u005F]+/g, "");
+  // 全角英数字と全角スペースを半角に変換
+  let halfName = name
+    .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+    .replace(/　/g, " ")
+    .trim();
+  return halfName.replace(
+    /[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･]+/gu,
+    ""
+  );
 }
 
-// 🔸部署名の正規化・標準化 -----------------------------------
-function normalizeDepartmentName(name) {
-  name = name.trim(); // 基本的なトリミング
-  return name.replace(/[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u002D\u002E\u0027\u005F]+/g, "");
+// 🔸拠点名(branch_name)の正規化・標準化 -----------------------------------
+function normalizeBranchName(branchName) {
+  // 【正規表現の構成要素】
+  // => 会社名と同じ
+
+  // 空文字の場合はnullをセット
+  return branchName ? normalizeCompanyName(branchName) : null;
+}
+
+// 🔸部署名(department_name)の正規化・標準化 -----------------------------------
+function normalizeDepartmentName(department) {
+  // 【正規表現の構成要素】
+  // => 会社名と同じ
+
+  // 部署名が空文字の場合はピリオドをセット
+  return department ? normalizeCompanyName(department) : ".";
+}
+
+// 🔸代表TEL(main_phone_number)の正規化・標準化 -----------------------------------
+function normalizePhoneNumber(phoneNum) {
+  // 全角数字、ハイフン、プラス、括弧を半角に変換
+  const halfWidthTel = phoneNum
+    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+    .replace(/[\-−ー－]/g, "-") // ハイフンの種類を統一
+    .replace(/＋/g, "+")
+    .replace(/（/g, "(")
+    .replace(/）/g, ")")
+    .replace(/[\s　]+/g, ""); // 全角・半角スペースを削除
+
+  // 不適切な文字の削除（数字、ハイフン、プラス、括弧以外を削除）
+  const formattedNumber = halfWidthTel.replace(/[^\d\-\+\(\)]/g, "");
+
+  // バリデーションチェック
+  const regexPhone = /^[\d\-\+\(\)]+$/;
+  const isValid = regexPhone.test(formattedNumber);
+
+  return isValid ? formattedNumber : null;
+}
+
+// 🔸代表Fax(main_fax)の正規化・標準化 -----------------------------------
+function normalizeFax(fax) {
+  // => 代表TELと同じ
+  return normalizePhoneNumber(fax);
+}
+
+// 🔸郵便番号(zipcode)の正規化・標準化 -----------------------------------
+function normalizePostalCode(postalCode) {
+  /*
+日本の郵便番号の形式: 123-4567 または 1234567
+
+英語圏（例：アメリカ、イギリス）
+アメリカ（ZIP Code）: 基本形式は5桁の数字（例: 12345）、拡張形式では4桁の数字をハイフンで区切って追加（例: 12345-6789）。
+イギリス: 英字と数字の組み合わせで構成される複雑な形式（例: SW1A 1AA）。
+中国
+中国: 一般的に6桁の数字で構成される（例: 100000）。
+インド
+インド: 6桁の数字で構成されることが多い（例: 110001）。
+
+イギリス: 英字と数字を組み合わせ、スペースで区切る形式（例: SW1A 1AA）。
+アメリカ合衆国: 数字のみ、または数字にハイフンを含む形式（例: 12345、12345-6789）。
+カナダ: 英字と数字の組み合わせ、スペースまたはハイフンで区切る形式（例: K1A 0B1）。
+ヨーロッパの多くの国: 数字のみ、または数字と英字の組み合わせ（例: 1010、75008）。
+オーストラリア、インド、中国など: 主に数字のみの形式。
+*/
+  let formattedPostalCode = postalCode.trim(); // 基本的なトリミング;
+
+  // フォーマット
+  const halfWidth = formattedPostalCode
+    .replace(/[Ａ-Ｚａ-ｚ]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0)) //
+    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+    .replace(/　/g, " ") // 全角スペースを半角スペースに変換
+    .replace(/ー/g, "-") // 「ソニー」の「ー」長音符を半角ハイフンに変換
+    .replace(/－/g, "-") // 全角ハイフンを半角に変換
+    .replace(/−/g, "-"); // 全角ハイフンを半角に変換 // カタカナの長音記号も半角ハイフンに変換
+
+  // 郵便番号は7桁でハイフンなしにフォーマット (郵便局の町域データの郵便番号もハイフンなしのため)
+  formattedPostalCode = halfWidth.replace("-", "");
+
+  // 数字、英字、ハイフン、スペースを許容
+  const regex = /^[0-9A-Za-z\s\-]+$/;
+  const isValid = regex.test(formattedPostalCode);
+
+  return isValid ? formattedPostalCode : null;
 }
 
 // 🔸住所の正規化・標準化 データクレンジング -----------------------------------
@@ -355,7 +528,7 @@ function normalizeAddress(address, groupedTownsByRegionCity) {
     region_id: null,
     city_id: null,
     normalized_town_name: null,
-    grouped_towns_by_cities: null,
+    grouped_towns_by_cities: null, // 都道府県名・市区町村名に対応する町域リストとzipcodeの値を使用して、町域データを取得するため
   };
 
   try {
@@ -427,52 +600,11 @@ function normalizeAddress(address, groupedTownsByRegionCity) {
 }
 // -----------------------------------🔸address🔸-----------------------------------ここまで
 
-// 🔸郵便番号の正規化・標準化 -----------------------------------
-/*
-日本の郵便番号の形式: 123-4567 または 1234567
-
-英語圏（例：アメリカ、イギリス）
-アメリカ（ZIP Code）: 基本形式は5桁の数字（例: 12345）、拡張形式では4桁の数字をハイフンで区切って追加（例: 12345-6789）。
-イギリス: 英字と数字の組み合わせで構成される複雑な形式（例: SW1A 1AA）。
-中国
-中国: 一般的に6桁の数字で構成される（例: 100000）。
-インド
-インド: 6桁の数字で構成されることが多い（例: 110001）。
-
-イギリス: 英字と数字を組み合わせ、スペースで区切る形式（例: SW1A 1AA）。
-アメリカ合衆国: 数字のみ、または数字にハイフンを含む形式（例: 12345、12345-6789）。
-カナダ: 英字と数字の組み合わせ、スペースまたはハイフンで区切る形式（例: K1A 0B1）。
-ヨーロッパの多くの国: 数字のみ、または数字と英字の組み合わせ（例: 1010、75008）。
-オーストラリア、インド、中国など: 主に数字のみの形式。
-*/
-
-function validateAndNormalizePostalCode(postalCode) {
-  postalCode = postalCode.trim(); // 基本的なトリミング
-  let formattedPostalCode;
-
-  // フォーマット
-  const halfWidth = postalCode
-    .replace(/[Ａ-Ｚａ-ｚ]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0)) //
-    .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
-    .replace(/　/g, " ") // 全角スペースを半角スペースに変換
-    .replace(/ー/g, "-") // 「ソニー」の「ー」長音符を半角ハイフンに変換
-    .replace(/－/g, "-") // 全角ハイフンを半角に変換
-    .replace(/−/g, "-"); // 全角ハイフンを半角に変換 // カタカナの長音記号も半角ハイフンに変換
-
-  // 郵便番号は7桁でハイフンなしにフォーマット (郵便局の町域データの郵便番号もハイフンなしのため)
-  formattedPostalCode = halfWidth.replace("-", "");
-
-  // 数字、英字、ハイフン、スペースを許容
-  const regex = /^[0-9A-Za-z\s\-]+$/;
-  const isValid = regex.test(formattedPostalCode);
-
-  return isValid ? formattedPostalCode : null;
-}
-
 // 🔸設立年(設立年月・年月日)の正規化・標準化 -----------------------------------
 /* 形式統一 日本・英語圏両方に対応可能なフォーマットに変換
 1992年1月 => 1992/01 
 1992年1月1日 => 1992/01/01
+昭和45年12月 => 西暦に変換
 */
 
 function validateAndNormalizeEstablish(dateStr) {
@@ -524,6 +656,8 @@ function validateAndNormalizeOnlyMonth(month) {
   // isValidとformattedMonthをリターン
   return isValid ? formattedMonth : null;
 }
+
+// -----------------------------------🔸カラムごとの前処理関数🔸-----------------------------------
 
 // ----------------------------------- 🔸業界大分類🔸 -----------------------------------
 // 業界大分類 小分類はユーザーに自由に使用してもらう ユーザー独自の分類分け

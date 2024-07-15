@@ -3396,6 +3396,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
                   <DropDownMenuSearchMode
                     setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuSearchMode}
                     isFetchCompanyType={false}
+                    setSelectedRowData={setSelectedRowDataMeeting}
                   />
                 )}
               </button>
@@ -3443,7 +3444,10 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
                   フィルター
                 </span>
                 {isOpenDropdownMenuFilter && (
-                  <DropDownMenuSearchModeDetail setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuFilter} />
+                  <DropDownMenuSearchModeDetail
+                    setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuFilter}
+                    setSelectedRowData={setSelectedRowDataMeeting}
+                  />
                 )}
               </button>
               {/* <button

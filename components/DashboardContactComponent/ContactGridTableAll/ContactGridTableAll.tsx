@@ -2895,6 +2895,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                   <DropDownMenuSearchMode
                     setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuSearchMode}
                     isFetchCompanyType={false}
+                    setSelectedRowData={setSelectedRowDataContact}
                   />
                 )}
               </button>

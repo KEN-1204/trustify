@@ -8,9 +8,14 @@ import { FiRefreshCw } from "react-icons/fi";
 type Props = {
   setIsOpenDropdownMenuSearchMode: Dispatch<SetStateAction<boolean>>;
   language?: string;
+  setSelectedRowData: (payload: any | null) => void; // 自社のみ全ての切り替え時のリセット用
 };
 
-export const DropDownMenuSearchModeDetail = ({ setIsOpenDropdownMenuSearchMode, language = "ja" }: Props) => {
+export const DropDownMenuSearchModeDetail = ({
+  setIsOpenDropdownMenuSearchMode,
+  language = "ja",
+  setSelectedRowData,
+}: Props) => {
   const isFetchAllDepartments = useDashboardStore((state) => state.isFetchAllDepartments);
   const setIsFetchAllDepartments = useDashboardStore((state) => state.setIsFetchAllDepartments);
   const isFetchAllSections = useDashboardStore((state) => state.isFetchAllSections);
@@ -70,6 +75,9 @@ export const DropDownMenuSearchModeDetail = ({ setIsOpenDropdownMenuSearchMode, 
     if (isFetchAllUnits !== isAllUnitLocal) setIsFetchAllUnits(isAllUnitLocal);
     if (isFetchAllOffices !== isAllOfficeLocal) setIsFetchAllOffices(isAllOfficeLocal);
     if (isFetchAllMembers !== isAllMemberLocal) setIsFetchAllMembers(isAllMemberLocal);
+
+    // 選択行をリセット
+    if (setSelectedRowData) setSelectedRowData(null);
 
     setIsOpenDropdownMenuSearchMode(false);
   };

@@ -2523,7 +2523,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       // Zustandに検索条件を格納
       setNewSearchMeeting_Contact_CompanyParams(params);
 
-      // 選択中の列データをリセット
+      // 選択中の行データをリセット
       setSelectedRowDataMeeting(null);
 
       console.log("✅ 条件 params", params);

@@ -3353,7 +3353,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 {/* <span>サーチモード</span> */}
                 <span>モード設定</span>
                 {isOpenDropdownMenuSearchMode && (
-                  <DropDownMenuSearchMode setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuSearchMode} />
+                  <DropDownMenuSearchMode
+                    setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuSearchMode}
+                    setSelectedRowData={setSelectedRowDataCompany}
+                  />
                 )}
               </button>
               <RippleButton

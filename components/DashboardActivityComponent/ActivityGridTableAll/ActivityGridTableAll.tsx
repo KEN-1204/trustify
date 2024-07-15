@@ -3273,6 +3273,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                   <DropDownMenuSearchMode
                     setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuSearchMode}
                     isFetchCompanyType={false}
+                    setSelectedRowData={setSelectedRowDataActivity}
                   />
                 )}
               </button>
@@ -3312,7 +3313,10 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                   フィルター
                 </span>
                 {isOpenDropdownMenuFilter && (
-                  <DropDownMenuSearchModeDetail setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuFilter} />
+                  <DropDownMenuSearchModeDetail
+                    setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuFilter}
+                    setSelectedRowData={setSelectedRowDataActivity}
+                  />
                 )}
               </button>
               <RippleButton
