@@ -121,7 +121,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       payment_method_types: ["card"],
       line_items: lineItems,
       // success_url: `${process.env.CLIENT_URL}/payment/success`,
-      success_url: `${process.env.CLIENT_URL}/home`,
+      success_url: `${process.env.CLIENT_URL}/home`, // サーバー側で実行する際にはNEXT_PUBLIC_の接頭辞は不要
       // cancel_url: `${process.env.CLIENT_URL}/payment/cancelled`,
       cancel_url: `${process.env.CLIENT_URL}/home`,
       // subscription_data: {

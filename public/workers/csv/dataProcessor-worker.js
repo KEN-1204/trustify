@@ -317,38 +317,58 @@ APIキーの使用：APIキーを使用して、APIの利用を認証し、未�
 // 🔸法人名(corporate_name)の正規化・標準化 -----------------------------------
 // 会社名は「法人名 拠点名」で最終的に結合してセット
 // 【正規表現の構成要素】
+// 半角に変換 「\uFF01-\uFF5D」 => 「\u0021-\u007D
+// 「ａ-ｚＡ-Ｚ０-９」 全角英数字(ａ-ｚＡ-Ｚ０-９) 記号(（）＋％＆など)はそのまま
+// 「\uFF01-\uFF5D」 全角英数字(ａ-ｚＡ-Ｚ０-９)と記号(（）＋％＆など) 全角チルダ（\uFF5E）を除外
+
 // 【下記の指定した文字のみ会社名として許可 それ以外は空文字にリプレイス [^...]】
 
 // ・a-zA-Z0-9: 半角英数字
-// ・ａ-ｚＡ-Ｚ０-９: 全角英数字
 // ・ （半角スペース）
 // ・\u3000-\u303F：全角の記号と句読点(\u3000：全角スペース)
 // ・\u3040-\u309F: ひらがな   (\p{Hiragana})
 // ・\u30A0-\u30FF: 全角カタカナ  (\p{Katakana})
 // ・\uFF65-\uFF9F: 半角ｶﾀｶﾅ
-// ・\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF: 漢字  (\p{Han})
+// ・\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u3005: 漢字 \u3005: 「々」（繰り返し記号）  (\p{Han})
 // ・\u30FC: 全角の長音符(カタカナの長音符)
 // ・\u002D: 半角ハイフン（-）
 // ・\u002E: 半角ピリオド（.）
 // ・\u0027: 半角アポストロフィ（'） - 企業名における所有格や略語でよく使用されます（例: O'Reilly, Ben's）
 // ・\u005F: アンダースコア（_） - 特に技術関連の企業や製品名に使われることがあります
-// ・\uFF08: （ 全角括弧
-// ・\uFF09: ） 全角括弧
-// ・「(」（左半角括弧）: \u0028
-// ・「)」（右半角括弧）: \u0029
+// ・\uFF08\uFF09\u0028\u0029: 全角半角括弧
+//   ・\uFF08: （ 全角括弧
+//   ・\uFF09: ） 全角括弧
+//   ・「(」（左半角括弧）: \u0028
+//   ・「)」（右半角括弧）: \u0029
 // ・「・」（全角中点）: \u30FB
 // ・「･」（半角中点）: 通常、この文字は特定のUnicode値を持たず、一般的なJISやシフトJISの文字セットに存在するため、そのままセット
+// ・\u301C\uFF5F: 「〜」(全角チルダ) Windowsでは\uFF5F
+// ・\u300C-\u3011: 鉤括弧
+//    ・\u300C: 「
+//    ・\u300D: 」
+//    ・\u300E: 『
+//    ・\u300F: 』
+//    ・\u3010: 【
+//    ・\u3011: 】
+
+// 許容しない
+// ・ａ-ｚＡ-Ｚ０-９: 全角英数字
+// ・\u3000-\u303D：全角の記号と句読点(\u3000：全角スペース)
+// ・\uFF65-\uFF9F: 半角ｶﾀｶﾅ
 
 function normalizeCompanyName(name) {
-  // 全角英数字と全角スペースを半角に変換
+  // 全角英数字と全角スペースを半角に変換 「\uFF01-\uFF5D」 全角英数字(ａ-ｚＡ-Ｚ０-９)と記号(（）＋％＆など)「〜」は除く
   let halfName = name
-    .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
-    .replace(/　/g, " ")
+    .replace(/[\uFF01-\uFF5D]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+    .replace(/[\s　]+/g, " ")
     .trim();
 
+  // 半角ｶﾀｶﾅを全角に変換
+  let formattedName = convertKanaHalfWidthToFullWidth(halfName);
+
   // limitStringLength
-  let normalizedCompanyName = halfName.replace(
-    /[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･]+/gu,
+  let normalizedCompanyName = formattedName.replace(
+    /[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u3005\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･\u301C\uFF5F\u300C-\u3011]+/gu,
     ""
   );
 
@@ -442,7 +462,7 @@ function normalizePostalCode(postalCode, useJapanPostalFormat = true) {
     const halfWidth = formattedPostalCode
       .replace(/[Ａ-Ｚａ-ｚ]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0)) //
       .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
-      .replace(/　/g, " ") // 全角スペースを半角スペースに変換
+      .replace(/[\s　]+/g, " ") // 全角スペースを半角スペースに変換
       .replace(/ー/g, "-") // 「ソニー」の「ー」長音符を半角ハイフンに変換
       .replace(/－/g, "-") // 全角ハイフンを半角に変換
       .replace(/−/g, "-"); // 全角ハイフンを半角に変換 // カタカナの長音記号も半角ハイフンに変換
@@ -481,7 +501,7 @@ function normalizePostalCode(postalCode, useJapanPostalFormat = true) {
 function normalizeAddress(address, groupedTownsByRegionCity) {
   address = address.trim(); // 基本的なトリミング
   // 🔹1. 正規化
-  // 全角英数字と全角記号の両方を半角に変換
+  // 全角英数字と全角記号の両方を半角に変換 「\uFF01-\uFF5E」\uFF5E(全角チルダ)含める 全角英数字(ａ-ｚＡ-Ｚ０-９)と記号(（）＋％＆など)
   address = address.replace(/[\uFF01-\uFF5E]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0));
 
   // 全角ハイフンと全角スペースを半角に変換(長音「ー」はそのまま残す) *3
@@ -594,25 +614,30 @@ function normalizeAddress(address, groupedTownsByRegionCity) {
 // 🔸代表者名(representative_name)の正規化・標準化 -----------------------------------
 // 会長(chairperson)・副社長(senior_vice_president)・専務取締役(senior_managing_director)・常務取締役(managing_director)・取締役(director)・役員(board_member)・監査役(auditor)・部長(manager)・担当者(member)でも使用
 // 【正規表現の構成要素】
+// 半角に変換
+// 「\uFF01-\uFF5E」 全角英数字(ａ-ｚＡ-Ｚ０-９)と記号(（）＋％＆など)
+
 // 許容
 // ・a-zA-Z: 半角英字
 // ・0-9: 半角数字  (衛宮士郎(~部第2課)なども許容するため)
 // ・` `（半角スペース）
 // ・\u3040-\u309F: ひらがな   (\p{Hiragana})
 // ・\u30A0-\u30FF: 全角カタカナ  (\p{Katakana})
-// ・\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF: 漢字  (\p{Han})
+// ・\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u3005: 漢字 \u3005: 「々」（繰り返し記号）  (\p{Han})
 // ・\u30FC: 全角の長音符(カタカナの長音符)
 // ・\uFF08\uFF09\u0028\u0029: 全角半角括弧
 //    \uFF08: （ 全角括弧
 //    \uFF09: ） 全角括弧
 //    「(」（左半角括弧）: \u0028
 //    「)」（右半角括弧）: \u0029
+// ・
 // ・\u002D: 半角ハイフン（-）
 // ・\u005F: アンダースコア（_） - 特に技術関連の企業や製品名に使われることがあります
 // ・「・」（全角中点）: \u30FB
 // ・「･」（半角中点）: 通常、この文字は特定のUnicode値を持たず、一般的なJISやシフトJISの文字セットに存在するため、そのままセット
 // ・\u002E: 半角ピリオド（.）
 // ・\u0027: 半角アポストロフィ（'） - 企業名における所有格や略語でよく使用されます（例: O'Reilly, Ben's）
+// ・\u301C\uFF5F: 「〜」(全角チルダ) Windowsでは\uFF5F
 
 // 許容しない
 // ・０-９: 全角数字
@@ -621,9 +646,10 @@ function normalizeAddress(address, groupedTownsByRegionCity) {
 // ・\uFF65-\uFF9F: 半角ｶﾀｶﾅ
 
 function normalizeRepresentativeName(name) {
+  // 「\uFF01-\uFF5E」 全角英数字(ａ-ｚＡ-Ｚ０-９)と記号(（）＋％＆など)
   let halfName = name
     .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0)) // 全角英字を半角に変換
-    .replace(/　/g, " ") // 全角スペースを半角に変換
+    .replace(/[\s　]+/g, " ") // 全角スペースを半角スペースに変換
     .trim();
 
   // 半角ｶﾀｶﾅを全角に変換
@@ -632,7 +658,7 @@ function normalizeRepresentativeName(name) {
   // 【下記の指定した文字のみ許可 それ以外は空文字にリプレイス [^...]】 結果が空文字ならnullをセット
   formattedName =
     formattedName.replace(
-      /[^a-zA-Z0-9 \u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u30FC\uFF08\uFF09\u0028\u0029\u002D\u005F\u30FB･\u002E\u0027]+/gu,
+      /[^a-zA-Z0-9 \u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u3005\u30FC\uFF08\uFF09\u0028\u0029\u002D\u005F\u30FB･\u002E\u0027\u301C\uFF5F]+/gu,
       ""
     ) || null;
 
@@ -642,6 +668,78 @@ function normalizeRepresentativeName(name) {
   } else {
     return null;
   }
+}
+
+// 🔸会長(chairperson)の正規化・標準化 -----------------------------------
+// "chairperson": // 会長
+// "senior_vice_president": // 副社長
+// "senior_managing_director": // 専務取締役
+// "managing_director": // 常務取締役
+// "director": // 取締役
+// "board_member": // 役員
+// "auditor": // 監査役
+// "manager": // 部長
+// "member": // 担当者
+
+// 半角に変換 「\uFF01-\uFF5D」 => 「\u0021-\u007D」
+// 「\uFF01-\uFF5D」 全角英数字(ａ-ｚＡ-Ｚ０-９)と記号(（）＋％＆など)「〜」除く
+
+// 許容
+// ・「\u0021-\u007E」: 半角英数字~記号(全角から変換後) 半角の「/」（\u002F）含む 全角の「／」（\uFF0F）から「0xFEE0」を引いたもの
+// ・「\uFF01-\uFF5E」: 全角英数字~記号
+// ・\uFF5F\u301C: 「〜」(全角チルダ) Windowsでは\uFF5F
+// ・a-zA-Z: 半角英字
+// ・0-9: 半角数字  (衛宮士郎(~部第2課)なども許容するため)
+// ・\uFF65-\uFF9F: 半角ｶﾀｶﾅ
+// ・` `（半角スペース）
+// ・\u3040-\u309F: ひらがな   (\p{Hiragana})
+// ・\u30A0-\u30FF: 全角カタカナ  (\p{Katakana})
+// ・\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u3005: 漢字 \u3005: 「々」（繰り返し記号）  (\p{Han})
+// ・\u30FC: 全角の長音符(カタカナの長音符)
+// ・\u002D: 半角ハイフン（-）
+// ・\u002E: 半角ピリオド（.）
+// ・\u0027: 半角アポストロフィ（'） - 企業名における所有格や略語でよく使用されます（例: O'Reilly, Ben's）
+// ・\u005F: アンダースコア（_） - 特に技術関連の企業や製品名に使われることがあります
+// ・\uFF08\uFF09\u0028\u0029: 全角半角括弧
+//    ・\uFF08: （ 全角括弧
+//    ・\uFF09: ） 全角括弧
+//    ・「(」（左半角括弧）: \u0028
+//    ・「)」（右半角括弧）: \u0029
+// ・\u30FB: 「・」（全角中点）
+// ・「･」（半角中点）: 通常、この文字は特定のUnicode値を持たず、一般的なJISやシフトJISの文字セットに存在するため、そのままセット
+// ・\u300C-\u3011: 鉤括弧
+//    ・\u300C: 「
+//    ・\u300D: 」
+//    ・\u300E: 『
+//    ・\u300F: 』
+//    ・\u3010: 【
+//    ・\u3011: 】
+// ・\u3012: 「〒」
+// ・\u3001: 「、」
+// ・\n: 改行
+
+// 許容しない
+// ・ａ-ｚＡ-Ｚ０-９: 全角英数字
+// ・\u3000-\u303D：全角の記号と句読点(\u3000：全角スペース)
+
+// 複数名を許可: 下記が例
+// 【常務執行役員】阿黒  大輔、【執行役員】高橋  正行　　辻井  幸弘　　友澤  俊一　関澤  正人　　高橋  敬　　　小泉  修司
+// 常務取締役 ／ 塩貝 哲也
+function normalizeContactNames(name) {
+  // 全角英数字と全角スペースを半角に変換 記号はそのままにしておく 「\uFF01-\uFF5D」 全角英数字(ａ-ｚＡ-Ｚ０-９)と記号(（）＋％＆など)「〜」は除く
+  let halfName = name
+    .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+    .replace(/[\s　]+/g, " ")
+    .trim();
+
+  // 「a-zA-Z0-9」 => 「\uFF01-\uFF5D\u0021-\u007D」
+  let normalizedCompanyName = halfName.replace(
+    /[^\u0021-\u007E\uFF01-\uFF5E\u301C \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u3005\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･\u300C-\u3011\u3012\u3001\n]+/gu,
+    ""
+  );
+
+  // 300 文字以上の場合は文字数を 300 文字までに制限
+  return limitStringLength(normalizedCompanyName, 300);
 }
 
 // 🔸ホームページURL・Webサイト URL(website_url)の正規化・標準化 -----------------------------------
@@ -808,9 +906,9 @@ const industryKeywords = {
 function normalizeIndustryType(industryName) {
   if (!industryName) return null;
 
-  // 全角英数字を半角に
+  // 全角英数字を半角に 「\uFF01-\uFF5E」 全角英数字(ａ-ｚＡ-Ｚ０-９)と記号(（）＋％＆など)
   let normalizedName = industryName
-    .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0)) // 全角英字を半角に変換
+    .replace(/[\uFF01-\uFF5E]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0)) // 全角英字を半角に変換
     .replace(/[\s　]+/g, "") // スペースを除去
     .trim();
 
@@ -836,13 +934,13 @@ function normalizeIndustryLarge(industryName) {
   if (!industryName) return null;
   // 全角英数字を半角に
   let normalizedName = industryName
-    .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0)) // 全角英字を半角に変換
+    .replace(/[\uFF01-\uFF5E]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0)) // 全角英字を半角に変換
     .replace(/[\s　]+/g, "") // スペースを除去
     .trim();
 
   // 半角ｶﾀｶﾅを全角に変換
   normalizedName = halfName.replace(
-    /[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･]+/gu,
+    /[^a-zA-Z0-9 \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u3005\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･]+/gu,
     ""
   );
 
@@ -1005,6 +1103,54 @@ function normalizeCorporateNumber(input) {
   const isValid = regex.test(normalizedNumber);
 
   return isValid ? normalizedNumber : null;
+}
+
+// 🔸取引先(clients)の正規化・標準化 -----------------------------------
+// "clients": // 取引先(納入先)
+// "supplier": // 仕入先
+// "business_sites": // 事業拠点
+// "overseas_bases": // 海外拠点
+// "group_company": // グループ会社
+
+// normalizeContactNames と同じ
+
+function normalizeClients(input) {
+  // 全角英数字と全角スペースを半角に変換 記号はそのままにしておく 「\uFF01-\uFF5D」 全角英数字(ａ-ｚＡ-Ｚ０-９)と記号(（）＋％＆など)「〜」は除く
+  let halfName = input
+    .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+    .replace(/[ \t　]+/g, " ") // 半角スペース、タブ、全角スペースの連続を半角スペースに変換(改行はそのまま)
+    .trim();
+
+  // 「a-zA-Z0-9」 => 「\uFF01-\uFF5D\u0021-\u007D」
+  let normalizedName = halfName.replace(
+    /[^\u0021-\u007E\uFF01-\uFF5E\u301C \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u3005\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･\u300C-\u3011\u3012\u3001\n]+/gu,
+    ""
+  );
+
+  // 300 文字以上の場合は文字数を 300 文字までに制限
+  return limitStringLength(normalizedName, 300);
+}
+
+// 🔸事業概要(clients)の正規化・標準化 -----------------------------------
+// "business_content": // 事業概要
+// "facility": // 設備
+
+// normalizeContactNames と同じ
+function normalizeSummary(input) {
+  let halfName = input
+    .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+    .replace(/[ \t　]+/g, " ") // 半角スペース、タブ、全角スペースの連続を半角スペースに変換
+    // .replace(/[\s　]+/g, " ")
+    .trim();
+
+  // 「a-zA-Z0-9」 => 「\uFF01-\uFF5D\u0021-\u007D」
+  let normalizedName = halfName.replace(
+    /[^\u0021-\u007E\uFF01-\uFF5E\u301C \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u3005\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･\u300C-\u3011\u3012\u3001\n]+/gu,
+    ""
+  );
+
+  // 500 文字以上の場合は文字数を 500 文字までに制限
+  return limitStringLength(normalizedName, 500);
 }
 
 // 🔸日付変換のヘルパー関数 -----------------------------------
@@ -1249,7 +1395,7 @@ function transformData(csvValue, dbField) {
     case "manager": // 部長
     case "member": // 担当者
       // 織田信長（取締役会長）・伊達政宗(専務取締役・COO)、佐藤 健(CSO)など複数記述の可能性があるため余裕を持たせる
-      processedValue = normalizeRepresentativeName(processedValue);
+      processedValue = normalizeContactNames(processedValue);
       break;
 
     case "clients": // 取引先(納入先)
@@ -1257,13 +1403,13 @@ function transformData(csvValue, dbField) {
     case "business_sites": // 事業拠点
     case "overseas_bases": // 海外拠点
     case "group_company": // グループ会社
-      processedValue = normalizeCompanies(processedValue);
+    case "department_contacts": // 連絡先(部署別)
+      processedValue = normalizeClients(processedValue);
       break;
 
     case "business_content": // 事業概要
     case "facility": // 設備
-    case "department_contacts": // 連絡先(部署別)
-      processedValue = normalizeCorporateNumber(processedValue);
+      processedValue = normalizeSummary(processedValue);
       break;
 
     default:
@@ -1339,7 +1485,9 @@ self.onmessage = function (e) {
           }
 
           // 通常のカラム
-          processedRow[dbField] = transformData(row[csvHeader], dbField);
+          else {
+            processedRow[dbField] = transformData(row[csvHeader], dbField);
+          }
         });
         // ----------------------------------- カラムごとの前処理 -----------------------------------ここまで
 
@@ -1375,7 +1523,7 @@ self.onmessage = function (e) {
         // columnMap: CSVカラムヘッダー名 to DBフィールド名
         const selectedDBFieldNamesArray = Array.from(columnMap.values());
 
-        // 【会社名(name)】
+        // ○【会社名(name)】
         if (!Object.hasOwn(processedRow, "corporate_name")) throw new Error(`無効な法人名: `);
         const _branch_name =
           selectedDBFieldNamesArray.includes("branch_name") && Object.hasOwn(processedRow, "branch_name")
@@ -1392,13 +1540,13 @@ self.onmessage = function (e) {
           street_address: streetAddress || null, // 町域名+丁目+番地(番)+号+建物名
         };
 
-        // 【部署名(department_name)】
+        // ○【部署名(department_name)】
         // カラムマップのvalue側のDBフィールド名の配列の中にdepartment_nameが存在しない場合はピリオドをセット
         if (!selectedDBFieldNamesArray.includes("department_name")) {
           addColumns = { ...addColumns, department_name: "." };
         }
 
-        // 【規模(ランク)(number_of_employees_class)】
+        // ○【規模(ランク)(number_of_employees_class)】
         // number_of_employeesカラムが存在し、数字なら範囲でランク分け
         if (
           selectedDBFieldNamesArray.includes("number_of_employees") &&

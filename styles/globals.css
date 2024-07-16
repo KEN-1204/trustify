@@ -768,6 +768,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
   --color-text-under-input: #252525;
   --color-bg-underline: rgb(94 94 94 / 0.3);
+  --color-progressbar-bg: #d9d9d9;
   --color-bg-under-sub: rgb(0 0 0 / 0.1);
   --color-bg-under-back: rgb(0 0 0 / 0);
   /* --color-bg-under-header: #ececec; */
@@ -1909,6 +1910,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-text-under-input: #fff;
   --color-bg-underline: rgb(94 94 94 / 0.3);
   --color-bg-underline: rgba(117, 117, 117, 0.7);
+  --color-progressbar-bg: rgba(117, 117, 117, 0.7);
   --color-bg-under-header: #2c2c2c;
   /* --color-bg-under-back: rgb(255 255 255 / 0.05); */
   /* 右側 活動履歴 */

@@ -215,7 +215,8 @@ const ChangeTeamOwnerModalMemo: FC<Props> = ({
         fromUserName: userProfileState?.profile_name,
         fromEmail: userProfileState?.email,
         teamName: userProfileState?.customer_name,
-        siteUrl: `${process.env.CLIENT_URL ?? `http://localhost:3000`}`,
+        // siteUrl: `${process.env.CLIENT_URL ?? `http://localhost:3000`}`,
+        siteUrl: `${process.env.NEXT_PUBLIC_CLIENT_URL ?? `http://localhost:3000`}`,
       };
       const { data } = await axios.post(`/api/send/change-team-owner`, payload, {
         headers: {

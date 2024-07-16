@@ -580,6 +580,7 @@ export const optionsClientCompaniesColumnFieldForInsertArray = [
   "clients", // 取引先(納入先)
   "supplier", // 仕入れ先
   "business_content", // 事業概要
+  // ユーザーがバルクインサートするときには担当者は別でインサートするため不要 ----------------
   "chairperson", // 会長
   "senior_vice_president", // 副社長
   "senior_managing_director", // 専務取締役
@@ -589,6 +590,7 @@ export const optionsClientCompaniesColumnFieldForInsertArray = [
   "auditor", // 監査役
   "manager", // 部長
   "member", // 担当者
+  // -----------------------------------------------------------------------------
   "facility", // 設備
   "business_sites", // 事業拠点
   "overseas_bases", // 海外拠点

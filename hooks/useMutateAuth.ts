@@ -28,6 +28,11 @@ export const useMutateAuth = () => {
       setErrorMsg(""); // 前回のエラーメッセージを初期化
       setIsLoading(true);
       // const { data, error } = await supabaseClient.auth.signInWithOAuth({
+      console.log(
+        "useMutateAuth内のgoogleLoginMutation supabaseClient.auth.signInWithOAuth実行🔥 redirectTo: ",
+        process.env.NEXT_PUBLIC_CLIENT_URL,
+        process.env.CLIENT_URL
+      );
       const data = await supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -39,7 +44,8 @@ export const useMutateAuth = () => {
           },
           // skipBrowserRedirect: true,
           // redirectTo: `${process.env.CLIENT_URL}/222`, //テスト
-          redirectTo: `${process.env.CLIENT_URL}/home`, //テスト
+          // redirectTo: `${process.env.CLIENT_URL}/home`, //テスト
+          redirectTo: `${process.env.NEXT_PUBLIC_CLIENT_URL}/home`, //テスト
         },
       });
 

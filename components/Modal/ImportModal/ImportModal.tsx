@@ -30,6 +30,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { ProgressCircleIncrement } from "@/components/Parts/Charts/ProgressCircle/ProgressCircleIncrement";
 import { DotsLoaderBounceF } from "@/components/Parts/Loaders/LoaderDotsBounce/LoaderDotsBounce";
 import { AnimeCheck, AnimeChecking, AnimeUploading } from "@/components/assets/Animations";
+import { TestDataProcessWorker } from "./DataProcessWorker/TestDataProcessWorker";
 
 const ImportModalMemo = () => {
   const supabase = useSupabaseClient();
@@ -127,7 +128,7 @@ const ImportModalMemo = () => {
   };
   // ----------------------------------------------
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(3);
   // -------------------------- ステップ1 「CSVのパース・解析」用state --------------------------
   // 🔸パース後のCSVデータ配列 result.data
   // => 1000以上は10000個ずつの配列を配列に格納した出力される:
@@ -180,7 +181,14 @@ const ImportModalMemo = () => {
   const [isTransformProcessing, setIsTransformProcessing] = useState(false);
   // 🔸データ前処理完了後の一括インサート用データ
   const [transformProcessedData, setTransformProcessedData] = useState<any[]>([]);
-
+  // テスト
+  const [isTestProcessing, setIsTestProcessing] = useState(false);
+  const [isLoadingTest, setIsLoadingTest] = useState(false);
+  const [testData, setTestData] = useState<any[]>([]);
+  const [testProcessedData, setTestProcessedData] = useState<any[]>([]);
+  // const [progressTest, setProgressTest] = useState<number | null>(null);
+  // const [progressTest, setProgressTest] = useState<number | null>(0);
+  // テストここまで
   // -------------------------- ステップ3 「データ前処理」用state ここまで --------------------------
 
   // -------------------------- テスト --------------------------
@@ -1051,7 +1059,9 @@ const ImportModalMemo = () => {
   console.log(
     "ImportModalレンダリング",
     "uploadedData",
-    uploadedData
+    uploadedData,
+    "testProcessedData",
+    testProcessedData
     // "uploadedDisplayRowList",
     // uploadedDisplayRowList,
     // "uploadedColumnFields",
@@ -1305,6 +1315,56 @@ const ImportModalMemo = () => {
                 </div>
 
                 <div className={`${styles.right_wrapper} flex h-full w-[40%] items-end justify-end space-x-[15px]`}>
+                  <button
+                    type="button"
+                    className={`transition-bg02 flex-center brand_btn_active space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[12px]`}
+                    style={{
+                      transition: `background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease width 0.2s ease`,
+                    }}
+                    onClick={async () => {
+                      console.log("プログレススタート");
+                      let num = 0;
+                      while (num <= 100) {
+                        await new Promise((resolve, reject) => setTimeout(resolve, 1000));
+                        num += 5;
+                        const newProgress = 100 < num ? 100 : Math.round(num);
+                        console.log("プログレス: ", newProgress);
+                        // setProgressTest(newProgress);
+                        setProgressProcessing(newProgress);
+                      }
+                      console.log("プログレス終了");
+
+                      // setProgressTest(0);
+                      setProgressProcessing(null);
+                    }}
+                  >
+                    プログレス
+                  </button>
+                  <button
+                    type="button"
+                    className={`transition-bg02 flex-center brand_btn_active space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[12px]`}
+                    style={{
+                      transition: `background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease width 0.2s ease`,
+                    }}
+                    onClick={async () => {
+                      const _testData = Array(40)
+                        .fill(null)
+                        .map((_, index) => ({
+                          id: index,
+                          value: `処理前: ${index}`,
+                        }));
+
+                      console.log("テストWorker起動ボタンクリック _testData: ", _testData);
+
+                      setTestData(_testData);
+                      setIsLoadingTest(true);
+                      setIsTestProcessing(true);
+                      // setProgressTest(0);
+                      setProgressProcessing(0);
+                    }}
+                  >
+                    テストWorker起動
+                  </button>
                   {/* <button
                     type="button"
                     className={`transition-bg02 flex-center brand_btn_active space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[12px]`}
@@ -1851,7 +1911,7 @@ const ImportModalMemo = () => {
                           </div>
                         )}
                         <div className={`flex-col-center mb-[5px] mr-[-2px] mt-[13px] min-w-[45px]`}>
-                          <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
+                          <p ref={convertingTextRef} className={`text-[15px] text-[var(--color-text-sub)]`}>
                             チェック・変換処理の準備中...
                           </p>
                         </div>
@@ -1860,14 +1920,56 @@ const ImportModalMemo = () => {
                         </div>
                       </>
                     )}
+                    {progressProcessing !== null && (
+                      <>
+                        {<AnimeChecking /> ?? <SpinnerX />}
+                        <div className={`flex-col-center mr-[-2px] flex min-w-[45px]`}>
+                          <p ref={convertingTextRef} className={`text-[15px] text-[var(--color-text-sub)]`}>
+                            CSVデータのチェック・変換処理中...
+                          </p>
+                          <p className={`text-[15px] text-[var(--color-text-sub)]`}>しばらくお待ちください。</p>
+                          {progressProcessing !== null && (
+                            <>
+                              <div
+                                className={`flex-center mb-[10px] mt-[10px] w-full text-[20px] font-bold text-[var(--color-text-title)]`}
+                              >
+                                <span>{progressProcessing}%</span>
+                              </div>
+                              <div className={styles.progress_bar}>
+                                <div
+                                  className={`${styles.file_progress} ${styles.gradient}`}
+                                  style={{ width: `${progressProcessing}%` }}
+                                ></div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </>
+                    )}
+
                     {processingName === "transforming" && (
                       <>
                         {<AnimeChecking /> ?? <SpinnerX />}
                         <div className={`flex-col-center mr-[-2px] flex min-w-[45px]`}>
-                          <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
+                          <p ref={convertingTextRef} className={`text-[15px] text-[var(--color-text-sub)]`}>
                             CSVデータのチェック・変換処理中...
                           </p>
-                          <p className={`text-[16px] text-[var(--color-text-sub)]`}>しばらくお待ちください。</p>
+                          <p className={`text-[15px] text-[var(--color-text-sub)]`}>しばらくお待ちください。</p>
+                          {progressProcessing !== null && (
+                            <>
+                              <div
+                                className={`flex-center mb-[10px] mt-[10px] w-full text-[20px] font-bold text-[var(--color-text-title)]`}
+                              >
+                                <span>{progressProcessing}%</span>
+                              </div>
+                              <div className={styles.progress_bar}>
+                                <div
+                                  className={`${styles.file_progress} ${styles.gradient}`}
+                                  style={{ width: `${progressProcessing}%` }}
+                                ></div>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </>
                     )}
@@ -1876,10 +1978,10 @@ const ImportModalMemo = () => {
                       <>
                         {<AnimeUploading /> ?? <SpinnerX />}
                         <div className={`flex-col-center mr-[-2px] flex min-w-[45px]`}>
-                          <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
+                          <p ref={convertingTextRef} className={`text-[15px] text-[var(--color-text-sub)]`}>
                             CSVデータをインポート中...
                           </p>
-                          <p className={`text-[16px] text-[var(--color-text-sub)]`}>しばらくお待ちください。</p>
+                          <p className={`text-[15px] text-[var(--color-text-sub)]`}>しばらくお待ちください。</p>
                         </div>
                       </>
                     )}
@@ -2025,10 +2127,28 @@ const ImportModalMemo = () => {
                       )}
                       {processingName !== "complete" && (
                         <>
-                          <SpinnerX h="h-[24px]" w="w-[24px]" />
+                          <div className={`flex-col-center`}>
+                            <SpinnerX h="h-[24px]" w="w-[24px]" />
+                            <span className={`mb-[-6px] mt-[3px] text-[9px]`}>{progressProcessing}%</span>
+                          </div>
+                          {(processingName === "transforming" || processingName === "fetching_address") && (
+                            <div className={`flex-col-center`}>
+                              <SpinnerX h="h-[24px]" w="w-[24px]" />
+                              {processingName === "fetching_address" && (
+                                <span className={`mb-[-6px] mt-[3px] text-[9px]`}>{progressProcessing}%</span>
+                              )}
+                              {processingName === "transforming" && (
+                                <span className={`mb-[-6px] mt-[3px] text-[9px]`}>{progressProcessing}%</span>
+                              )}
+                            </div>
+                          )}
+                          {processingName === "bulk_inserting" && <SpinnerX h="h-[24px]" w="w-[24px]" />}
                           <div className={`ml-[15px] flex min-w-max items-center`}>
                             <p ref={convertingTextRef} className={`text-[13px] text-[var(--color-text-sub)]`}>
-                              変換処理中
+                              変換処理中...
+                              {processingName === "fetching_address" && `準備中...`}
+                              {processingName === "transforming" && `変換処理中...`}
+                              {processingName === "bulk_inserting" && `一括保存中...`}
                             </p>
                           </div>
                         </>
@@ -2132,6 +2252,23 @@ const ImportModalMemo = () => {
           />
         )}
       {/* ----------------------- step3 データ前処理Web Workerコンポーネント起動 ここまで ----------------------- */}
+      {/* ----------------------- テストWeb Workerコンポーネント起動 ----------------------- */}
+      {isTestProcessing && testData && progressProcessing !== null && (
+        <TestDataProcessWorker
+          testData={testData}
+          setIsTestProcessing={setIsTestProcessing}
+          setIsLoadingTest={setIsLoadingTest}
+          setTestProcessedData={setTestProcessedData}
+          setProgressTest={setProgressProcessing}
+        />
+      )}
+      {/* ----------------------- テストWeb Workerコンポーネント起動 ここまで ----------------------- */}
+      {/* {isLoadingTest && (
+        <div className={`modal_overlay flex-col-center !bg-[#00000066]`} style={{ zIndex: 10000 }}>
+          <SpinnerX />
+          {progressTest !== null && <span className={`mt-[20px] text-[24px] font-bold`}>{progressTest}%</span>}
+        </div>
+      )} */}
     </>
   );
 };

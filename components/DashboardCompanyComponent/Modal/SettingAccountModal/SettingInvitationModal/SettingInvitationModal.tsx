@@ -264,7 +264,8 @@ export const SettingInvitationModal = () => {
         const payload = {
           email: email,
           handleName: userProfileState?.profile_name,
-          siteUrl: `${process.env.CLIENT_URL ?? `http://localhost:3000`}`,
+          // siteUrl: `${process.env.CLIENT_URL ?? `http://localhost:3000`}`,
+          siteUrl: `${process.env.NEXT_PUBLIC_CLIENT_URL ?? `http://localhost:3000`}`,
         };
         const { data } = await axios.post(`/api/send/invite-to-team`, payload, {
           headers: {

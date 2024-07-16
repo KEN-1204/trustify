@@ -92,7 +92,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // customer: user.stripe_customer_id,
       // customer: userProfile.stripe_customer_id, // axios.getルート【rpcバージョン】
       customer: stripeCustomerId, // axios.postルート
-      return_url: `${process.env.CLIENT_URL}/home`,
+      return_url: `${process.env.CLIENT_URL}/home`, // サーバー側で実行する際にはNEXT_PUBLIC_の接頭辞は不要
     });
 
     console.log("🔥ポータル stripe.billingPortal.sessions.create()で取得したsession", session);

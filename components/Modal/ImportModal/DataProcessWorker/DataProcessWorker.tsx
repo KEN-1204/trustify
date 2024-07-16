@@ -44,7 +44,7 @@ export const DataProcessWorker = ({
     // Workerにメッセージを送信して、データ前処理を実行
     console.log("Message posted to worker");
     worker.postMessage({
-      origin: process.env.CLIENT_URL, // オリジンをWorkerに送信, オリジン: プロトコル、ホスト名、ポート *1
+      origin: process.env.NEXT_PUBLIC_CLIENT_URL, // オリジンをWorkerに送信, オリジン: プロトコル、ホスト名、ポート *1
       parsedData: parsedData, // Papa Parseで解析されたデータ
       columnMap: columnMap, // csvカラムヘッダー名 to データベースのclient_companiesテーブルのカラム名
       groupedTownsByRegionCity: groupedTownsByRegionCity, // 会社リストで使用される都道府県・市区町村別の町域リスト
