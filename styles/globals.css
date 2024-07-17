@@ -4637,3 +4637,10 @@ textarea {
     transform: rotate(360deg);
   }
 }
+
+/* select セレクトボックスの矢印を消す */
+.select_arrow_none {
+  -webkit-appearance: none; /* ベンダープレフィックス(Google Chrome、Safari用) */
+  -moz-appearance: none; /* ベンダープレフィックス(Firefox用) */
+  appearance: none; /* 標準のスタイルを無効にする */
+}

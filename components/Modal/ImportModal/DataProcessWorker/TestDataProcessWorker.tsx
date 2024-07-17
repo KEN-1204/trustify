@@ -17,6 +17,11 @@ type Props = {
   setIsLoadingTest: Dispatch<SetStateAction<boolean>>;
   setTestProcessedData: Dispatch<SetStateAction<any[]>>;
   setProgressTest: Dispatch<SetStateAction<number | null>>;
+  setProcessingName: Dispatch<
+    SetStateAction<
+      "fetching_address" | "transforming" | "ready_bulk_insert" | "bulk_inserting" | "complete" | "error" | null
+    >
+  >;
 };
 
 // Web Worker起動用コンポーネント
@@ -27,6 +32,7 @@ export const TestDataProcessWorker = ({
   setIsLoadingTest,
   setTestProcessedData,
   setProgressTest,
+  setProcessingName,
 }: Props) => {
   useEffect(() => {
     // データ前処理用のWeb Workerスクリプトを「public/workers/csv/dataProcessor-worker.js」に配置
@@ -34,8 +40,8 @@ export const TestDataProcessWorker = ({
 
     // Workerの前処理結果を受信するイベントリスナーをアタッチ
     worker.onmessage = function (e: MessageEvent<ReceivedData>) {
-      const { data } = e;
       console.log("Main thread: Message received from worker. message event: ", e);
+      const { data } = e;
       // メッセージイベントのtypeによって処理を動的に変更する
       if (data.type === "progress") {
         setProgressTest(data.progress ?? null);
@@ -47,12 +53,15 @@ export const TestDataProcessWorker = ({
         // Insert前の変換処理の結果をstateに格納
         setTestProcessedData(data.processedData);
         console.log("✅処理完了 Data processed: ", data.processedData);
+        setProcessingName("ready_bulk_insert");
       } else if (data.type === "error") {
         toast.error(`データ処理に失敗しました...🙇‍♀️`);
         console.log("Message received from worker.  error: ", data.error);
+        setProcessingName("error");
       } else {
         toast.error(`データ処理に失敗しました。...🙇‍♀️`);
         console.log("❌Main thread: 予期せぬエラーが発生しました");
+        setProcessingName("error");
       }
 
       // ローディング終了
@@ -69,6 +78,7 @@ export const TestDataProcessWorker = ({
       toast.error("予期せぬエラーが発生しました...🙇‍♀️");
       // ローディング終了
       setIsLoadingTest(false);
+      setProcessingName("error");
       setProgressTest(null);
       setIsTestProcessing(false);
     };

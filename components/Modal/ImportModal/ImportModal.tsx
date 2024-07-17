@@ -128,7 +128,7 @@ const ImportModalMemo = () => {
   };
   // ----------------------------------------------
 
-  const [step, setStep] = useState(3);
+  const [step, setStep] = useState(1);
   // -------------------------- ステップ1 「CSVのパース・解析」用state --------------------------
   // 🔸パース後のCSVデータ配列 result.data
   // => 1000以上は10000個ずつの配列を配列に格納した出力される:
@@ -156,7 +156,7 @@ const ImportModalMemo = () => {
 
   // 🔸現在の処理内容をユーザーに明示するためのstate
   const [processingName, setProcessingName] = useState<
-    "fetching_address" | "transforming" | "bulk_inserting" | "complete" | null
+    "fetching_address" | "transforming" | "ready_bulk_insert" | "bulk_inserting" | "complete" | "error" | null
   >(null);
   // >("complete");
   // 🔸会社リストの全ての住所で使用されている市区町村に対応した町域データのみを格納するstate: Workerに渡して使用
@@ -181,6 +181,12 @@ const ImportModalMemo = () => {
   const [isTransformProcessing, setIsTransformProcessing] = useState(false);
   // 🔸データ前処理完了後の一括インサート用データ
   const [transformProcessedData, setTransformProcessedData] = useState<any[]>([]);
+  // 🔸データ前処理時の各カラムごとの詳細設定 資本金の入力値が円単位 or 万円単位 で変換が必要かどうかなど
+  const [detailsTransform, setDetailsTransform] = useState<{
+    capital: "default" | "million";
+  }>({
+    capital: "default", // 円単位or万円単位かどうか
+  });
   // テスト
   const [isTestProcessing, setIsTestProcessing] = useState(false);
   const [isLoadingTest, setIsLoadingTest] = useState(false);
@@ -511,6 +517,7 @@ const ImportModalMemo = () => {
         // 🔸全国の住所データをフェッチングをユーザーに明示
         setProcessingName("fetching_address");
 
+        // ----------------------------------- 町域リストフェッチ -----------------------------------
         // 進行状況を明示
         setProgressProcessing(0);
 
@@ -766,6 +773,7 @@ const ImportModalMemo = () => {
         const endTime = performance.now(); // 終了時間
         console.log("Time: ", endTime - startTime, "ms");
         console.log("-----------------------------------🌠-----------------------------------");
+        // ----------------------------------- 町域リストフェッチ -----------------------------------ここまで
 
         setGroupedTownsByRegionCity(_groupedTownsByRegionCity); // townsリストを格納
 
@@ -1060,8 +1068,10 @@ const ImportModalMemo = () => {
     "ImportModalレンダリング",
     "uploadedData",
     uploadedData,
-    "testProcessedData",
-    testProcessedData
+    "processingName",
+    processingName,
+    "transformProcessedData",
+    transformProcessedData
     // "uploadedDisplayRowList",
     // uploadedDisplayRowList,
     // "uploadedColumnFields",
@@ -1314,7 +1324,9 @@ const ImportModalMemo = () => {
                   </div>
                 </div>
 
-                <div className={`${styles.right_wrapper} flex h-full w-[40%] items-end justify-end space-x-[15px]`}>
+                <div
+                  className={`${styles.right_wrapper} flex h-full w-[40%] items-end justify-end space-x-[15px] whitespace-nowrap`}
+                >
                   <button
                     type="button"
                     className={`transition-bg02 flex-center brand_btn_active space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[12px]`}
@@ -1920,7 +1932,8 @@ const ImportModalMemo = () => {
                         </div>
                       </>
                     )}
-                    {progressProcessing !== null && (
+
+                    {/* {true && progressProcessing !== null && (
                       <>
                         {<AnimeChecking /> ?? <SpinnerX />}
                         <div className={`flex-col-center mr-[-2px] flex min-w-[45px]`}>
@@ -1945,7 +1958,7 @@ const ImportModalMemo = () => {
                           )}
                         </div>
                       </>
-                    )}
+                    )} */}
 
                     {processingName === "transforming" && (
                       <>
@@ -1973,7 +1986,27 @@ const ImportModalMemo = () => {
                         </div>
                       </>
                     )}
-                    {/* {true && ( */}
+
+                    {processingName === "ready_bulk_insert" && (
+                      <>
+                        <div className={`${styles.file_upload_box} flex-center h-full w-full flex-col`}>
+                          <div className={`mb-[6px] mt-[-60px]`}>
+                            <BsCheck2 className="fade08_forward pointer-events-none stroke-1 text-[120px] text-[var(--bright-green)]" />
+                            {/* <AnimeCheck /> */}
+                          </div>
+                          <h2 className={`flex flex-col items-center text-[16px] text-[var(--color-text-sub)]`}>
+                            <span>{language === "ja" ? "CSVデータの一括インポート準備が完了しました！" : ``}</span>
+                            <div
+                              className={`transition-bg02 brand_btn_active flex-center mb-[-13px] mt-[13px] space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[15px]`}
+                              onClick={handleCloseModal}
+                            >
+                              <span>一括インポートを始める</span>
+                            </div>
+                          </h2>
+                        </div>
+                      </>
+                    )}
+
                     {processingName === "bulk_inserting" && (
                       <>
                         {<AnimeUploading /> ?? <SpinnerX />}
@@ -1985,6 +2018,26 @@ const ImportModalMemo = () => {
                         </div>
                       </>
                     )}
+
+                    {processingName === "error" && (
+                      <>
+                        <div className={`${styles.file_upload_box} flex-center h-full w-full flex-col`}>
+                          <div className={`mb-[6px] mt-[-30px]`}>
+                            <MdClose className="fade08_forward pointer-events-none text-[120px] text-[var(--main-color-tk)]" />
+                          </div>
+                          <h2 className={`flex flex-col items-center text-[16px] text-[var(--color-text-sub)]`}>
+                            <span>{language === "ja" ? "CSVデータのインポートに失敗しました...🙇‍♀️" : ``}</span>
+                            <div
+                              className={`transition-bg02 brand_btn_active flex-center mb-[-13px] mt-[13px] space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[14px]`}
+                              onClick={handleCloseModal}
+                            >
+                              <span>閉じる</span>
+                            </div>
+                          </h2>
+                        </div>
+                      </>
+                    )}
+
                     {processingName === "complete" && (
                       <>
                         <div className={`${styles.file_upload_box} flex-center h-full w-full flex-col`}>
@@ -2127,28 +2180,43 @@ const ImportModalMemo = () => {
                       )}
                       {processingName !== "complete" && (
                         <>
-                          <div className={`flex-col-center`}>
-                            <SpinnerX h="h-[24px]" w="w-[24px]" />
-                            <span className={`mb-[-6px] mt-[3px] text-[9px]`}>{progressProcessing}%</span>
-                          </div>
+                          {/* {true && processingName !== "ready_bulk_insert" && (
+                            <>
+                              <div className={`flex-col-center`}>
+                                <SpinnerX h="h-[24px]" w="w-[24px]" />
+                                <span className={`mb-[-6px] mt-[3px] text-[9px]`}>{progressProcessing}%</span>
+                              </div>
+                            </>
+                          )} */}
+
+                          <MdClose className="pointer-events-none min-h-[18px] min-w-[24px] text-[24px] text-[var(--main-color-tk)]" />
+
                           {(processingName === "transforming" || processingName === "fetching_address") && (
                             <div className={`flex-col-center`}>
                               <SpinnerX h="h-[24px]" w="w-[24px]" />
-                              {processingName === "fetching_address" && (
-                                <span className={`mb-[-6px] mt-[3px] text-[9px]`}>{progressProcessing}%</span>
-                              )}
-                              {processingName === "transforming" && (
-                                <span className={`mb-[-6px] mt-[3px] text-[9px]`}>{progressProcessing}%</span>
-                              )}
+                              <span className={`mb-[-6px] mt-[3px] text-[9px]`}>{progressProcessing}%</span>
                             </div>
+                          )}
+                          {processingName === "ready_bulk_insert" && (
+                            <>
+                              <BsCheck2 className="pointer-events-none min-h-[18px] min-w-[24px] stroke-1 text-[24px] text-[var(--bright-green)]" />
+                            </>
+                          )}
+                          {processingName === "error" && (
+                            <>
+                              <MdClose className="pointer-events-none min-h-[18px] min-w-[24px] text-[24px] text-[var(--main-color-tk)]" />
+                            </>
                           )}
                           {processingName === "bulk_inserting" && <SpinnerX h="h-[24px]" w="w-[24px]" />}
                           <div className={`ml-[15px] flex min-w-max items-center`}>
-                            <p ref={convertingTextRef} className={`text-[13px] text-[var(--color-text-sub)]`}>
-                              変換処理中...
+                            <p className={`text-[13px] text-[var(--color-text-sub)]`}>
+                              {`エラー`}
+                              {/* {true && processingName !== "ready_bulk_insert" && `変換処理中...`} */}
                               {processingName === "fetching_address" && `準備中...`}
                               {processingName === "transforming" && `変換処理中...`}
                               {processingName === "bulk_inserting" && `一括保存中...`}
+                              {processingName === "ready_bulk_insert" && `一括インポート準備完了`}
+                              {processingName === "error" && `エラー`}
                             </p>
                           </div>
                         </>
@@ -2233,6 +2301,8 @@ const ImportModalMemo = () => {
           skipCount={selectedColumnFieldsArray.length - alreadySelectColumnsSetObj.size}
           formattedUploadedRowCount={formattedUploadedRowCount}
           getInsertColumnNames={getInsertColumnNames}
+          detailsTransform={detailsTransform}
+          setDetailsTransform={setDetailsTransform}
         />
       )}
       {/* ----------------------- step2 紐付け設定完了確認モーダル ここまで ----------------------- */}
@@ -2249,6 +2319,9 @@ const ImportModalMemo = () => {
             setIsTransformProcessing={setIsTransformProcessing}
             setProcessedData={setTransformProcessedData}
             groupedTownsByRegionCity={groupedTownsByRegionCity}
+            setProgress={setProgressProcessing}
+            setProcessingName={setProcessingName}
+            detailsTransform={detailsTransform}
           />
         )}
       {/* ----------------------- step3 データ前処理Web Workerコンポーネント起動 ここまで ----------------------- */}
@@ -2260,6 +2333,7 @@ const ImportModalMemo = () => {
           setIsLoadingTest={setIsLoadingTest}
           setTestProcessedData={setTestProcessedData}
           setProgressTest={setProgressProcessing}
+          setProcessingName={setProcessingName}
         />
       )}
       {/* ----------------------- テストWeb Workerコンポーネント起動 ここまで ----------------------- */}

@@ -1,8 +1,8 @@
 import { MdClose } from "react-icons/md";
 import styles from "./ConfirmationMappingModal.module.css";
-import { ChangeEvent, useRef } from "react";
+import { ChangeEvent, Dispatch, SetStateAction, useRef } from "react";
 import { BsCheck2, BsFiletypeCsv } from "react-icons/bs";
-import { HiMinus } from "react-icons/hi";
+import { HiChevronDown, HiMinus } from "react-icons/hi";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { IoIosArrowRoundForward } from "react-icons/io";
 
@@ -47,6 +47,14 @@ type Props = {
   skipCount: number;
   formattedUploadedRowCount: string;
   getInsertColumnNames: (column: string) => string;
+  detailsTransform: {
+    capital: "default" | "million";
+  };
+  setDetailsTransform: Dispatch<
+    SetStateAction<{
+      capital: "default" | "million";
+    }>
+  >;
 };
 
 export const ConfirmationMappingModal = ({
@@ -79,6 +87,8 @@ export const ConfirmationMappingModal = ({
   skipCount,
   formattedUploadedRowCount,
   getInsertColumnNames,
+  detailsTransform,
+  setDetailsTransform,
 }: Props) => {
   const modalRef = useRef<HTMLDivElement | null>(null);
 
@@ -301,24 +311,69 @@ export const ConfirmationMappingModal = ({
                     <div
                       className={`${styles.item_card} flex-center h-full w-[45%] rounded-[9px] bg-[#fff] text-[12px]`}
                     >
-                      <span
-                        className={`max-w-[180px] truncate`}
-                        onMouseEnter={(e) => {
-                          if (selectedField === "") return; // スキップ
-                          if (!selectedFieldName) return; // スキップ以外
-                          const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth)
-                            handleOpenTooltip({
-                              e: e,
-                              display: "top",
-                              content: column,
-                              itemsPosition: "left",
-                            });
-                        }}
-                        onMouseLeave={handleCloseTooltip}
-                      >
-                        {selectedFieldName}
-                      </span>
+                      {/* 資本金 */}
+                      {selectedField === "capital" && (
+                        <>
+                          <div className={`flex-center group relative h-max w-max truncate`}>
+                            <select
+                              className={`select_arrow_none relative z-0 max-w-[180px] cursor-pointer items-center truncate pr-[24px]`}
+                              onMouseEnter={(e) => {
+                                if (!selectedFieldName) return; // スキップ以外
+                                handleOpenTooltip({
+                                  e: e,
+                                  display: "top",
+                                  content: `アップロードしたCSVデータの会社リストに入力されている\n資本金の単位を選択してください。`,
+                                  itemsPosition: "left",
+                                });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                              value={detailsTransform.capital}
+                              onChange={(e) =>
+                                setDetailsTransform({
+                                  ...detailsTransform,
+                                  capital: e.target.value as "default" | "million",
+                                })
+                              }
+                            >
+                              <option value="default">資本金(円単位)</option>
+                              <option value="million">資本金(万円単位)</option>
+                            </select>
+                            <div
+                              className={`flex-center pointer-events-none absolute right-0 top-[50%] z-[10] min-h-[20px] min-w-[20px] translate-y-[-50%] rounded-full group-hover:bg-[var(--color-bg-sub-icon)]`}
+                            >
+                              <HiChevronDown
+                                className="stroke-[1] text-[13px] text-[var(--color-text-brand-f)]"
+                                style={{
+                                  color: `var(--main-color-f)`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* 資本金 ここまで */}
+                      {/* 通常 */}
+                      {selectedField !== "capital" && (
+                        <span
+                          className={`max-w-[180px] truncate`}
+                          onMouseEnter={(e) => {
+                            if (selectedField === "") return; // スキップ
+                            if (!selectedFieldName) return; // スキップ以外
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth)
+                              handleOpenTooltip({
+                                e: e,
+                                display: "top",
+                                content: column,
+                                itemsPosition: "left",
+                              });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedFieldName}
+                        </span>
+                      )}
+                      {/* 通常 ここまで */}
                     </div>
                   </div>
                 );
