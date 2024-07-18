@@ -57,7 +57,7 @@ export const DataProcessWorker = ({
   const currentChunkIndex = useRef(0);
 
   useEffect(() => {
-    // 🔸数十万行のデータを2500行ごとのチャンクに分割する関数
+    // 🔸数十万行のデータを指定した行ごとのチャンクに分割する関数
     const createChunkArray = (dataArray: any[], chunkSize: number) => {
       let chunksArray = [];
 
@@ -69,8 +69,9 @@ export const DataProcessWorker = ({
     };
 
     const allProcessedData: any[] = []; // 最終的に全ての処理済みデータを格納するリスト
+    const chunkSize = 5000;
     // const chunkSize = 2500;
-    const chunkSize = 1000;
+    // const chunkSize = 1000;
     // const chunkSize = 25;
     const dataChunksArray = createChunkArray(parsedData, chunkSize); // 会社リストデータをチャンクに分割
     const totalChunksCount = dataChunksArray.length; // 総チャンク数
@@ -81,9 +82,11 @@ export const DataProcessWorker = ({
     let totalChunkBlob: null | Blob = new Blob([JSON.stringify(dataChunksArray)]);
     let chunkBlob: null | Blob = new Blob([JSON.stringify(dataChunksArray[0])]);
     console.log(
-      `総チャンク(${totalChunksCount}個)合計${parsedData}行 サイズ: ${(totalChunkBlob.size / 1024 / 1024).toFixed(
-        2
-      )}MB(${totalChunkBlob.size}Byte)`,
+      `総チャンク(${totalChunksCount}個)合計${parsedData.length}行 サイズ: ${(
+        totalChunkBlob.size /
+        1024 /
+        1024
+      ).toFixed(2)}MB(${totalChunkBlob.size}Byte)`,
       `1チャンク/${chunkSize}行 サイズ: ${(chunkBlob.size / 1024 / 1024).toFixed(2)}MB(${chunkBlob.size}Byte)`
     );
     totalChunkBlob = null;
@@ -107,7 +110,8 @@ export const DataProcessWorker = ({
         const progress = parseFloat(((processedChunkCount / totalChunksCount) * 100).toFixed(1)); // 0.1%単位で表示
         setProgress(progress ?? null);
         // 「処理済み行数 / 合計行数」形式の進捗を更新
-        setProcessedRowCount(Math.ceil(processedChunkCount * chunkSize));
+        setProcessedRowCount(processedChunkCount * chunkSize);
+        // setProcessedRowCount(Math.ceil(processedChunkCount * chunkSize));
 
         // 🔹データ前処理が完了したチャンクのデータを集約 allProcessedData
         allProcessedData.push(...data.processedData);
@@ -139,11 +143,11 @@ export const DataProcessWorker = ({
           `, 現在の完了済みチャンク数: ${processedChunkCount}個目`,
           `, 合計チャンク数: ${totalChunksCount}個`,
           `, ✅チャンクデータ処理完了 データを集約 Chunk data processed: `,
-          data.processedData,
+          data.processedData.length,
           `, 除外された行のエラー理由: `,
           data.errorMessages,
-          `allProcessedData: `,
-          allProcessedData
+          `allProcessedData.length: `,
+          allProcessedData.length
         );
 
         if (!!performance.getEntriesByName(`Worker_Process_Start_chunk_index_${currentChunkIndex.current}`).length) {
@@ -162,7 +166,7 @@ export const DataProcessWorker = ({
           performance.clearMarks(`Worker_Process_End_chunk_index_${currentChunkIndex.current}`);
           performance.clearMeasures(`Worker_Process_Time_chunk_index_${currentChunkIndex.current}`);
           console.log(
-            "------------------------------------------ タイム終了 ------------------------------------------"
+            `------------------------------------------ タイム終了 index: ${currentChunkIndex.current} ------------------------------------------`
           );
         }
 
@@ -186,7 +190,7 @@ export const DataProcessWorker = ({
           worker.postMessage(messageData);
 
           console.log(
-            "------------------------------------------ タイム開始 ------------------------------------------"
+            `------------------------------------------ タイム開始 index: ${currentChunkIndex.current} ------------------------------------------`
           );
           performance.mark(`Worker_Process_Start_chunk_index_${currentChunkIndex.current}`); // チャンク開始点
 
@@ -206,15 +210,19 @@ export const DataProcessWorker = ({
           const endTime = performance.now(); // 終了時間
           console.log("Time: ", endTime - startTime, "ms");
           console.log(
-            "------------------------------------------ タイム終了 ------------------------------------------"
+            "------------------------------------------ タイム終了 全チャンク ------------------------------------------"
           );
 
           toast.success(`全てのデータ処理が完了しました！✅`);
           // Insert前の変換処理の結果をstateに格納
           console.log(
-            "Main thread: ✅全てのチャンクデータ処理完了 allProcessedData: ",
+            "Main thread: ✅全てのチャンクデータ処理完了(バルクインサート準備完了✅)",
+            ", 前処理完了後 allProcessedData: ",
             allProcessedData,
-            "バルクインサート準備完了"
+            ", 前処理前 parsedData: ",
+            parsedData,
+            ", 除外された行のエラーデータ allErrorMessages: ",
+            allErrorMessages
           );
           setProcessedData(allProcessedData);
           setExcludedErrorData(allErrorMessages); // 除外されたエラーデータを格納
@@ -249,9 +257,16 @@ export const DataProcessWorker = ({
       setIsTransformProcessing(false);
     };
 
-    console.log("------------------------------------------");
+    console.log(
+      "------------------------------------------ タイム開始 全チャンク ------------------------------------------"
+    );
     performance.mark("Worker_Process_Start"); // 開始点
     const startTime = performance.now(); // 開始時間
+
+    console.log(
+      `------------------------------------------ タイム開始 index: ${currentChunkIndex.current} ------------------------------------------`
+    );
+    performance.mark(`Worker_Process_Start_chunk_index_${currentChunkIndex.current}`); // チャンク開始点
 
     // Workerにメッセージを送信して、データ前処理を実行// 初めてのチャンクをWorkerに送信
     const messageData = {
@@ -260,7 +275,7 @@ export const DataProcessWorker = ({
       columnMap: columnMap, // csvカラムヘッダー名 to データベースのclient_companiesテーブルのカラム名
       groupedTownsByRegionCity: groupedTownsByRegionCity, // 会社リストで使用される都道府県・市区町村別の町域リスト
       detailsTransform: detailsTransform, // 各カラムの前処理の詳細(資本金の入力値が円単位or万単位どちらで入力されているか等)
-      currentChunkCount: currentChunkIndex.current + 1,
+      currentChunkIndex: currentChunkIndex.current,
       chunkSize: chunkSize,
     } as WorkerMessageEventType;
     console.log(`Main thread: First chunk Message posted to worker. messageData: `, messageData);

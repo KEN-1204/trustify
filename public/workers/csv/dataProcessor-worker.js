@@ -4243,11 +4243,16 @@ self.onmessage = async function (e) {
     if (e.data.origin !== clientUrl)
       return console.log(`Worker: ❌オリジンチェックに失敗 リターン 受け取ったオリジン: ${e.data.origin}`);
 
-    const { parsedData, columnMap, groupedTownsByRegionCity, detailsTransform, currentChunkCount, chunkSize } = e.data;
+    const { parsedData, columnMap, groupedTownsByRegionCity, detailsTransform, currentChunkIndex, chunkSize } = e.data;
     console.log(
-      `Worker: detailsTransform: `,
+      `Worker: `,
+      `currentChunkIndex: `,
+      currentChunkIndex,
+      `chunkSize: `,
+      chunkSize,
+      `detailsTransform: `,
       detailsTransform,
-      `currentChunkCount: ${currentChunkCount}, chunkSize: ${chunkSize}`
+      `currentChunkIndex: ${currentChunkIndex}, chunkSize: ${chunkSize}`
     );
 
     // DBフィールド名からCSVカラムヘッダー名へのMapを生成
@@ -4269,7 +4274,7 @@ self.onmessage = async function (e) {
     const errorMessages = {};
 
     // ----------------------------------- 1チャンクのデータ処理関数 -----------------------------------
-    function processChunk(chunk, chunkCount) {
+    function processChunk(chunk) {
       // チャンク内で処理済みのRowsを保持
       const processedRowsChunk = [];
 
@@ -4279,8 +4284,9 @@ self.onmessage = async function (e) {
         // for...ofでindexを取得するためにentries()を使用
         // 行の前処理
         const processedRow = {}; // 最終的にインサートする処理後の行
-        const processCountInChunk = index + 1; // チャンク内の行番号
-        const rowCountInAllData = chunkCount * chunkSize + processCountInChunk;
+        const processCountInChunk = index + 1; // チャンク内の行番号 1から
+        // 会社リスト全体の中の行番号 最初のチャンクの最初のイテレーション: 0 + 5000 + 1 = 1行目
+        const rowCountInAllData = currentChunkIndex * chunkSize + processCountInChunk;
 
         try {
           let townsByCities = [];
@@ -4452,7 +4458,7 @@ self.onmessage = async function (e) {
 
     // ----------------------------------- 🔸分割したチャンクごとにデータ処理 -----------------------------------
     // メインスレッド側でチャンクを分割して、1チャンクのみWorkerに送信
-    const processedData = processChunk(parsedData, currentChunkCount);
+    const processedData = processChunk(parsedData);
     // ----------------------------------- 🔸分割したチャンクごとにデータ処理 -----------------------------------ここまで
 
     // 🔸アップロードされたCSVデータの全ての行の前処理完了 => クライアントサイドに処理済みデータを返すとともに完了を通知

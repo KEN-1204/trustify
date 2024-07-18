@@ -33,6 +33,8 @@ import { AnimeCheck, AnimeChecking, AnimeUploading } from "@/components/assets/A
 import { TestDataProcessWorker } from "./DataProcessWorker/TestDataProcessWorker";
 
 const ImportModalMemo = () => {
+  // 環境変数でデバッグ/本番モードを切り替え 'true'の場合はconsole.log()を表示し、本番環境(false)では最低限のconsole.logを表示
+  const isDebugMode = process.env.NEXT_PUBLIC_DEBUG_MODE === "true";
   const supabase = useSupabaseClient();
   const language = useStore((state) => state.language);
   const setIsOpenImportModal = useDashboardStore((state) => state.setIsOpenImportModal);
@@ -61,7 +63,7 @@ const ImportModalMemo = () => {
   useEffect(() => {
     if (!isConverting) {
       if (intervalIdRef.current) {
-        console.log("🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟ローディング終了したためクリア clearInterval");
+        if (isDebugMode) console.log("ローディング終了したためクリア clearInterval");
         clearInterval(intervalIdRef.current as NodeJS.Timer | number);
         intervalIdRef.current = null;
       }
@@ -72,7 +74,7 @@ const ImportModalMemo = () => {
       if (!convertingTextRef.current) return;
 
       const text = convertingTextRef.current.innerText;
-      console.log("🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠loadingTextEffect実行", text);
+      if (isDebugMode) console.log("loadingTextEffect実行", text);
       if (text === "読み込み中") {
         convertingTextRef.current.innerText = `読み込み中.`;
       } else if (text === "読み込み中.") {
@@ -93,7 +95,7 @@ const ImportModalMemo = () => {
     // クリーンアップ
     return () => {
       if (intervalIdRef.current) {
-        console.log("🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟クリーンアップ clearInterval");
+        if (isDebugMode) console.log("クリーンアップ clearInterval");
         clearInterval(intervalIdRef.current as NodeJS.Timer | number);
         intervalIdRef.current = null;
       }
@@ -128,7 +130,7 @@ const ImportModalMemo = () => {
   };
   // ----------------------------------------------
 
-  const [step, setStep] = useState(3);
+  const [step, setStep] = useState(1);
   // -------------------------- ステップ1 「CSVのパース・解析」用state --------------------------
   // 🔸パース後のCSVデータ配列 result.data
   // => 1000以上は10000個ずつの配列を配列に格納した出力される:
@@ -415,7 +417,7 @@ const ImportModalMemo = () => {
   // Drag Leave
   const handleDragLeaveUploadBox = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    console.log("Drag Leave");
+    if (isDebugMode) console.log("Drag Leave");
 
     if (fileUploadBoxRef.current && fileUploadBoxRef.current.classList.contains(styles.active)) {
       fileUploadBoxRef.current?.classList.remove(`${styles.active}`);
@@ -436,7 +438,7 @@ const ImportModalMemo = () => {
   // Drop
   const handleDropUploadBox = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    console.log("Drop", e);
+    if (isDebugMode) console.log("Drop", e);
 
     handleSelectedFiles(e.dataTransfer.files);
 
@@ -498,14 +500,15 @@ const ImportModalMemo = () => {
       selectedIndexesArray.map((i) => [uploadedColumnFields[i], selectedColumnFieldsArray[i]])
     );
 
-    console.log(
-      "selectedIndexesArray",
-      selectedIndexesArray,
-      "csvColumnNameToDBColumnMap",
-      csvColumnNameToDBColumnMap,
-      "uploadedData",
-      uploadedData
-    );
+    if (isDebugMode)
+      console.log(
+        "selectedIndexesArray",
+        selectedIndexesArray,
+        "csvColumnNameToDBColumnMap",
+        csvColumnNameToDBColumnMap,
+        "uploadedData",
+        uploadedData
+      );
     setInsertCsvColumnNameToDBColumnMap(csvColumnNameToDBColumnMap);
 
     // 確認モーダルを閉じる
@@ -596,12 +599,13 @@ const ImportModalMemo = () => {
         const regionsCities = identifyRegionsAndCities(addresses);
         const { prefectures, cities, filteredCitiesByPrefectures } = regionsCities;
 
-        console.log(
-          "🔸住所リストで使用されている都道府県と市区町村を特定してリストを作成",
-          regionsCities,
-          "都道府県ごとの市区町村filteredCitiesByPrefectures",
-          filteredCitiesByPrefectures
-        );
+        if (isDebugMode)
+          console.log(
+            "🔸住所リストで使用されている都道府県と市区町村を特定してリストを作成",
+            regionsCities,
+            "都道府県ごとの市区町村filteredCitiesByPrefectures",
+            filteredCitiesByPrefectures
+          );
 
         // 抽出した全住所リスト内で使用されている市区町村データに紐づく町域リストを取得
 
@@ -674,7 +678,7 @@ const ImportModalMemo = () => {
             await new Promise((resolve, reject) => setTimeout(resolve, 1000)); // 1秒間隔で次のリクエスト
           }
 
-          console.log("✅✅✅全てのtownsリスト取得成功 allTowns: ", allTowns);
+          if (isDebugMode) console.log("✅✅✅全てのtownsリスト取得成功 allTowns: ", allTowns);
 
           // -------------------------- テスト --------------------------
           // 青森チェック
@@ -684,26 +688,27 @@ const ImportModalMemo = () => {
           const _cityNamesSet = new Set(_cityNames);
           const excludesCities = cities.filter((cityName) => !_cityNamesSet.has(cityName));
 
-          console.log(
-            "アップロードprefectures",
-            prefectures,
-            "prefNamesSet",
-            prefNamesSet,
-            "prefNames",
-            prefNames,
-            "アップロードcities",
-            cities,
-            "_cityNamesSet",
-            _cityNamesSet,
-            "取得結果に含まれていないアップロードcity",
-            excludesCities,
-            "_cityNames",
-            _cityNames,
-            "アップロードした都道府県ごとの市区町村filteredCitiesByPrefectures",
-            filteredCitiesByPrefectures,
-            "allTowns",
-            allTowns
-          );
+          if (isDebugMode)
+            console.log(
+              "アップロードprefectures",
+              prefectures,
+              "prefNamesSet",
+              prefNamesSet,
+              "prefNames",
+              prefNames,
+              "アップロードcities",
+              cities,
+              "_cityNamesSet",
+              _cityNamesSet,
+              "取得結果に含まれていないアップロードcity",
+              excludesCities,
+              "_cityNames",
+              _cityNames,
+              "アップロードした都道府県ごとの市区町村filteredCitiesByPrefectures",
+              filteredCitiesByPrefectures,
+              "allTowns",
+              allTowns
+            );
           // -------------------------- テスト --------------------------
 
           // 🔸インポートする会社リストに必要な全てのtownsテーブルの町域データが取得後
@@ -759,17 +764,18 @@ const ImportModalMemo = () => {
           }
         );
 
-        console.log(
-          "✅終了 townsリストを都道府県ごと、市区町村ごとにグループ化したリスト取得成功: ",
-          _groupedTownsByRegionCity,
-          "DBから取得した都道府県ごとの市区町村groupedCitiesCountByPrefectures",
-          groupedCitiesCountByPrefectures,
-          "アップロードした都道府県ごとの市区町村filteredCitiesByPrefectures",
-          filteredCitiesByPrefectures,
-          prefectures,
-          cities,
-          addresses
-        );
+        if (isDebugMode)
+          console.log(
+            "✅終了 townsリストを都道府県ごと、市区町村ごとにグループ化したリスト取得成功: ",
+            _groupedTownsByRegionCity,
+            "DBから取得した都道府県ごとの市区町村groupedCitiesCountByPrefectures",
+            groupedCitiesCountByPrefectures,
+            "アップロードした都道府県ごとの市区町村filteredCitiesByPrefectures",
+            filteredCitiesByPrefectures,
+            prefectures,
+            cities,
+            addresses
+          );
 
         performance.mark("fetch_towns_End"); // 開始点
         performance.measure("fetch_towns_Time", "fetch_towns_Start", "fetch_towns_End"); // 計測
@@ -1071,27 +1077,28 @@ const ImportModalMemo = () => {
     return { x, y };
   }, [modalContainerRef.current]);
 
-  console.log(
-    "ImportModalレンダリング",
-    "uploadedData",
-    uploadedData,
-    "processingName",
-    processingName,
-    "transformProcessedData",
-    transformProcessedData,
-    "excludedErrorData",
-    excludedErrorData
-    // "uploadedDisplayRowList",
-    // uploadedDisplayRowList,
-    // "uploadedColumnFields",
-    // uploadedColumnFields,
-    // "selectedColumnFieldsArray",
-    // selectedColumnFieldsArray,
-    // "alreadySelectColumnsSetObj",
-    // alreadySelectColumnsSetObj
-    // "remainingOptionsColumnFieldsArray",
-    // remainingOptionsColumnFieldsArray
-  );
+  if (isDebugMode)
+    console.log(
+      "ImportModalレンダリング",
+      ", アップロード件数uploadedData.length: ",
+      uploadedData.length,
+      ", ステップ3のプロセス名processingName: ",
+      processingName
+      // "transformProcessedData",
+      // transformProcessedData,
+      // "excludedErrorData",
+      // excludedErrorData
+      // "uploadedDisplayRowList",
+      // uploadedDisplayRowList,
+      // "uploadedColumnFields",
+      // uploadedColumnFields,
+      // "selectedColumnFieldsArray",
+      // selectedColumnFieldsArray,
+      // "alreadySelectColumnsSetObj",
+      // alreadySelectColumnsSetObj
+      // "remainingOptionsColumnFieldsArray",
+      // remainingOptionsColumnFieldsArray
+    );
 
   return (
     <>
@@ -1951,7 +1958,7 @@ const ImportModalMemo = () => {
                       </>
                     )}
 
-                    {true && progressProcessing !== null && (
+                    {/* {true && progressProcessing !== null && (
                       <>
                         {<AnimeChecking /> ?? <SpinnerX />}
                         <div className={`flex-col-center mr-[-2px] flex min-w-[45px]`}>
@@ -1967,7 +1974,6 @@ const ImportModalMemo = () => {
                               >
                                 <div className={`flex w-full items-center justify-end`}>
                                   <span>{processedRowCount.toLocaleString()}行</span>
-                                  {/* <span>{(1000000).toLocaleString()}行</span> */}
                                 </div>
                                 <div
                                   className={`${
@@ -1976,10 +1982,8 @@ const ImportModalMemo = () => {
                                 >
                                   <span>/</span>
                                   <span>{uploadedData.length.toLocaleString()}行</span>
-                                  {/* <span>{(10000).toLocaleString()}行</span> */}
                                   <span>処理完了</span>
                                   <span className={`min-w-[66px] text-start`}>({progressProcessing}%)</span>
-                                  {/* <span className={`min-w-[66px] text-start`}>(100%)</span> */}
                                 </div>
                               </div>
                               <div className={styles.progress_bar}>
@@ -1992,7 +1996,7 @@ const ImportModalMemo = () => {
                           )}
                         </div>
                       </>
-                    )}
+                    )} */}
 
                     {processingName === "transforming" && (
                       <>
@@ -2005,9 +2009,21 @@ const ImportModalMemo = () => {
                           {progressProcessing !== null && (
                             <>
                               <div
-                                className={`flex-center mb-[10px] mt-[10px] w-full text-[20px] font-bold text-[var(--color-text-title)]`}
+                                className={`mb-[10px] mt-[10px] flex w-full min-w-[360px] items-center justify-between space-x-[9px] whitespace-nowrap text-[15px] font-bold text-[var(--color-text-title)]`}
                               >
-                                <span>{progressProcessing}%</span>
+                                <div className={`flex w-full items-center justify-end`}>
+                                  <span>{processedRowCount.toLocaleString()}行</span>
+                                </div>
+                                <div
+                                  className={`${
+                                    uploadedData.length < 1000000 ? `!mr-[10px]` : ``
+                                  } flex w-full items-center justify-start space-x-[9px]`}
+                                >
+                                  <span>/</span>
+                                  <span>{uploadedData.length.toLocaleString()}行</span>
+                                  <span>処理完了</span>
+                                  <span className={`min-w-[66px] text-start`}>({progressProcessing}%)</span>
+                                </div>
                               </div>
                               <div className={styles.progress_bar}>
                                 <div

@@ -226,9 +226,7 @@ const CustomSelectMappingMemo = ({
           const tooltipText = !getOptionName ? stateArray[targetIndex] : getOptionName(stateArray[targetIndex]);
           if (!tooltipText) return;
           const el = e.currentTarget;
-          console.log("エンター", el.scrollWidth, el.offsetWidth, el.scrollHeight, el.offsetHeight, tooltipText);
           if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight) {
-            console.log("エンター表示✅");
             handleOpenTooltip({
               e: e,
               display: "top",
