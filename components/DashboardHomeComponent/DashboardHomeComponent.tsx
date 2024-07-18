@@ -267,41 +267,52 @@ export const DashboardHomeComponent = () => {
                       </div>
                     </div>
                     {/* <div className={`${styles.contents_area} h-fit w-full max-w-[400px]`}> */}
-                    <div className={`${styles.contents_area} fade08_forward h-full w-full max-w-[400px]`}>
-                      {home_cards.map((item, index) => (
-                        <div
-                          key={item.name}
-                          // className={`${styles.content_card} transition-base02 mt-[10px] flex h-[72px] w-full max-w-[400px] items-center rounded-[8px] bg-[var(--color-bg-base-sub)] p-[16px] text-[14px] font-bold`}
-                          className={`${styles.content_card} transition-bg03 mt-[10px] flex h-[72px] w-full max-w-[400px] items-center rounded-[8px] bg-[var(--color-bg-base-sub)] p-[16px] text-[14px] font-bold text-[var(--color-text-title)]`}
-                          onClick={() => {
-                            if (item.name === "invitation") {
-                              if (
-                                userProfileState?.account_company_role !== "company_admin" &&
-                                userProfileState?.account_company_role !== "company_owner"
-                              ) {
-                                alert("管理者権限を持つユーザーのみアクセス可能です");
-                                return;
+                    {/* <div className={`${styles.contents_area} fade08_forward h-full w-full max-w-[400px]`}> */}
+                    <div className={`${styles.contents_area} fade08_forward h-full w-full`}>
+                      <div
+                        className={`${styles.contents_wrapper} relative flex h-max w-full flex-col items-center pb-[15px]`}
+                      >
+                        {home_cards.map((item, index) => (
+                          <div
+                            key={item.name}
+                            // className={`${styles.content_card} transition-base02 mt-[10px] flex h-[72px] w-full max-w-[400px] items-center rounded-[8px] bg-[var(--color-bg-base-sub)] p-[16px] text-[14px] font-bold`}
+                            className={`${styles.content_card} transition-bg03 mt-[10px] flex h-[72px] w-full max-w-[400px] items-center rounded-[8px] bg-[var(--color-bg-base-sub)] p-[16px] text-[14px] font-bold text-[var(--color-text-title)]`}
+                            onClick={() => {
+                              if (item.name === "invitation") {
+                                if (
+                                  userProfileState?.account_company_role !== "company_admin" &&
+                                  userProfileState?.account_company_role !== "company_owner"
+                                ) {
+                                  alert("管理者権限を持つユーザーのみアクセス可能です");
+                                  return;
+                                }
                               }
-                            }
-                            handleActions(item.name);
-                          }}
-                          onMouseEnter={() => handleHoverCard(item.name)}
-                          onMouseLeave={() => handleBlurCard(item.name)}
-                        >
-                          <div className={`h-[40px] w-[40px] ${styles.animate_icon} pointer-events-none`}>
-                            {item.icon}
+                              handleActions(item.name);
+                            }}
+                            onMouseEnter={() => handleHoverCard(item.name)}
+                            onMouseLeave={() => handleBlurCard(item.name)}
+                          >
+                            <div className={`h-[40px] w-[40px] ${styles.animate_icon} pointer-events-none`}>
+                              {item.icon}
+                            </div>
+                            <div className="pointer-events-none mx-[16px] flex flex-grow select-none flex-col">
+                              <span>{item.title}</span>
+                              {/* {item.title2 && <span>{item.title2}</span>} */}
+                            </div>
+                            <div>
+                              <BsChevronRight
+                                className={`transition-base03 pointer-events-none text-[var(--color-text)] ${styles.right_arrow}`}
+                              />
+                            </div>
                           </div>
-                          <div className="pointer-events-none mx-[16px] flex flex-grow select-none flex-col">
-                            <span>{item.title}</span>
-                            {/* {item.title2 && <span>{item.title2}</span>} */}
-                          </div>
-                          <div>
-                            <BsChevronRight
-                              className={`transition-base03 pointer-events-none text-[var(--color-text)] ${styles.right_arrow}`}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                        {/* <div className={`flex-center absolute bottom-0 left-0 h-0 w-full`}>
+                          <div
+                            className={`h-0 w-full max-w-[420px]`}
+                            style={{ boxShadow: `0 0px 5px 1px #00000018` }}
+                          ></div>
+                        </div> */}
+                      </div>
                       {/* <div
                       className={`${styles.content_card} transition-base02 mt-[8px] flex h-[72px] w-full max-w-[400px] items-center rounded-[8px] bg-[var(--color-bg-base-sub)] p-[16px] font-bold`}
                     >

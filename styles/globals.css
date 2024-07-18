@@ -1497,6 +1497,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sales-card-border: transparent;
   --color-sales-card-border: 0 1px 2px 1px #cccccc60;
   --color-card-border-with-shadow-md: inset 0px 0px 0px 1px #ddd, 0 1px 2px 1px #cccccc56;
+  --color-card-border-with-shadow-md-select: inset 0px 0px 0px 1px var(--color-bg-brand-fd0), 0 1px 2px 1px #cccccc56;
+  --color-card-border-with-shadow-md-select-active: inset 0px 0px 0px 1px var(--color-bg-brand-f),
+    0 1px 3px 1px #00000060;
+  --color-home-card-box-shadow: 0px 0px 0px 1px var(--color-bg-brand-f), 0 1px 9px 2px #00000060;
   /* box-shadow: inset 0px 0px 0px 1px #ddd, 0 1px 2px 1px #cccccc60; */
   --color-sales-card-border-brand: 0 0 0 1px var(--color-bg-brand-f), 0 1px 2px 2px #cccccc60;
   --color-sales-card-border-sticky: 0 1px 2px 1px #cccccc60, 0 6px 12px 3px #00000056;
@@ -2669,6 +2673,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-sales-card-bg: linear-gradient(to bottom left, #2c2c2c 0%, #2d2d2d 33%, #222 66%, #1c1c1c 100%); */
   --color-sales-card-border: 0 0 0 1px #333;
   --color-card-border-with-shadow-md: inset 0 0 0 1px #333, 0 1px 3px 1px #00000060;
+  --color-card-border-with-shadow-md-select: inset 0px 0px 0px 1px var(--color-bg-brand-fd0), 0 1px 3px 1px #00000060;
+
+  --color-card-border-with-shadow-md-select-active: inset 0px 0px 0px 1px var(--color-bg-brand-f),
+    0 1px 2px 1px #cccccc56;
+  --color-home-card-box-shadow: 0px 0px 0px 1px var(--color-bg-brand-f), 0 1px 9px 3px #cccccc56;
   /* 
     box-shadow: inset 0 0 0 1px #333, 0 1px 3px 1px #00000060; */
   --color-sales-card-border-brand: 0 0 0 1px var(--color-bg-brand-f);

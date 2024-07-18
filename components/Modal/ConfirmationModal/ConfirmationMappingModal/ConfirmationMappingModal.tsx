@@ -308,15 +308,15 @@ export const ConfirmationMappingModal = ({
                     <div className={`flex-center h-full w-[10%]`}>
                       <IoIosArrowRoundForward className={`stroke-[13px] text-[18px] text-[var(--color-text-sub)]`} />
                     </div>
-                    <div
-                      className={`${styles.item_card} flex-center h-full w-[45%] rounded-[9px] bg-[#fff] text-[12px]`}
-                    >
-                      {/* 資本金 */}
-                      {selectedField === "capital" && (
+                    {/* 資本金 */}
+                    {selectedField === "capital" && (
+                      <div
+                        className={`${styles.item_card} ${styles.selectable} flex-center h-full w-[45%] rounded-[9px] bg-[#fff] text-[12px]`}
+                      >
                         <>
                           <div className={`flex-center group relative h-max w-max truncate`}>
                             <select
-                              className={`select_arrow_none relative z-0 max-w-[180px] cursor-pointer items-center truncate pr-[24px]`}
+                              className={`select_arrow_none relative z-0 max-w-[180px] cursor-pointer items-center truncate bg-transparent pr-[24px]`}
                               onMouseEnter={(e) => {
                                 if (!selectedFieldName) return; // スキップ以外
                                 handleOpenTooltip({
@@ -350,10 +350,14 @@ export const ConfirmationMappingModal = ({
                             </div>
                           </div>
                         </>
-                      )}
-                      {/* 資本金 ここまで */}
-                      {/* 通常 */}
-                      {selectedField !== "capital" && (
+                      </div>
+                    )}
+                    {/* 資本金 ここまで */}
+                    {/* 通常 */}
+                    {selectedField !== "capital" && (
+                      <div
+                        className={`${styles.item_card} flex-center h-full w-[45%] rounded-[9px] bg-[#fff] text-[12px]`}
+                      >
                         <span
                           className={`max-w-[180px] truncate`}
                           onMouseEnter={(e) => {
@@ -372,9 +376,9 @@ export const ConfirmationMappingModal = ({
                         >
                           {selectedFieldName}
                         </span>
-                      )}
-                      {/* 通常 ここまで */}
-                    </div>
+                      </div>
+                    )}
+                    {/* 通常 ここまで */}
                   </div>
                 );
               })}

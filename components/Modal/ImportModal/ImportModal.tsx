@@ -128,7 +128,7 @@ const ImportModalMemo = () => {
   };
   // ----------------------------------------------
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(3);
   // -------------------------- ステップ1 「CSVのパース・解析」用state --------------------------
   // 🔸パース後のCSVデータ配列 result.data
   // => 1000以上は10000個ずつの配列を配列に格納した出力される:
@@ -181,12 +181,18 @@ const ImportModalMemo = () => {
   const [isTransformProcessing, setIsTransformProcessing] = useState(false);
   // 🔸データ前処理完了後の一括インサート用データ
   const [transformProcessedData, setTransformProcessedData] = useState<any[]>([]);
+  // 🔸データ前処理完了後の除外されたデータのエラー理由と行番号
+  const [excludedErrorData, setExcludedErrorData] = useState<{ [key: string]: { [key: string]: number[] } } | null>(
+    null
+  ); // { CSVカラムヘッダー名: { エラー理由: [1, 3, 9...行番号] } }
   // 🔸データ前処理時の各カラムごとの詳細設定 資本金の入力値が円単位 or 万円単位 で変換が必要かどうかなど
   const [detailsTransform, setDetailsTransform] = useState<{
     capital: "default" | "million";
   }>({
     capital: "default", // 円単位or万円単位かどうか
   });
+  // 🔸「処理済み行数 / 合計行数」の進捗表示用state 合計行数はuploadedData.lengthで表示
+  const [processedRowCount, setProcessedRowCount] = useState(0);
   // テスト
   const [isTestProcessing, setIsTestProcessing] = useState(false);
   const [isLoadingTest, setIsLoadingTest] = useState(false);
@@ -735,7 +741,7 @@ const ImportModalMemo = () => {
         }
 
         // 🔸1000行ずつ取得し、抽出した市区町村名に対応する町域リストを全て取得
-        // SupabaseダッシュボードのData API SettingsのMax rowsがデフォルトで1000になっている これはそのままにしておきmax_rowsに準じる形で取得する
+        // 🌠1000行ずつ取得する理由: SupabaseダッシュボードのData API SettingsのMax rowsがデフォルトで1000になっているため これはそのままにしておきmax_rowsに準じる形で取得する
         const _groupedTownsByRegionCity = await fetchAllTownsByPrefecturesCities(
           prefectures,
           cities,
@@ -784,6 +790,7 @@ const ImportModalMemo = () => {
 
         // 🔸Web Workerを起動してデータ前処理を実行
         setIsTransformProcessing(true);
+        setProgressProcessing(0); // 0%をセット
       } catch (error: any) {
         console.error("❌町域リストプロセスエラーIM04：", error);
         alert("エラー：アップロードした会社リスト内で無効な住所が存在します。 IM04");
@@ -1071,7 +1078,9 @@ const ImportModalMemo = () => {
     "processingName",
     processingName,
     "transformProcessedData",
-    transformProcessedData
+    transformProcessedData,
+    "excludedErrorData",
+    excludedErrorData
     // "uploadedDisplayRowList",
     // uploadedDisplayRowList,
     // "uploadedColumnFields",
@@ -1335,12 +1344,20 @@ const ImportModalMemo = () => {
                     }}
                     onClick={async () => {
                       console.log("プログレススタート");
+                      // const total = 500000;
+                      // const total = 100000;
+                      const total = 10000;
                       let num = 0;
-                      while (num <= 100) {
+                      while (num <= total) {
                         await new Promise((resolve, reject) => setTimeout(resolve, 1000));
-                        num += 5;
-                        const newProgress = 100 < num ? 100 : Math.round(num);
-                        console.log("プログレス: ", newProgress);
+                        num += 500;
+                        // num += 1000;
+                        // num += 2500;
+                        // num += 25000;
+                        setProcessedRowCount(num);
+                        // const newProgress = 100 < num ? 100 : Math.round(num);
+                        const newProgress = total < num ? 100 : parseFloat(((num / total) * 100).toFixed(1));
+                        console.log("プログレス: ", newProgress, `行数: `, num, `合計: `, total);
                         // setProgressTest(newProgress);
                         setProgressProcessing(newProgress);
                       }
@@ -1348,6 +1365,7 @@ const ImportModalMemo = () => {
 
                       // setProgressTest(0);
                       setProgressProcessing(null);
+                      setProcessedRowCount(0);
                     }}
                   >
                     プログレス
@@ -1933,7 +1951,7 @@ const ImportModalMemo = () => {
                       </>
                     )}
 
-                    {/* {true && progressProcessing !== null && (
+                    {true && progressProcessing !== null && (
                       <>
                         {<AnimeChecking /> ?? <SpinnerX />}
                         <div className={`flex-col-center mr-[-2px] flex min-w-[45px]`}>
@@ -1944,9 +1962,25 @@ const ImportModalMemo = () => {
                           {progressProcessing !== null && (
                             <>
                               <div
-                                className={`flex-center mb-[10px] mt-[10px] w-full text-[20px] font-bold text-[var(--color-text-title)]`}
+                                // className={`flex-center mb-[10px] mt-[10px] w-full text-[20px] font-bold text-[var(--color-text-title)]`}
+                                className={`mb-[10px] mt-[10px] flex w-full min-w-[360px] items-center justify-between space-x-[9px] whitespace-nowrap text-[15px] font-bold text-[var(--color-text-title)]`}
                               >
-                                <span>{progressProcessing}%</span>
+                                <div className={`flex w-full items-center justify-end`}>
+                                  <span>{processedRowCount.toLocaleString()}行</span>
+                                  {/* <span>{(1000000).toLocaleString()}行</span> */}
+                                </div>
+                                <div
+                                  className={`${
+                                    uploadedData.length < 1000000 ? `!mr-[10px]` : ``
+                                  } flex w-full items-center justify-start space-x-[9px]`}
+                                >
+                                  <span>/</span>
+                                  <span>{uploadedData.length.toLocaleString()}行</span>
+                                  {/* <span>{(10000).toLocaleString()}行</span> */}
+                                  <span>処理完了</span>
+                                  <span className={`min-w-[66px] text-start`}>({progressProcessing}%)</span>
+                                  {/* <span className={`min-w-[66px] text-start`}>(100%)</span> */}
+                                </div>
                               </div>
                               <div className={styles.progress_bar}>
                                 <div
@@ -1958,7 +1992,7 @@ const ImportModalMemo = () => {
                           )}
                         </div>
                       </>
-                    )} */}
+                    )}
 
                     {processingName === "transforming" && (
                       <>
@@ -2322,6 +2356,8 @@ const ImportModalMemo = () => {
             setProgress={setProgressProcessing}
             setProcessingName={setProcessingName}
             detailsTransform={detailsTransform}
+            setExcludedErrorData={setExcludedErrorData}
+            setProcessedRowCount={setProcessedRowCount}
           />
         )}
       {/* ----------------------- step3 データ前処理Web Workerコンポーネント起動 ここまで ----------------------- */}

@@ -3053,9 +3053,10 @@ APIキーの使用：APIキーを使用して、APIの利用を認証し、未�
 // ・\u3000-\u303D：全角の記号と句読点(\u3000：全角スペース)
 // ・\uFF65-\uFF9F: 半角ｶﾀｶﾅ
 
-function normalizeCompanyName(name, isNullable = true) {
+function normalizeCompanyName(name, csvHeader, isNullable = true) {
   if (!isNullable) {
-    if (!name) throw new Error(`❌会社名が存在しないため無効な行としてスルー`);
+    // if (!name) throw new Error(`❌会社名が存在しないため無効な行としてスルー`);
+    if (!name) throw new Error(`[ERROR]|${csvHeader}|無効な法人名`);
   }
   // 全角英数字と全角スペースを半角に変換 「\uFF01-\uFF5D」 全角英数字(ａ-ｚＡ-Ｚ０-９)と記号(（）＋％＆など)「〜」は除く
   let halfName = name
@@ -3200,8 +3201,9 @@ function normalizePostalCode(postalCode, useJapanPostalFormat = true) {
 */
 
 // -----------------------------------🔸address🔸-----------------------------------
-function normalizeAddress(address, groupedTownsByRegionCity) {
-  if (!address) throw new Error("住所がfalsyのため無効な行としてスルー");
+function normalizeAddress(address, csvHeader, groupedTownsByRegionCity) {
+  // if (!address) throw new Error("住所がfalsyのため無効な行としてスルー");
+  if (!address) throw new Error(`[ERROR]|${csvHeader}|無効な住所`);
   address = address.trim(); // 基本的なトリミング
   // 🔹1. 正規化
   // 全角英数字と全角記号の両方を半角に変換 「\uFF01-\uFF5E」\uFF5E(全角チルダ)含める 全角英数字(ａ-ｚＡ-Ｚ０-９)と記号(（）＋％＆など)
@@ -3249,7 +3251,8 @@ function normalizeAddress(address, groupedTownsByRegionCity) {
     // 🔸都道府県の抽出
     const prefectureMatch = address.match(regExpPrefecture);
     // 適切な住所が入力されていなければ、この行データ自体をnullで返し、最後に削除
-    if (!prefectureMatch) throw new Error("都道府県が見つかりませんでした。");
+    // if (!prefectureMatch) throw new Error("都道府県が見つかりませんでした。");
+    if (!prefectureMatch) throw new Error(`[ERROR]|${csvHeader}|無効な都道府県名`);
     addressElements.prefecture = prefectureMatch[1];
     responseElements.prefecture = prefectureMatch[1];
     // region_idセット
@@ -3258,7 +3261,8 @@ function normalizeAddress(address, groupedTownsByRegionCity) {
     // 🔸市区町村の抽出
     const regExpCity = regionNameToRegExpCitiesJp[addressElements.prefecture];
     const cityMatch = address.match(regExpCity);
-    if (!cityMatch) throw new Error("市区町村が見つかりませんでした。");
+    // if (!cityMatch) throw new Error("市区町村が見つかりませんでした。");
+    if (!cityMatch) throw new Error(`[ERROR]|${csvHeader}|無効な市区町村名`);
     addressElements.city = cityMatch[1]; // 0はマッチ全体の文字列で 1はキャプチャグループでマッチした１つ目の文字
     responseElements.city = cityMatch[1]; // 0はマッチ全体の文字列で 1はキャプチャグループでマッチした１つ目の文字
     // city_idセット
@@ -3305,17 +3309,17 @@ function normalizeAddress(address, groupedTownsByRegionCity) {
 
       // 町域名をチェック マッチしたならtown_idをセット 町域名は完全でないので、そのままstreet_addressに残りをセット
       const matchTown = addressWithoutCity.match(regexTowns);
-      console.log(
-        "address処理",
-        `townNamesSet: `,
-        townNamesSet,
-        "sortedTownNames: ",
-        sortedTownNames,
-        `regexTowns: `,
-        regexTowns,
-        "matchTown: ",
-        matchTown
-      );
+      // console.log(
+      //   "address処理",
+      //   `townNamesSet: `,
+      //   townNamesSet,
+      //   "sortedTownNames: ",
+      //   sortedTownNames,
+      //   `regexTowns: `,
+      //   regexTowns,
+      //   "matchTown: ",
+      //   matchTown
+      // );
 
       if (matchTown) {
         // responseElements.normalized_town_name = matchTown[1];
@@ -3333,26 +3337,27 @@ function normalizeAddress(address, groupedTownsByRegionCity) {
     const { prefecture, city, street_address } = addressElements;
     responseElements.address = prefecture + city + street_address ?? "";
 
-    console.log(
-      "🔥🔥🔥address前処理",
-      `townsList: `,
-      townsList,
-      `groupedTownsByRegionCity: `,
-      groupedTownsByRegionCity,
-      `addressElements:`,
-      addressElements,
-      `addressWithoutCity: `,
-      addressWithoutCity,
-      "responseElements: ",
-      responseElements,
-      "responseElements.normalized_town_name: ",
-      responseElements.normalized_town_name
-    );
+    // console.log(
+    //   "🔥🔥🔥address前処理",
+    //   `townsList: `,
+    //   townsList,
+    //   `groupedTownsByRegionCity: `,
+    //   groupedTownsByRegionCity,
+    //   `addressElements:`,
+    //   addressElements,
+    //   `addressWithoutCity: `,
+    //   addressWithoutCity,
+    //   "responseElements: ",
+    //   responseElements,
+    //   "responseElements.normalized_town_name: ",
+    //   responseElements.normalized_town_name
+    // );
 
     return responseElements;
   } catch (error) {
-    console.log("❌addressカラムの標準化に失敗しました エラー：", error);
-    return null;
+    // console.log("❌addressカラムの標準化に失敗しました エラー：", error);
+    // return null;
+    throw new Error(error.message);
   }
 }
 // -----------------------------------🔸address🔸-----------------------------------ここまで
@@ -3561,7 +3566,7 @@ Dot-atom形式
 dot-atom 形式では、英数字や指定された記号を使用できます。記号間にスペースを入れることはできませんが、連続して使用することは可能です。したがって、「++*start_{}@domain.com」というメールアドレスも、local部分がdot-atom形式に適合していれば有効です。
 
 */
-function normalizeEmail(email) {
+function normalizeEmail(email, csvHeader) {
   if (!email) return null;
   // const regexEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -3580,6 +3585,7 @@ function normalizeEmail(email) {
       /^[a-zA-Z0-9_+%\-]+(\.[a-zA-Z0-9_+%\-]+)*@[a-zA-Z0-9\-]+(\.[a-zA-Z0-9\-]+)*\.[a-zA-Z]{2,}$/;
     const isValidDotAtom = regexEmailDotAtom.test(normalizedEmail);
 
+    // emailカラムではnullをセットするだけでエラーでも行を除外はしない
     if (!isValidDotAtom) throw new Error("メールアドレスの形式が有効ではありません。");
 
     // 2. 文字数チェック local部分: 最大64文字, domain部分: 最大255文字
@@ -3590,7 +3596,7 @@ function normalizeEmail(email) {
 
     return normalizedEmail;
   } catch (error) {
-    console.log("Worker: email前処理エラー: ", error);
+    // console.log("Worker: email前処理エラー: ", error);
     return null;
   }
 }
@@ -3599,10 +3605,10 @@ function normalizeEmail(email) {
 // 業種別のキーワードセット
 const industryKeywords = {
   1: ["自動車", "輸送", "モビリティ", "AUTOMOTIVE", "車"], // 自動車・輸送機器
-  2: ["電子", "半導体", "光学", "基板", "チップ", "FPC", "コイル", "フレキ", "ケーブル", "端子", "コネクタ", "電池"], // 電子部品・半導体
-  3: ["IT", "ソフト", "テクノロジー", "SaaS", "データベース", "DX", "情報", "通信", "ネットワーク"], // IT・情報通信・ソフトウェア
+  2: ["半導体", "電子", "光学", "基板", "チップ", "FPC", "コイル", "フレキ", "ケーブル", "端子", "コネクタ", "電池"], // 電子部品・半導体
+  3: ["IT", "情報", "通信", "ソフト", "テクノロジー", "SaaS", "データベース", "DX", "ネットワーク"], // IT・情報通信・ソフトウェア
   4: ["機械要素", "部品", "ねじ", "ボルト", "ベアリング", "ファスナー", "パーツ", "シャフト"], // 機械要素・部品
-  5: ["加工", "プレス", "切削", "旋盤", "マシニング", "フライス"], // 製造・加工受託
+  5: ["製造・加工受託", "加工", "プレス", "切削", "旋盤", "マシニング", "フライス"], // 製造・加工受託
   6: ["鉄", "非鉄"], // 鉄/非鉄金属
   7: ["産業用機械", "空調用ヒーター", "熱交換器", "洗浄機"], // 産業用機械
   8: ["産業用電気機器", "電機"], // 産業用電気機器
@@ -3768,12 +3774,12 @@ function normalizeCapital(value, inputDefaultUnit) {
   const formattedValue = normalizedValue.replace(/[^0-9兆億万円]/g, "");
 
   // 「兆」「億」「万」「円」を万円単位の数字に変換 inputDefaultUnit === 'default'
-  console.log(
-    "資本金処理 convertToMillions assumeMillionByDefault: ",
-    inputDefaultUnit === "million",
-    "inputDefaultUnit",
-    inputDefaultUnit
-  );
+  // console.log(
+  //   "資本金処理 convertToMillions assumeMillionByDefault: ",
+  //   inputDefaultUnit === "million",
+  //   "inputDefaultUnit",
+  //   inputDefaultUnit
+  // );
   const convertedMillions = convertToMillions({
     inputString: formattedValue,
     isDecimalPoint: false,
@@ -3917,20 +3923,42 @@ function normalizeClients(input) {
 // normalizeContactNames と同じ
 function normalizeSummary(input) {
   if (!input) return null;
-  let halfName = input
+  const halfText = input
     .replace(/[ａ-ｚＡ-Ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
-    .replace(/[ \t　]+/g, " ") // 半角スペース、タブ、全角スペースの連続を半角スペースに変換
-    // .replace(/[\s　]+/g, " ")
+    .replace(/[ \t　]+/g, " ") // 半角スペース、タブ、全角スペースの連続を半角スペースに変換(改行はそのまま残す)
     .trim();
 
-  // 「a-zA-Z0-9」 => 「\uFF01-\uFF5D\u0021-\u007D」
-  let normalizedName = halfName.replace(
-    /[^\u0021-\u007E\uFF01-\uFF5E\u301C \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u3005\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･\u300C-\u3011\u3012\u3001\n]+/gu,
-    ""
-  );
+  // 制御文字と非表示文字の除去
+  function sanitizeString(input) {
+    const sanitized = input.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
+    return sanitized;
+  }
+  const sanitizedText = sanitizeString(halfText);
 
-  // 500 文字以上の場合は文字数を 500 文字までに制限
-  return limitStringLength(normalizedName, 500);
+  // 不必要な特殊文字の除去(SQLインジェクション・XSS攻撃の防止)
+  function cleanUpSymbols(input) {
+    // SQLインジェクション攻撃に使われる記号の除去
+    const cleanInput = input.replace(/;|--|\/\*|\*\//g, "");
+    return cleanInput;
+  }
+  const cleanText = cleanUpSymbols(sanitizedText);
+
+  // SQL危険な文字のエスケープ シングルクォートとダブルクォート => supabase.jsライブラリ側で処理が行われるため別途クライアントサイドでの処理は不要
+  // const escapedText = cleanText
+  //   .replace(/'/g, "''") // シングルクォートを二重にする
+  //   .replace(/"/g, '""'); // ダブルクォートを二重にする
+
+  // 文字数の制限 500 文字以上の場合は文字数を 500 文字までに制限
+  const processedText = limitStringLength(cleanText, 500);
+
+  return processedText;
+
+  // 「a-zA-Z0-9」 => 「\uFF01-\uFF5D\u0021-\u007D」
+  // let normalizedName = input.replace(
+  //   /[^\u0021-\u007E\uFF01-\uFF5E\u301C \u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF65-\uFF9F\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\u3005\u30FC\u002D\u002E\u0027\u005F\uFF08\uFF09\u0028\u0029\u30FB･\u300C-\u3011\u3012\u3001\n]+/gu,
+  //   ""
+  // );
+  // return limitStringLength(normalizedName, 500);
 }
 
 // 🔸日付変換のヘルパー関数 -----------------------------------
@@ -4082,7 +4110,7 @@ stringなので、millionメソッドで万円単位に整形後にnumberに変�
    */
 
 // -------------------- 🔸client_companiesテーブルのフィールドに応じた各カラムのデータ前処理を実行🔸 --------------------
-function transformData(csvValue, dbField, detailsTransform) {
+function transformData(csvValue, dbField, detailsTransform, csvHeader) {
   // ここで型変換やデータクリーニングを行う
   // 例: 日付の変換、数値の変換、文字列のトリム等
 
@@ -4090,9 +4118,11 @@ function transformData(csvValue, dbField, detailsTransform) {
 
   switch (dbField) {
     case "corporate_name": // 法人名
-      if (!processedValue) throw new Error("会社名が空文字のためこの行はスルー");
+      // if (!processedValue) throw new Error("会社名が空文字のためこの行はスルー");
+      // if (!processedValue) throw new Error("[ERROR]|corporate_name|法人名未入力");
+      if (!processedValue) throw new Error(`[ERROR]|${csvHeader}|法人名未入力`);
       // 法人名の前処理: 特定の不適切な文字を削除する例
-      processedValue = normalizeCompanyName(processedValue, false);
+      processedValue = normalizeCompanyName(processedValue, csvHeader, false);
       break;
 
     case "branch_name": // 拠点名
@@ -4129,7 +4159,7 @@ function transformData(csvValue, dbField, detailsTransform) {
       break;
 
     case "email": // Email
-      processedValue = normalizeEmail(processedValue);
+      processedValue = normalizeEmail(processedValue, csvHeader);
       break;
 
     case "industry_type_id": // 業種
@@ -4213,182 +4243,225 @@ self.onmessage = async function (e) {
     if (e.data.origin !== clientUrl)
       return console.log(`Worker: ❌オリジンチェックに失敗 リターン 受け取ったオリジン: ${e.data.origin}`);
 
-    const { parsedData, columnMap, groupedTownsByRegionCity, detailsTransform } = e.data;
-    console.log(`Worker: detailsTransform: `, detailsTransform);
+    const { parsedData, columnMap, groupedTownsByRegionCity, detailsTransform, currentChunkCount, chunkSize } = e.data;
+    console.log(
+      `Worker: detailsTransform: `,
+      detailsTransform,
+      `currentChunkCount: ${currentChunkCount}, chunkSize: ${chunkSize}`
+    );
+
+    // DBフィールド名からCSVカラムヘッダー名へのMapを生成
+    const dbFieldToCsvHeaderMap = new Map(
+      Array.from(columnMap.entries()).map(([csvHeader, dbField]) => [dbField, csvHeader])
+    );
 
     // 会社リストが取得できなかった場合はエラーを投げる
     if (!parsedData.length || !columnMap) {
       throw new Error("❌データが見つかりません");
     }
 
-    const totalCount = parsedData.length;
-    const processedData = [];
-    let processedCount = 0; // 処理済みカウント
-    // リスト総数の1%の行数を進捗更新の行数にセットする (ceil: 引数の値以上の整数を返す)
-    const updateProgressInterval = Math.ceil(totalCount / 100);
-    // const updateInterval = Math.max(500, Math.ceil(total / 100)); // データの1%または最低500行ごとに更新
+    // 各行で前処理の段階で除外された行の理由を格納して最終的にユーザーに除外した理由を明示するための変数
+    // エラーメッセージをカラムとエラータイプごとに格納  rowsはCSV全体の何行目がエラーとなったか
+    // throw new Error(`[ERROR]|address|住所未入力`) => プレフィックス | カラム名 | エラー理由
+    // [ERROR]のプレフィックスでシステムログと行エラーメッセージを区別する
+    // 例) { CSVカラムヘッダー名: { type: '住所未入力', rows: [1, 3, 9] } }
+    // => 実装: { CSVカラムヘッダー名: { エラー理由: [1, 3, 9] } } // [...]の要素はエラーが発生した〜行目の行数
+    const errorMessages = {};
 
-    // 1行ずつ取り出して必要なカラムのみ前処理してインサート用配列データを生成
-    for (const row of parsedData) {
-      // 行の前処理
-      const processedRow = {}; // 最終的にインサートする処理後の行
+    // ----------------------------------- 1チャンクのデータ処理関数 -----------------------------------
+    function processChunk(chunk, chunkCount) {
+      // チャンク内で処理済みのRowsを保持
+      const processedRowsChunk = [];
 
-      try {
-        let townsByCities = [];
-        let countryId = null;
-        let regionId = null;
-        let cityId = null;
-        let townId = null; // 郵便番号とaddress処理で得た町域リストを組み合わせてtown_idを取得
-        let normalizedTownName = null;
-        let streetAddress = null;
-        let postalCode = null;
+      // 1行ずつ取り出して必要なカラムのみ前処理してインサート用配列データを生成
+      // for (const row of chunk) {
+      for (const [index, row] of chunk.entries()) {
+        // for...ofでindexを取得するためにentries()を使用
+        // 行の前処理
+        const processedRow = {}; // 最終的にインサートする処理後の行
+        const processCountInChunk = index + 1; // チャンク内の行番号
+        const rowCountInAllData = chunkCount * chunkSize + processCountInChunk;
 
-        // ----------------------------------- カラムごとの前処理 -----------------------------------
-        // columnMap: CSVカラムヘッダー名 to DBフィールド名
-        Array.from(columnMap.entries()).forEach(([csvHeader, dbField]) => {
-          // 住所カラム
-          if (dbField === "address") {
-            if (!row[csvHeader]) throw new Error(`Worker: ${dbField}カラム アドレスが空文字のためスルー`);
-            // addressの場合は、address以外に町域リストを取り出す
-            // 住所の前処理: 文字の正規化、例えば全角を半角に変換
-            const responseAddress = normalizeAddress(row[csvHeader], groupedTownsByRegionCity);
-            // const responseAddress = transformData(row[csvHeader], dbField);
+        try {
+          let townsByCities = [];
+          let countryId = null;
+          let regionId = null;
+          let cityId = null;
+          let townId = null; // 郵便番号とaddress処理で得た町域リストを組み合わせてtown_idを取得
+          let normalizedTownName = null;
+          let streetAddress = null;
+          let postalCode = null;
 
-            if (responseAddress === null) throw new Error(`${dbField}カラム 無効な住所のためこの行をスルー`);
+          // ----------------------------------- カラムごとの前処理 -----------------------------------
+          // columnMap: CSVカラムヘッダー名 to DBフィールド名
+          Array.from(columnMap.entries()).forEach(([csvHeader, dbField]) => {
+            // 住所カラム
+            if (dbField === "address") {
+              // if (!row[csvHeader]) throw new Error(`[ERROR]|address|住所未入力(入力必須)`);
+              if (!row[csvHeader]) throw new Error(`[ERROR]|${csvHeader}|住所未入力(入力必須)`);
+              // addressの場合は、address以外に町域リストを取り出す
+              // 住所の前処理: 文字の正規化、例えば全角を半角に変換
+              const responseAddress = normalizeAddress(row[csvHeader], csvHeader, groupedTownsByRegionCity);
 
-            const {
-              address,
-              prefecture,
-              city,
-              street_address,
-              country_id,
-              region_id,
-              city_id,
-              normalized_town_name,
-              grouped_towns_by_cities,
-            } = responseAddress;
-            townsByCities = grouped_towns_by_cities ?? [];
-            countryId = country_id;
-            regionId = region_id;
-            cityId = city_id;
-            normalizedTownName = normalized_town_name;
-            streetAddress = street_address;
+              if (responseAddress === null) throw new Error(`[ERROR]|${csvHeader}|無効な住所`);
 
-            processedRow["address"] = address;
-          }
+              const {
+                address,
+                prefecture,
+                city,
+                street_address,
+                country_id,
+                region_id,
+                city_id,
+                normalized_town_name,
+                grouped_towns_by_cities,
+              } = responseAddress;
+              townsByCities = grouped_towns_by_cities ?? [];
+              countryId = country_id;
+              regionId = region_id;
+              cityId = city_id;
+              normalizedTownName = normalized_town_name;
+              streetAddress = street_address;
 
-          // 通常のカラム
-          else {
-            processedRow[dbField] = transformData(row[csvHeader], dbField, detailsTransform);
-          }
-        });
-        // ----------------------------------- カラムごとの前処理 -----------------------------------ここまで
+              processedRow["address"] = address;
+            }
 
-        // ----------------------------------- town_idの取得 -----------------------------------
-        // 郵便番号と正規化した町域名の2つで抽出するが、同じ組み合わせがある場合は後で手動で修正する
-        if (0 < townsByCities.length && !!normalizedTownName) {
-          // dbFieldにzipcodeカラムとaddressカラムが存在する場合は、town_idを取得する
-          const dbFieldsArray = Array.from(columnMap.values());
-          if (
-            dbFieldsArray.includes("address") &&
-            dbFieldsArray.includes("zipcode") &&
-            Object.hasOwn(processedRow, "zipcode") &&
-            !!processedRow["zipcode"]
-          ) {
-            // 町域データから取得した郵便番号とnormalized_nameと一致する行を取得
-            const gotTown = townsByCities.find(
-              (obj) => obj.postal_code === processedRow["zipcode"] && obj.normalized_name === normalizedTownName
-            );
-            if (!!gotTown) {
-              townId = gotTown.town_id;
+            // 通常のカラム
+            else {
+              processedRow[dbField] = transformData(row[csvHeader], dbField, detailsTransform, csvHeader);
+            }
+          });
+          // ----------------------------------- カラムごとの前処理 -----------------------------------ここまで
+
+          // ----------------------------------- town_idの取得 -----------------------------------
+          // 郵便番号と正規化した町域名の2つで抽出するが、同じ組み合わせがある場合は後で手動で修正する
+          if (0 < townsByCities.length && !!normalizedTownName) {
+            // dbFieldにzipcodeカラムとaddressカラムが存在する場合は、town_idを取得する
+            const dbFieldsArray = Array.from(columnMap.values());
+            if (
+              dbFieldsArray.includes("address") &&
+              dbFieldsArray.includes("zipcode") &&
+              Object.hasOwn(processedRow, "zipcode") &&
+              !!processedRow["zipcode"]
+            ) {
+              // 町域データから取得した郵便番号とnormalized_nameと一致する行を取得
+              const gotTown = townsByCities.find(
+                (obj) => obj.postal_code === processedRow["zipcode"] && obj.normalized_name === normalizedTownName
+              );
+              if (!!gotTown) {
+                townId = gotTown.town_id;
+              }
             }
           }
-        }
-        // ----------------------------------- town_idの取得 -----------------------------------ここまで
+          // ----------------------------------- town_idの取得 -----------------------------------ここまで
 
-        // ----------------------------------- 🔸処理後の行に不足分のカラムを追加🔸 -----------------------------------
-        // ○必須カラム：
-        // ・会社名(name) => 選択・前処理済みの法人名と拠点名を結合
-        // ・住所 => 選択済み
-        // ・部署名(department_name) => 選択されていない場合はピリオドをセット
-        // ・代表TEL(main_phone_number) => なくてもOK(メールやSNSのみでの営業にも対応するため)
+          // ----------------------------------- 🔸処理後の行に不足分のカラムを追加🔸 -----------------------------------
+          // ○必須カラム：
+          // ・会社名(name) => 選択・前処理済みの法人名と拠点名を結合
+          // ・住所 => 選択済み
+          // ・部署名(department_name) => 選択されていない場合はピリオドをセット
+          // ・代表TEL(main_phone_number) => なくてもOK(メールやSNSのみでの営業にも対応するため)
 
-        // columnMap: CSVカラムヘッダー名 to DBフィールド名
-        const selectedDBFieldNamesArray = Array.from(columnMap.values());
+          // columnMap: CSVカラムヘッダー名 to DBフィールド名
+          const selectedDBFieldNamesArray = Array.from(columnMap.values());
 
-        // ○【会社名(name)】
-        if (!Object.hasOwn(processedRow, "corporate_name")) throw new Error(`無効な法人名: `);
-        const _branch_name =
-          selectedDBFieldNamesArray.includes("branch_name") && Object.hasOwn(processedRow, "branch_name")
-            ? processedRow["branch_name"]
-            : "";
-        const name = (processedRow["corporate_name"] + " " + _branch_name).trim();
+          // ○【会社名(name)】
+          if (!Object.hasOwn(processedRow, "corporate_name")) {
+            const csvHeaderCN = dbFieldToCsvHeaderMap.get("corporate_name");
+            throw new Error(`[ERROR]|${csvHeaderCN ?? "-"}|無効な法人名`);
+          }
+          const _branch_name =
+            selectedDBFieldNamesArray.includes("branch_name") && Object.hasOwn(processedRow, "branch_name")
+              ? processedRow["branch_name"]
+              : "";
+          const name = (processedRow["corporate_name"] + " " + _branch_name).trim();
 
-        let addColumns = {
-          name: name, // 会社名(法人名 拠点名)
-          country_id: countryId ?? null, // 国コード
-          region_id: regionId ?? null, // 都道府県コード
-          city_id: cityId ?? null, // 市区町村コード
-          town_id: townId ?? null, // 町域コード
-          street_address: streetAddress || null, // 町域名+丁目+番地(番)+号+建物名
-        };
+          let addColumns = {
+            name: name, // 会社名(法人名 拠点名)
+            country_id: countryId ?? null, // 国コード
+            region_id: regionId ?? null, // 都道府県コード
+            city_id: cityId ?? null, // 市区町村コード
+            town_id: townId ?? null, // 町域コード
+            street_address: streetAddress || null, // 町域名+丁目+番地(番)+号+建物名
+          };
 
-        // ○【部署名(department_name)】
-        // カラムマップのvalue側のDBフィールド名の配列の中にdepartment_nameが存在しない場合はピリオドをセット
-        if (!selectedDBFieldNamesArray.includes("department_name")) {
-          addColumns = { ...addColumns, department_name: "." };
-        }
+          // ○【部署名(department_name)】
+          // カラムマップのvalue側のDBフィールド名の配列の中にdepartment_nameが存在しない場合はピリオドをセット
+          if (!selectedDBFieldNamesArray.includes("department_name")) {
+            addColumns = { ...addColumns, department_name: "." };
+          }
 
-        // ○【規模(ランク)(number_of_employees_class)】
-        // number_of_employeesカラムが存在し、数字なら範囲でランク分け
-        if (
-          selectedDBFieldNamesArray.includes("number_of_employees") &&
-          Object.hasOwn(processedRow, "number_of_employees")
-        ) {
-          const EmployeesNum = processedRow["number_of_employees"];
-          if (EmployeesNum !== null && EmployeesNum !== undefined && typeof EmployeesNum === "number") {
-            let numberOfEmployeeClass = null;
-            if (0 < EmployeesNum && EmployeesNum < 50) numberOfEmployeeClass = "G";
-            if (50 <= EmployeesNum && EmployeesNum < 100) numberOfEmployeeClass = "F";
-            if (100 <= EmployeesNum && EmployeesNum < 200) numberOfEmployeeClass = "E";
-            if (200 <= EmployeesNum && EmployeesNum < 300) numberOfEmployeeClass = "D";
-            if (300 <= EmployeesNum && EmployeesNum < 500) numberOfEmployeeClass = "C";
-            if (500 <= EmployeesNum && EmployeesNum < 1000) numberOfEmployeeClass = "B";
-            if (1000 <= EmployeesNum) numberOfEmployeeClass = "A";
-            addColumns = { ...addColumns, number_of_employees_class: numberOfEmployeeClass };
+          // ○【規模(ランク)(number_of_employees_class)】
+          // number_of_employeesカラムが存在し、数字なら範囲でランク分け
+          if (
+            selectedDBFieldNamesArray.includes("number_of_employees") &&
+            Object.hasOwn(processedRow, "number_of_employees")
+          ) {
+            const EmployeesNum = processedRow["number_of_employees"];
+            if (EmployeesNum !== null && EmployeesNum !== undefined && typeof EmployeesNum === "number") {
+              let numberOfEmployeeClass = null;
+              if (0 < EmployeesNum && EmployeesNum < 50) numberOfEmployeeClass = "G";
+              if (50 <= EmployeesNum && EmployeesNum < 100) numberOfEmployeeClass = "F";
+              if (100 <= EmployeesNum && EmployeesNum < 200) numberOfEmployeeClass = "E";
+              if (200 <= EmployeesNum && EmployeesNum < 300) numberOfEmployeeClass = "D";
+              if (300 <= EmployeesNum && EmployeesNum < 500) numberOfEmployeeClass = "C";
+              if (500 <= EmployeesNum && EmployeesNum < 1000) numberOfEmployeeClass = "B";
+              if (1000 <= EmployeesNum) numberOfEmployeeClass = "A";
+              addColumns = { ...addColumns, number_of_employees_class: numberOfEmployeeClass };
+            }
+          }
+
+          const responseRow = { ...processedRow, ...addColumns };
+          // ----------------------------------- 🔸処理後の行に不足分のカラムを追加🔸 -----------------------------------ここまで
+
+          // 🔸イテレーションの結果として前処理完了後の行を処理完了済みチャンクにpush
+          // processedData.push(responseRow);
+          processedRowsChunk.push(responseRow);
+          // console.log(
+          //   `Worker: チャンクデータ処理完了`,
+          //   responseRow,
+          //   ` チャンク内での処理完了済み行数: ${processedRowsChunk.length}`
+          // );
+        } catch (error) {
+          // エラーが発生した場合は、その行は無効としてnullを返し最終的にfilter()で無効な行は取り除きインサート対象から除外する
+          // console.log("Worker: transformData関数エラー 無効な行のためスルー", error);
+          // 🔸イテレーションの結果として無効な行はpushせずスルー
+
+          // 除外された行のエラーメッセージ `[ERROR]|csvHeader|無効な法人名`
+          if (error.message?.startsWith("[ERROR]")) {
+            const [, csvHeader, errorMessage] = error.message.split("|");
+            if (!Object.hasOwn(errorMessages, csvHeader)) {
+              errorMessages[csvHeader] = {};
+            }
+            if (!Object.hasOwn(errorMessages[csvHeader], errorMessage)) {
+              errorMessages[csvHeader][errorMessage] = [];
+            }
+            // { Csvカラムヘッダー名: { エラー理由: [ 1, 3,...などの行番号 ] } }
+            errorMessages[csvHeader][errorMessage].push(rowCountInAllData);
+          } else {
+            // システムエラーの処理
+            console.error("予期せぬエラー: ", error);
           }
         }
-
-        const responseRow = { ...processedRow, ...addColumns };
-        // ----------------------------------- 🔸処理後の行に不足分のカラムを追加🔸 -----------------------------------ここまで
-
-        // 🔸mapイテレーションの結果として前処理完了後の行をリターン
-        processedData.push(responseRow);
-        console.log(`Worker: ${processedCount + 1}行目の処理完了`, responseRow);
-      } catch (error) {
-        // エラーが発生した場合は、その行は無効としてnullを返し最終的にfilter()で無効な行は取り除きインサート対象から除外する
-        console.log("Worker: transformData関数エラー 無効な行のためスルー", error);
-        // 🔸mapイテレーションの結果として無効な行はpushせずスルー
       }
 
-      // pushの有無に関わらず、1行ごとの処理の完了後に行数を確認して進捗を更新
-      processedCount++; // 処理済みカウントを更新
-
-      // 特定の件数ごとに進捗率をメインスレッドに送信 (intervalには1%の行数をセットしているため1%ごとに更新)
-      if (processedCount % updateProgressInterval === 0 || processedCount === totalCount) {
-        const progress = Math.floor((processedCount / totalCount) * 100);
-        self.postMessage({ type: "progress", progress: progress });
-      }
+      // 前処理完了済みのチャンクをリターン
+      return processedRowsChunk;
     }
+    // ----------------------------------- 1チャンクのデータ処理関数 -----------------------------------ここまで
+
+    // ----------------------------------- 🔸分割したチャンクごとにデータ処理 -----------------------------------
+    // メインスレッド側でチャンクを分割して、1チャンクのみWorkerに送信
+    const processedData = processChunk(parsedData, currentChunkCount);
+    // ----------------------------------- 🔸分割したチャンクごとにデータ処理 -----------------------------------ここまで
 
     // 🔸アップロードされたCSVデータの全ての行の前処理完了 => クライアントサイドに処理済みデータを返すとともに完了を通知
-    const responseMessageData = { type: "complete", processedData: processedData };
+    const responseMessageData = { type: "complete", processedData: processedData, errorMessages: errorMessages };
     console.log("✅Worker: Message posted to main thread. responseMessageData: ", responseMessageData);
     self.postMessage(responseMessageData);
-    // self.postMessage({ processedData });
   } catch (error) {
     console.log("❌Worker: エラー", error.message);
-    self.postMessage({ type: "error", error: `Worker側でエラーが発生しました。` });
+    self.postMessage({ type: "error", error: `Worker側でエラーが発生しました。エラー: ${error.message}` });
   }
 };
 
@@ -4408,192 +4481,3 @@ self.onerror = function (event) {
     error: event,
   });
 };
-
-// self.onmessage = function (e) {
-//   try {
-//     console.log("Worker: Message received from main thread", e);
-
-//     // postMessage が呼び出されたときにメッセージを送ったウィンドウのオリジンが正しいことをチェック
-//     // publicフォルダ内のスクリプトでは、環境変数を使用できないためオリジンをハードコーディング
-//     const clientUrl = "http://localhost:3000";
-//     if (e.data.origin !== clientUrl)
-//       return console.log(`Worker: ❌オリジンチェックに失敗 リターン 受け取ったオリジン: ${e.data.origin}`);
-
-//     const { parsedData, columnMap, groupedTownsByRegionCity } = e.data;
-
-//     // 1行ずつ取り出して必要なカラムのみ前処理してインサート用配列データを生成
-//     const processedData = parsedData
-//       .map((row) => {
-//         // 行の前処理
-//         const processedRow = {}; // 最終的にインサートする処理後の行
-
-//         try {
-//           let townsByCities = [];
-//           let countryId = null;
-//           let regionId = null;
-//           let cityId = null;
-//           let townId = null; // 郵便番号とaddress処理で得た町域リストを組み合わせてtown_idを取得
-//           let normalizedTownName = null;
-//           let streetAddress = null;
-//           let postalCode = null;
-
-//           // ----------------------------------- カラムごとの前処理 -----------------------------------
-//           // columnMap: CSVカラムヘッダー名 to DBフィールド名
-//           Array.from(columnMap.entries()).forEach(([csvHeader, dbField]) => {
-//             // 住所カラム
-//             if (dbField === "address") {
-//               if (!row[csvHeader]) throw new Error(`Worker: ${dbField}カラム アドレスが空文字のためスルー`);
-//               // addressの場合は、address以外に町域リストを取り出す
-//               // 住所の前処理: 文字の正規化、例えば全角を半角に変換
-//               const responseAddress = normalizeAddress(row[csvHeader], groupedTownsByRegionCity);
-//               // const responseAddress = transformData(row[csvHeader], dbField);
-
-//               if (responseAddress === null) throw new Error(`${dbField}カラム 無効な住所のためこの行をスルー`);
-
-//               const {
-//                 address,
-//                 prefecture,
-//                 city,
-//                 street_address,
-//                 country_id,
-//                 region_id,
-//                 city_id,
-//                 normalized_town_name,
-//                 grouped_towns_by_cities,
-//               } = responseAddress;
-//               townsByCities = grouped_towns_by_cities ?? [];
-//               countryId = country_id;
-//               regionId = region_id;
-//               cityId = city_id;
-//               normalizedTownName = normalized_town_name;
-//               streetAddress = street_address;
-
-//               processedRow["address"] = address;
-//             }
-
-//             // 通常のカラム
-//             else {
-//               processedRow[dbField] = transformData(row[csvHeader], dbField);
-//             }
-//           });
-//           // ----------------------------------- カラムごとの前処理 -----------------------------------ここまで
-
-//           // ----------------------------------- town_idの取得 -----------------------------------
-//           // 郵便番号と正規化した町域名の2つで抽出するが、同じ組み合わせがある場合は後で手動で修正する
-//           if (0 < townsByCities.length && !!normalizedTownName) {
-//             // dbFieldにzipcodeカラムとaddressカラムが存在する場合は、town_idを取得する
-//             const dbFieldsArray = Array.from(columnMap.values());
-//             if (
-//               dbFieldsArray.includes("address") &&
-//               dbFieldsArray.includes("zipcode") &&
-//               Object.hasOwn(processedRow, "zipcode") &&
-//               !!processedRow["zipcode"]
-//             ) {
-//               // 町域データから取得した郵便番号とnormalized_nameと一致する行を取得
-//               const gotTown = townsByCities.find(
-//                 (obj) => obj.postal_code === processedRow["zipcode"] && obj.normalized_name === normalizedTownName
-//               );
-//               if (!!gotTown) {
-//                 townId = gotTown.town_id;
-//               }
-//             }
-//           }
-//           // ----------------------------------- town_idの取得 -----------------------------------ここまで
-
-//           // ----------------------------------- 🔸処理後の行に不足分のカラムを追加🔸 -----------------------------------
-//           // ○必須カラム：
-//           // ・会社名(name) => 選択・前処理済みの法人名と拠点名を結合
-//           // ・住所 => 選択済み
-//           // ・部署名(department_name) => 選択されていない場合はピリオドをセット
-//           // ・代表TEL(main_phone_number) => なくてもOK(メールやSNSのみでの営業にも対応するため)
-
-//           // columnMap: CSVカラムヘッダー名 to DBフィールド名
-//           const selectedDBFieldNamesArray = Array.from(columnMap.values());
-
-//           // ○【会社名(name)】
-//           if (!Object.hasOwn(processedRow, "corporate_name")) throw new Error(`無効な法人名: `);
-//           const _branch_name =
-//             selectedDBFieldNamesArray.includes("branch_name") && Object.hasOwn(processedRow, "branch_name")
-//               ? processedRow["branch_name"]
-//               : "";
-//           const name = (processedRow["corporate_name"] + " " + _branch_name).trim();
-
-//           let addColumns = {
-//             name: name, // 会社名(法人名 拠点名)
-//             country_id: countryId ?? null, // 国コード
-//             region_id: regionId ?? null, // 都道府県コード
-//             city_id: cityId ?? null, // 市区町村コード
-//             town_id: townId ?? null, // 町域コード
-//             street_address: streetAddress || null, // 町域名+丁目+番地(番)+号+建物名
-//           };
-
-//           // ○【部署名(department_name)】
-//           // カラムマップのvalue側のDBフィールド名の配列の中にdepartment_nameが存在しない場合はピリオドをセット
-//           if (!selectedDBFieldNamesArray.includes("department_name")) {
-//             addColumns = { ...addColumns, department_name: "." };
-//           }
-
-//           // ○【規模(ランク)(number_of_employees_class)】
-//           // number_of_employeesカラムが存在し、数字なら範囲でランク分け
-//           if (
-//             selectedDBFieldNamesArray.includes("number_of_employees") &&
-//             Object.hasOwn(processedRow, "number_of_employees")
-//           ) {
-//             const EmployeesNum = processedRow["number_of_employees"];
-//             if (EmployeesNum !== null && EmployeesNum !== undefined && typeof EmployeesNum === "number") {
-//               let numberOfEmployeeClass = null;
-//               if (0 < EmployeesNum && EmployeesNum < 50) numberOfEmployeeClass = "G";
-//               if (50 <= EmployeesNum && EmployeesNum < 100) numberOfEmployeeClass = "F";
-//               if (100 <= EmployeesNum && EmployeesNum < 200) numberOfEmployeeClass = "E";
-//               if (200 <= EmployeesNum && EmployeesNum < 300) numberOfEmployeeClass = "D";
-//               if (300 <= EmployeesNum && EmployeesNum < 500) numberOfEmployeeClass = "C";
-//               if (500 <= EmployeesNum && EmployeesNum < 1000) numberOfEmployeeClass = "B";
-//               if (1000 <= EmployeesNum) numberOfEmployeeClass = "A";
-//               addColumns = { ...addColumns, number_of_employees_class: numberOfEmployeeClass };
-//             }
-//           }
-
-//           const responseRow = { ...processedRow, ...addColumns };
-//           // ----------------------------------- 🔸処理後の行に不足分のカラムを追加🔸 -----------------------------------ここまで
-
-//           // 🔸mapイテレーションの結果として前処理完了後の行をリターン
-//           return responseRow;
-//         } catch (error) {
-//           // エラーが発生した場合は、その行は無効としてnullを返し最終的にfilter()で無効な行は取り除きインサート対象から除外する
-//           console.log("Worker: transformData関数エラー 無効な行のためスルー", error);
-
-//           // 🔸mapイテレーションの結果として無効な行はnullをリターン
-//           return null;
-//         }
-//       })
-//       .filter((row) => row !== null); // 無効な行として扱われたnullの行を削除
-
-//     // 🔸アップロードされたCSVデータの全ての行の前処理完了 => クライアントサイドに処理済みデータを返すとともに完了を通知
-//     const responseMessageData = { type: "complete", processedData: processedData };
-//     console.log("✅Worker: Message posted to main thread. responseMessageData: ", responseMessageData);
-//     self.postMessage(responseMessageData);
-//     // self.postMessage({ processedData });
-//   } catch (error) {
-//     console.log("❌Worker: エラー", error.message);
-//     self.postMessage({ type: "error", error: `Worker側でエラーが発生しました。` });
-//   }
-// };
-
-// // 🔸onerrorイベントリスナー
-// // self.onerrorはWorker自体内で、自身が発生させたエラーを処理するのに適しています。
-// // Worker内でself.onerror()を使用すると、Worker内部で発生したエラーをWorker自身で捕捉し、特定のエラーログを記録したり、エラーに応じて特定の回復処理を行ったりすることができます。これはWorkerが自己完結型でエラー処理を行いたい場合に有効です。
-// self.onerror = function (event) {
-//   // メインスレッドへの伝搬を阻止 => メインスレッドとWorker側で同時にonerrorイベントが実行されないようにするため
-//   event.preventDefault();
-
-//   // エラー詳細を処理
-//   console.error("❌Worker onerror: ", event.message);
-
-//   // メインスレッドにエラー情報を送信
-//   self.postMessage({
-//     type: `error`,
-//     error: event,
-//   });
-// };
-
-// ----------------------------------- 🌠Web Worker Script🌠-----------------------------------ここまで

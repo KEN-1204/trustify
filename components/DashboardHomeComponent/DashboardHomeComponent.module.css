@@ -99,6 +99,11 @@
   font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
   font-family: sans-serif, "Hiragino Sans", Roboto, system-ui;
 }
+.title_area {
+}
+.contents_area {
+}
+
 .back_icon {
   position: absolute;
   z-index: 0;
@@ -195,16 +200,26 @@
     transform: rotate(-12deg) translate(0);
   }
 }
+.contents_area .contents_wrapper {
+  -webkit-box-reflect: below 0 linear-gradient(transparent, transparent, transparent, #00000012, #00000036);
+}
 
 .content_card {
   /* background: #1e1f22; discord */
   background: var(--color-bg-sub-re);
   cursor: pointer;
   backdrop-filter: blur(6px);
+  font-size: 13px;
+  /* box-shadow: 0 0 0 1px transparent; */
+  /* transition: transform 0.5s ease, background-color 0.5s ease, box-shadow 0.5s ease; */
 }
 .content_card:hover {
   background: var(--color-bg-sub-re-hover);
-  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+
+  /* box-shadow: 0px 0px 0px 1px var(--color-bg-brand-f), 0 1px 9px 3px #cccccc56; */
+  /* box-shadow: 0px 0px 0px 1px var(--color-bg-brand-f), 0 1px 9px 2px #00000060; */
+  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f); */
+  box-shadow: var(--color-home-card-box-shadow);
 }
 /* text-[var(--color-text-brand-f)] */
 .content_card:hover .right_arrow {
