@@ -35,7 +35,7 @@ type Props = {
   detailsTransform: {
     capital: "default" | "million";
   };
-  setExcludedErrorData: Dispatch<SetStateAction<{ [key: string]: { [key: string]: number[] } } | null>>;
+  setRemovedErrorData: Dispatch<SetStateAction<{ [key: string]: { [key: string]: number[] } } | null>>;
   setProcessedRowCount: Dispatch<SetStateAction<number>>;
 };
 
@@ -50,7 +50,7 @@ export const DataProcessWorker = ({
   setProgress,
   setProcessingName,
   detailsTransform,
-  setExcludedErrorData,
+  setRemovedErrorData,
   setProcessedRowCount,
 }: Props) => {
   // チャンク分割数と現在処理中のチャンク番号 (チャンク番号はカウントの保持のみで更新時にUIを再描画する必要はないためuseRefで管理)
@@ -225,7 +225,7 @@ export const DataProcessWorker = ({
             allErrorMessages
           );
           setProcessedData(allProcessedData);
-          setExcludedErrorData(allErrorMessages); // 除外されたエラーデータを格納
+          setRemovedErrorData(allErrorMessages); // 除外されたエラーデータを格納
           setProcessingName("ready_bulk_insert"); // バルクインサート準備完了
         }
       }

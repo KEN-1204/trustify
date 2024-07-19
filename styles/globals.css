@@ -3375,6 +3375,25 @@ textarea {
 
 /* モーダル共通 ここまで */
 
+/* line_clamp line-clamp ラインクランプ 3点リーダー */
+.line_clamp {
+  overflow-y: hidden;
+  display: -webkit-inline-box;
+  -webkit-box-orient: vertical;
+}
+.line_clamp.line2 {
+  -webkit-line-clamp: 2;
+}
+.line_clamp.line3 {
+  -webkit-line-clamp: 3;
+}
+.line_clamp.line4 {
+  -webkit-line-clamp: 4;
+}
+.line_clamp.line5 {
+  -webkit-line-clamp: 5;
+}
+
 /* クリア オーバーレイ absolute z-indexは個別につける */
 .clear_overlay_absolute {
   position: absolute;

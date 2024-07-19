@@ -31,6 +31,7 @@ import { ProgressCircleIncrement } from "@/components/Parts/Charts/ProgressCircl
 import { DotsLoaderBounceF } from "@/components/Parts/Loaders/LoaderDotsBounce/LoaderDotsBounce";
 import { AnimeCheck, AnimeChecking, AnimeUploading } from "@/components/assets/Animations";
 import { TestDataProcessWorker } from "./DataProcessWorker/TestDataProcessWorker";
+import { RemoveDetailModal } from "./DetailModal/RemoveDetailModal";
 
 const ImportModalMemo = () => {
   // 環境変数でデバッグ/本番モードを切り替え 'true'の場合はconsole.log()を表示し、本番環境(false)では最低限のconsole.logを表示
@@ -184,11 +185,9 @@ const ImportModalMemo = () => {
   // 🔸データ前処理完了後の一括インサート用データ
   const [transformProcessedData, setTransformProcessedData] = useState<any[]>([]);
   // 🔸データ前処理完了後の除外されたデータのエラー理由と行番号
-  const [excludedErrorData, setExcludedErrorData] = useState<{ [key: string]: { [key: string]: number[] } } | null>(
-    null
-  ); // { CSVカラムヘッダー名: { エラー理由: [1, 3, 9...行番号] } }
+  const [removedErrorData, setRemovedErrorData] = useState<{ [key: string]: { [key: string]: number[] } } | null>(null); // { CSVカラムヘッダー名: { エラー理由: [1, 3, 9...行番号] } }
   // 除外された行と理由の詳細確認モーダル
-  const [isOpenExcludeDetailModal, setIsOpenExcludeDetailModal] = useState(false);
+  const [isOpenRemoveDetailModal, setIsOpenRemoveDetailModal] = useState(false);
   // 🔸データ前処理時の各カラムごとの詳細設定 資本金の入力値が円単位 or 万円単位 で変換が必要かどうかなど
   const [detailsTransform, setDetailsTransform] = useState<{
     capital: "default" | "million";
@@ -1107,31 +1106,9 @@ const ImportModalMemo = () => {
       {/* モーダルオーバーレイ z-index: 500 */}
       {!isSmallWindow && <div className={`modal_overlay`} onClick={handleCancel} />}
 
-      {isOpenExcludeDetailModal && (
+      {isOpenRemoveDetailModal && (
         <>
-          {/* 除外詳細モーダルオーバーレイ z-index: 1500; */}
-          <div className={`fixed inset-0 z-[1500]`} onClick={() => setIsOpenExcludeDetailModal(false)} />
-          {/* 除外詳細モーダル z-index: 2000; */}
-          <div className={`${styles.modal_container} fade03 text-[var(--color-text-title)]`} style={{ zIndex: 2000 }}>
-            <button
-              type="button"
-              className={`flex-center absolute right-[24px] top-[22px] z-[100] h-[32px] w-[32px] cursor-pointer rounded-full text-[24px] hover:text-[#999]`}
-              onClick={() => setIsOpenExcludeDetailModal(false)}
-            >
-              <MdClose className="pointer-events-none" />
-            </button>
-
-            {/* 保存・タイトル・キャンセルエリア */}
-            <div
-              className={`${styles.title_area} fade08_forward flex h-auto w-full flex-col rounded-t-[9px] p-[24px] pb-[12px]`}
-            >
-              <div className={`mb-[15px] flex h-auto w-full min-w-max items-center`}>
-                <div className={`mr-[20px] min-h-[36px] min-w-max text-[21px] font-bold`}>
-                  <span>データ変換処理 結果詳細</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <RemoveDetailModal setIsOpenRemoveDetailModal={setIsOpenRemoveDetailModal} />
         </>
       )}
 
@@ -2056,7 +2033,7 @@ const ImportModalMemo = () => {
                               className={`cursor-pointer hover:text-[var(--color-text-brand-f)]`}
                               onClick={() => {
                                 if (false) return; // 除外された行が存在しない場合はリターン
-                                setIsOpenExcludeDetailModal(true);
+                                setIsOpenRemoveDetailModal(true);
                               }}
                             >
                               詳細を見る
@@ -2446,7 +2423,7 @@ const ImportModalMemo = () => {
             setProgress={setProgressProcessing}
             setProcessingName={setProcessingName}
             detailsTransform={detailsTransform}
-            setExcludedErrorData={setExcludedErrorData}
+            setRemovedErrorData={setRemovedErrorData}
             setProcessedRowCount={setProcessedRowCount}
           />
         )}
