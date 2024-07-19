@@ -130,7 +130,7 @@ const ImportModalMemo = () => {
   };
   // ----------------------------------------------
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(3);
   // -------------------------- ステップ1 「CSVのパース・解析」用state --------------------------
   // 🔸パース後のCSVデータ配列 result.data
   // => 1000以上は10000個ずつの配列を配列に格納した出力される:
@@ -187,6 +187,8 @@ const ImportModalMemo = () => {
   const [excludedErrorData, setExcludedErrorData] = useState<{ [key: string]: { [key: string]: number[] } } | null>(
     null
   ); // { CSVカラムヘッダー名: { エラー理由: [1, 3, 9...行番号] } }
+  // 除外された行と理由の詳細確認モーダル
+  const [isOpenExcludeDetailModal, setIsOpenExcludeDetailModal] = useState(false);
   // 🔸データ前処理時の各カラムごとの詳細設定 資本金の入力値が円単位 or 万円単位 で変換が必要かどうかなど
   const [detailsTransform, setDetailsTransform] = useState<{
     capital: "default" | "million";
@@ -1102,10 +1104,38 @@ const ImportModalMemo = () => {
 
   return (
     <>
-      {/* モーダルオーバーレイ */}
+      {/* モーダルオーバーレイ z-index: 500 */}
       {!isSmallWindow && <div className={`modal_overlay`} onClick={handleCancel} />}
 
-      {/* モーダルコンテナ */}
+      {isOpenExcludeDetailModal && (
+        <>
+          {/* 除外詳細モーダルオーバーレイ z-index: 1500; */}
+          <div className={`fixed inset-0 z-[1500]`} onClick={() => setIsOpenExcludeDetailModal(false)} />
+          {/* 除外詳細モーダル z-index: 2000; */}
+          <div className={`${styles.modal_container} fade03 text-[var(--color-text-title)]`} style={{ zIndex: 2000 }}>
+            <button
+              type="button"
+              className={`flex-center absolute right-[24px] top-[22px] z-[100] h-[32px] w-[32px] cursor-pointer rounded-full text-[24px] hover:text-[#999]`}
+              onClick={() => setIsOpenExcludeDetailModal(false)}
+            >
+              <MdClose className="pointer-events-none" />
+            </button>
+
+            {/* 保存・タイトル・キャンセルエリア */}
+            <div
+              className={`${styles.title_area} fade08_forward flex h-auto w-full flex-col rounded-t-[9px] p-[24px] pb-[12px]`}
+            >
+              <div className={`mb-[15px] flex h-auto w-full min-w-max items-center`}>
+                <div className={`mr-[20px] min-h-[36px] min-w-max text-[21px] font-bold`}>
+                  <span>データ変換処理 結果詳細</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* モーダルコンテナ z-index: 1000; */}
       <div
         ref={modalContainerRef}
         className={`${styles.modal_container} fade03 text-[var(--color-text-title)] ${
@@ -1997,6 +2027,50 @@ const ImportModalMemo = () => {
                         </div>
                       </>
                     )} */}
+
+                    <div className={`${styles.file_upload_box} flex-center h-full w-full flex-col`}>
+                      <div className={`mb-[6px] mt-[-60px]`}>
+                        <BsCheck2 className="fade08_forward pointer-events-none stroke-1 text-[120px] text-[var(--bright-green)]" />
+                      </div>
+                      <h2 className={`flex flex-col items-center text-[16px] text-[var(--color-text-sub)]`}>
+                        <span>{language === "ja" ? "CSVデータの一括インポート準備が完了しました！" : ``}</span>
+                        <div
+                          className={`mb-[9px] mt-[13px] flex w-full min-w-[360px] items-center justify-center space-x-[9px] whitespace-nowrap text-[15px] font-bold text-[var(--color-text-title)]`}
+                        >
+                          <span>{(99997).toLocaleString()}行</span>
+                          <span>/</span>
+                          {/* <span>{uploadedData.length.toLocaleString()}行</span> */}
+                          <span>{(100000).toLocaleString()}行</span>
+                          <span>処理完了</span>
+                        </div>
+                        {true && (
+                          <div
+                            className={`flex w-full min-w-[360px] items-center justify-center whitespace-nowrap text-[13px] font-bold text-[var(--color-text-sub)]`}
+                          >
+                            <div className={`flex-center mr-[20px] space-x-[6px]`}>
+                              <span>削除された行数</span>
+                              <span>:</span>
+                              <span>{3}行</span>
+                            </div>
+                            <span
+                              className={`cursor-pointer hover:text-[var(--color-text-brand-f)]`}
+                              onClick={() => {
+                                if (false) return; // 除外された行が存在しない場合はリターン
+                                setIsOpenExcludeDetailModal(true);
+                              }}
+                            >
+                              詳細を見る
+                            </span>
+                          </div>
+                        )}
+                        <div
+                          className={`transition-bg02 brand_btn_active flex-center mb-[-30px] mt-[18px] space-x-[5px] rounded-[6px] px-[15px] py-[6px] text-[14px]`}
+                          onClick={handleCloseModal}
+                        >
+                          <span>一括インポートを始める</span>
+                        </div>
+                      </h2>
+                    </div>
 
                     {processingName === "transforming" && (
                       <>

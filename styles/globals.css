@@ -4122,6 +4122,19 @@ textarea {
 /* ------------------ ✅datePickerスタイル✅ ------------------ */
 
 /* ------------------ 🌟カレンダー🌟 ------------------ */
+.fc-toolbar-chunk {
+  min-width: 250px;
+}
+.fc-toolbar-chunk:nth-of-type(2) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.fc-toolbar-chunk:nth-of-type(3) {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
 .fc-button {
   background-color: var(--color-bg-brand-sube0) !important;
   border-color: var(--color-border-deep) !important;
